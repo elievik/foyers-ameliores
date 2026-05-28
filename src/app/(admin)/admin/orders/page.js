@@ -1,32 +1,112 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminOrders() {
+  const router = useRouter();
   const [showHimalayenForm, setShowHimalayenForm] = useState(false);
   const [showAsutoForm, setShowAsutoForm] = useState(false);
-  const orders = [
-    { id: '#842', client: 'Amavi Batchassi', city: 'Lomé', model: 'Himalayen', qty: 5, status: 'En cours', color: 'text-green-600' },
-    { id: '#841', client: 'Essivi Kpodar', city: 'Atakpamé', model: 'Asuto', qty: 12, status: 'Livré', color: 'text-primary' },
-    { id: '#840', client: 'Michel Sambo', city: 'Kara', model: 'Himalayen', qty: 2, status: 'En attente', color: 'text-on-surface-variant' },
-    { id: '#839', client: 'Komi Dogbé', city: 'Tsevié', model: 'Asuto', qty: 50, status: 'Confirmé', color: 'text-secondary' },
-  ];
+  const [himalayenForm, setHimalayenForm] = useState({});
+  const [asutoForm, setAsutoForm] = useState({});
+  const [himalayenList, setHimalayenList] = useState([]);
+  const [asutoList, setAsutoList] = useState([]);
 
-  const handleHimalayenSubmit = (e) => {
+  // Check login status first
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) {
+      router.push('/login');
+    }
+  }, [router]);
+
+  // Charger les données au démarrage
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [himalayenRes, asutoRes] = await Promise.all([
+          fetch('http://127.0.0.1:8000/api/orders/himalayen'),
+          fetch('http://127.0.0.1:8000/api/orders/asuto')
+        ]);
+        setHimalayenList(await himalayenRes.json());
+        setAsutoList(await asutoRes.json());
+      } catch (error) {
+        console.error('Erreur chargement:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleHimalayenSubmit = async (e) => {
     e.preventDefault();
-    alert('Inscription Himalayen enregistrée avec succès !');
-    setShowHimalayenForm(false);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/orders/himalayen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(himalayenForm),
+      });
+      if (response.ok) {
+        alert('Inscription Himalayen enregistrée avec succès !');
+        setShowHimalayenForm(false);
+        setHimalayenForm({});
+        // Recharger la liste
+        const res = await fetch('http://127.0.0.1:8000/api/orders/himalayen');
+        setHimalayenList(await res.json());
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+    }
   };
 
-  const handleAsutoSubmit = (e) => {
+  const handleAsutoSubmit = async (e) => {
     e.preventDefault();
-    alert('Vente Asuto enregistrée avec succès !');
-    setShowAsutoForm(false);
+    try {
+      const asutoData = {
+        ...asutoForm,
+        prix_unitaire: 2500
+      };
+      const response = await fetch('http://127.0.0.1:8000/api/orders/asuto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(asutoData),
+      });
+      if (response.ok) {
+        alert('Vente Asuto enregistrée avec succès !');
+        setShowAsutoForm(false);
+        setAsutoForm({});
+        // Recharger la liste
+        const res = await fetch('http://127.0.0.1:8000/api/orders/asuto');
+        setAsutoList(await res.json());
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+    }
   };
 
   const handleExportOrders = () => {
-    // Générer CSV des commandes
+    // Fusionner les deux listes pour l'export
+    const allOrders = [
+      ...himalayenList.map(h => ({
+        id: `#${h.id}`,
+        client: `${h.nom} ${h.prenoms}`,
+        city: h.ville_commune,
+        model: 'Himalayen',
+        qty: 1,
+        status: 'En cours',
+        color: 'text-green-600'
+      })),
+      ...asutoList.map(a => ({
+        id: `#${a.id}`,
+        client: `${a.nom} ${a.prenoms}`,
+        city: a.ville,
+        model: 'Asuto',
+        qty: a.quantite,
+        status: 'En cours',
+        color: 'text-primary'
+      }))
+    ];
+    
     const csvContent = `ID,Client,Ville,Modèle,Quantité,Status
-${orders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.status}`).join('\n')}
+${allOrders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.status}`).join('\n')}
 `;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -38,6 +118,27 @@ ${orders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.status}
     link.click();
     document.body.removeChild(link);
   };
+
+  const orders = [
+    ...himalayenList.map(h => ({
+      id: `#${h.id}`,
+      client: `${h.nom} ${h.prenoms}`,
+      city: h.ville_commune,
+      model: 'Himalayen',
+      qty: 1,
+      status: 'En cours',
+      color: 'text-green-600'
+    })),
+    ...asutoList.map(a => ({
+      id: `#${a.id}`,
+      client: `${a.nom} ${a.prenoms}`,
+      city: a.ville,
+      model: 'Asuto',
+      qty: a.quantite,
+      status: 'En cours',
+      color: 'text-primary'
+    }))
+  ];
 
   return (
     <>
@@ -166,53 +267,108 @@ ${orders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.status}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Nom</label>
-                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Nom" />
+                  <input 
+                    required 
+                    name="nom"
+                    onChange={(e) => setHimalayenForm({...himalayenForm, nom: e.target.value})}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Nom" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Prénoms</label>
-                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Prénoms" />
+                  <input 
+                    required 
+                    name="prenoms"
+                    onChange={(e) => setHimalayenForm({...himalayenForm, prenoms: e.target.value})}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Prénoms" 
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Sexe</label>
-                  <select required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all">
-                    <option>Masculin</option>
-                    <option>Féminin</option>
+                  <select 
+                    required 
+                    name="sexe"
+                    onChange={(e) => setHimalayenForm({...himalayenForm, sexe: e.target.value})}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all"
+                  >
+                    <option value="">Sélectionner</option>
+                    <option value="Masculin">Masculin</option>
+                    <option value="Féminin">Féminin</option>
                   </select>
                 </div>
                 <div className="space-y-2">
                   <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Téléphone</label>
-                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="+228..." />
+                  <input 
+                    required 
+                    name="telephone"
+                    onChange={(e) => setHimalayenForm({...himalayenForm, telephone: e.target.value})}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="+228..." 
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Ville/Commune</label>
-                <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Ville/Commune" />
+                <input 
+                  required 
+                  name="ville_commune"
+                  onChange={(e) => setHimalayenForm({...himalayenForm, ville_commune: e.target.value})}
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                  placeholder="Ville/Commune" 
+                />
               </div>
               <div className="space-y-2">
                 <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Adresse du ménage ou village</label>
-                <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Adresse" />
+                <input 
+                  required 
+                  name="adresse_village"
+                  onChange={(e) => setHimalayenForm({...himalayenForm, adresse_village: e.target.value})}
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                  placeholder="Adresse" 
+                />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Région</label>
-                  <select required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all">
-                    <option>Savanes</option>
-                    <option>Kara</option>
-                    <option>Centrale</option>
-                    <option>Plateaux</option>
-                    <option>Maritime</option>
+                  <select 
+                    required 
+                    name="region"
+                    onChange={(e) => setHimalayenForm({...himalayenForm, region: e.target.value})}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all"
+                  >
+                    <option value="">Sélectionner</option>
+                    <option value="Savanes">Savanes</option>
+                    <option value="Kara">Kara</option>
+                    <option value="Centrale">Centrale</option>
+                    <option value="Plateaux">Plateaux</option>
+                    <option value="Maritime">Maritime</option>
                   </select>
                 </div>
                 <div className="space-y-2">
                   <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Préfecture</label>
-                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Préfecture" />
+                  <input 
+                    required 
+                    name="prefecture"
+                    onChange={(e) => setHimalayenForm({...himalayenForm, prefecture: e.target.value})}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Préfecture" 
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Date d'inscription</label>
-                <input required type="date" className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" />
+                <input 
+                  required 
+                  type="date" 
+                  name="date_inscription"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setHimalayenForm({...himalayenForm, date_inscription: e.target.value})}
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                />
               </div>
               <div className="flex gap-4 pt-4">
                 <button type="button" onClick={() => setShowHimalayenForm(false)} className="flex-1 bg-surface-container text-on-surface py-3 rounded-xl font-button">Annuler</button>
@@ -237,41 +393,89 @@ ${orders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.status}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Nom</label>
-                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Nom" />
+                  <input 
+                    required 
+                    name="nom"
+                    onChange={(e) => setAsutoForm({...asutoForm, nom: e.target.value})}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Nom" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Prénoms</label>
-                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Prénoms" />
+                  <input 
+                    required 
+                    name="prenoms"
+                    onChange={(e) => setAsutoForm({...asutoForm, prenoms: e.target.value})}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Prénoms" 
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Sexe</label>
-                  <select required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all">
-                    <option>Masculin</option>
-                    <option>Féminin</option>
+                  <select 
+                    required 
+                    name="sexe"
+                    onChange={(e) => setAsutoForm({...asutoForm, sexe: e.target.value})}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all"
+                  >
+                    <option value="">Sélectionner</option>
+                    <option value="Masculin">Masculin</option>
+                    <option value="Féminin">Féminin</option>
                   </select>
                 </div>
                 <div className="space-y-2">
                   <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Téléphone</label>
-                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="+228..." />
+                  <input 
+                    required 
+                    name="telephone"
+                    onChange={(e) => setAsutoForm({...asutoForm, telephone: e.target.value})}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="+228..." 
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Ville</label>
-                <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Ville" />
+                <input 
+                  required 
+                  name="ville"
+                  onChange={(e) => setAsutoForm({...asutoForm, ville: e.target.value})}
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                  placeholder="Ville" 
+                />
               </div>
               <div className="space-y-2">
                 <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Date de vente</label>
-                <input required type="date" className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" />
+                <input 
+                  required 
+                  type="date" 
+                  name="date_vente"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setAsutoForm({...asutoForm, date_vente: e.target.value})}
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                />
               </div>
               <div className="space-y-2">
                 <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Quantité</label>
-                <input required type="number" min="1" className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="1" />
+                <input 
+                  required 
+                  type="number" 
+                  min="1" 
+                  name="quantite"
+                  defaultValue="1"
+                  onChange={(e) => setAsutoForm({...asutoForm, quantite: e.target.value})}
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                  placeholder="1" 
+                />
               </div>
               <div className="bg-secondary/10 p-4 rounded-xl border border-secondary/20">
                 <p className="font-label-caps text-label-caps text-secondary uppercase text-xs mb-1">Total</p>
-                <p className="text-3xl font-bold text-secondary">2,500f</p>
+                <p className="text-3xl font-bold text-secondary">
+                  {((parseInt(asutoForm.quantite) || 1) * 2500).toLocaleString()}f
+                </p>
               </div>
               <div className="flex gap-4 pt-4">
                 <button type="button" onClick={() => setShowAsutoForm(false)} className="flex-1 bg-surface-container text-on-surface py-3 rounded-xl font-button">Annuler</button>

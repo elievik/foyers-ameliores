@@ -27,9 +27,20 @@ export default function LoginPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Logic for login can be added here
-    // For now, redirect to admin dashboard
-    router.push('/admin');
+    
+    // Default admin credentials
+    const ADMIN_EMAIL = 'foyer@gmail.com';
+    const ADMIN_PASSWORD = 'admin123';
+    
+    // Check credentials
+    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      // Set login state (we can use localStorage for simple persistence)
+      localStorage.setItem('isLoggedIn', 'true');
+      // Redirect to admin dashboard
+      router.push('/admin');
+    } else {
+      alert('Email ou mot de passe incorrect !');
+    }
   };
 
   return (

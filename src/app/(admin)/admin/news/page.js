@@ -1,19 +1,51 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminNews() {
+  const router = useRouter();
   const [showNewsForm, setShowNewsForm] = useState(false);
   const [showReportForm, setShowReportForm] = useState(false);
-  const [newsList, setNewsList] = useState([
-    { id: 1, title: 'Formation des ambassadeurs à Sokodé', date: '05 Oct 2023', status: 'Publié', region: 'Centrale', author: 'K. Mensah' },
-    { id: 2, title: 'Kpalimé : 1000 foyers distribués', date: '28 Sept 2023', status: 'Brouillon', region: 'Plateaux', author: 'A. Tovo' },
-    { id: 3, title: 'Impact social dans le Nord-Togo', date: '15 Sept 2023', status: 'Publié', region: 'Kara', author: 'L. Ségla' },
-    { id: 4, title: 'Nouveau centre à Dapaong', date: '10 Sept 2023', status: 'Publié', region: 'Savanes', author: 'K. Amégan' },
-  ]);
+  const [newsForm, setNewsForm] = useState({});
+  const [reportForm, setReportForm] = useState({});
 
-  const handleDeleteArticle = (id) => {
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) {
+      router.push('/login');
+    }
+  }, [router]);
+  
+  const [newsList, setNewsList] = useState([]);
+  
+  // Fetch news from backend on component mount
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/news');
+        if (res.ok) {
+          const data = await res.json();
+          setNewsList(data);
+        }
+      } catch (error) {
+        console.error('Erreur chargement des actualités:', error);
+      }
+    };
+    fetchNews();
+  }, []);
+
+  const handleDeleteArticle = async (id) => {
     if (confirm('Voulez-vous vraiment supprimer cet article ?')) {
-      setNewsList(newsList.filter(item => item.id !== id));
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/api/news/${id}`, {
+          method: 'DELETE',
+        });
+        if (res.ok) {
+          setNewsList(newsList.filter(item => item.id !== id));
+        }
+      } catch (error) {
+        console.error('Erreur suppression:', error);
+      }
     }
   };
 
@@ -22,16 +54,45 @@ export default function AdminNews() {
     // Ici, tu peux ouvrir le formulaire avec les données pré-remplies
   };
 
-  const handleNewsSubmit = (e) => {
+  const handleNewsSubmit = async (e) => {
     e.preventDefault();
-    alert('Article enregistré avec succès !');
-    setShowNewsForm(false);
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/news', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...newsForm,
+          date: newsForm.date || new Date().toISOString().split('T')[0],
+        }),
+      });
+      if (res.ok) {
+        const newArticle = await res.json();
+        setNewsList([...newsList, newArticle]);
+        alert('Article enregistré avec succès !');
+        setShowNewsForm(false);
+        setNewsForm({});
+      }
+    } catch (error) {
+      console.error('Erreur enregistrement:', error);
+    }
   };
 
-  const handleReportSubmit = (e) => {
+  const handleReportSubmit = async (e) => {
     e.preventDefault();
-    alert('Rapport enregistré avec succès !');
-    setShowReportForm(false);
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reportForm),
+      });
+      if (res.ok) {
+        alert('Rapport enregistré avec succès !');
+        setShowReportForm(false);
+        setReportForm({});
+      }
+    } catch (error) {
+      console.error('Erreur enregistrement rapport:', error);
+    }
   };
 
   return (
@@ -84,7 +145,9 @@ export default function AdminNews() {
                 <td className="px-6 py-5">
                   <span className="text-sm font-medium px-3 py-1 bg-surface-container rounded-full text-on-surface-variant">{item.region}</span>
                 </td>
-                <td className="px-6 py-5 text-sm text-on-surface-variant">{item.date}</td>
+                <td className="px-6 py-5 text-sm text-on-surface-variant">
+                  {new Date(item.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </td>
                 <td className="px-6 py-5">
                   <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase ${item.status === 'Publié' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                     {item.status}
@@ -123,22 +186,63 @@ export default function AdminNews() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Titre</label>
-                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Titre de l'article" />
+                  <input 
+                    required 
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Titre de l'article"
+                    value={newsForm.title || ''}
+                    onChange={(e) => setNewsForm({...newsForm, title: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Région</label>
-                  <select required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all">
-                    <option>Savanes</option>
-                    <option>Kara</option>
-                    <option>Centrale</option>
-                    <option>Plateaux</option>
-                    <option>Maritime</option>
+                  <select 
+                    required 
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all"
+                    value={newsForm.region || ''}
+                    onChange={(e) => setNewsForm({...newsForm, region: e.target.value})}
+                  >
+                    <option value="">Sélectionner</option>
+                    <option value="Savanes">Savanes</option>
+                    <option value="Kara">Kara</option>
+                    <option value="Centrale">Centrale</option>
+                    <option value="Plateaux">Plateaux</option>
+                    <option value="Maritime">Maritime</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Auteur</label>
+                  <input 
+                    required 
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Auteur"
+                    value={newsForm.author || ''}
+                    onChange={(e) => setNewsForm({...newsForm, author: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Statut</label>
+                  <select 
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all"
+                    value={newsForm.status || 'Brouillon'}
+                    onChange={(e) => setNewsForm({...newsForm, status: e.target.value})}
+                  >
+                    <option value="Brouillon">Brouillon</option>
+                    <option value="Publié">Publié</option>
                   </select>
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Contenu</label>
-                <textarea required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all h-40" placeholder="Contenu de l'article..." />
+                <textarea 
+                  required 
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all h-40" 
+                  placeholder="Contenu de l'article..."
+                  value={newsForm.content || ''}
+                  onChange={(e) => setNewsForm({...newsForm, content: e.target.value})}
+                />
               </div>
               <div className="space-y-2">
                 <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Image</label>

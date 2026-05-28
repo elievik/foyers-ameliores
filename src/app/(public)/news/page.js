@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,6 +8,22 @@ import Image from 'next/image';
 export default function News() {
   const [email, setEmail] = useState('');
   const router = useRouter();
+  const [newsItems, setNewsItems] = useState([]);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/news');
+        if (res.ok) {
+          const data = await res.json();
+          setNewsItems(data);
+        }
+      } catch (error) {
+        console.error('Erreur chargement des actualités:', error);
+      }
+    };
+    fetchNews();
+  }, []);
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
@@ -19,32 +35,6 @@ export default function News() {
       setEmail('');
     }
   };
-  const newsItems = [
-    {
-      region: 'Centrale',
-      date: '05 OCT 2023',
-      category: 'FORMATION',
-      title: 'Formation des ambassadeurs de l\'écologie à Sokodé',
-      description: 'Plus de 50 jeunes ont participé au programme intensif de formation sur la maintenance des foyers et la sensibilisation au reboisement.',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAE7enVUBzhRQY9kg2Rv5zWhlDnAJb9tpqLFcUKfR8q8jmDQ5FtBtSihlC8OdAQ3ESfspyeeikIPjKvoWyoH8QNUARdWk92bC8PCk7EG1qfcJf642UXOzEoXuTDHp8Pph_ozn2UmVGiAEFqPYm4h-dxUXv54StYqpvDcVWIGlJLYBvitzbmq0NjXa_EZyEM1L1oQn7-QhB2XFiJaZFoN4oGPmy2UezkSvOgVWo3tnUsI8k1mK065FtzGeYM2nBrX8g7TGisNLC1xw'
-    },
-    {
-      region: 'Plateaux',
-      date: '28 SEPT 2023',
-      category: 'DISTRIBUTION',
-      title: 'Kpalimé : 1000 foyers distribués en une semaine',
-      description: 'Le record de distribution a été battu dans la région des Plateaux grâce à notre nouveau système logistique optimisé par le numérique.',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC0EzkjIGi0C4OaUuX6OjxAcFWkgQPj1iY61l2t5iGRGU-LZusjVnBn2zB8Xx6gkVD7NLCoWZQNrvQFTPYYXSxFgnau4vthwJjsOVBV5jODFGX76Oxtd208cPsbvFtXav9EeL4bXKQJH467x98dS_TdP2t6nXGHUm9nVXFtlG73pR22qOlOx9Yd1uej0ZRgCCTnxt2UbOeT8LHgw967wjDzcr6OGu9yaAVvOPXPuiEEHlBdvH6aPMbcLOhipMnjmmcv7zJe0G4Vsg'
-    },
-    {
-      region: 'Maritime',
-      date: '15 SEPT 2023',
-      category: 'TÉMOIGNAGES',
-      title: 'Une nouvelle vie pour les familles de Baguida',
-      description: '"Mes enfants ne toussent plus dans la cuisine." Découvrez le témoignage poignant d\'Amavi, bénéficiaire du programme depuis 6 mois.',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuADGDSB1kDBKYHinhGG_WamcJ4UbJs4ahxOP13nNmzWsvTK9t5wJoY_T-xL5PcFWmqZfbBCwdZJwBy6q2tnf5ynqOgoxpPfp04e99hh1Hvmw35rUHV6soPz_l2ebt0hbE8a2VlYFEOAX8DLDX6LDnLBkbSgVt9QktaNyvYFZRo628Wnt4qoodNQ5idoQb2WEj64k3utNoEYoh1UYLSR7SmbggOORAGQQihPFKMql9koSmVDyaiuD1_xo6AFbNwyQIkmtWOAjC2PGg'
-    }
-  ];
 
   return (
     <main>
@@ -125,22 +115,26 @@ export default function News() {
       <section className="pb-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
           {newsItems.map((item, idx) => (
-            <div key={idx} className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-organic flex flex-col group h-full border border-outline-variant/30 transition-all hover:-translate-y-1">
-              <div className="h-56 overflow-hidden relative">
-                <Image alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src={item.img} fill />
-                <div className="absolute top-4 left-4 glass-card px-3 py-1 rounded-full font-label-caps text-[10px] text-primary">{item.category}</div>
+            <div key={item.id} className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-organic flex flex-col group h-full border border-outline-variant/30 transition-all hover:-translate-y-1">
+              <div className="h-56 overflow-hidden relative bg-surface-container-low flex items-center justify-center">
+                <div className="text-6xl text-primary/30">
+                  <span className="material-symbols-outlined">article</span>
+                </div>
+                <div className="absolute top-4 left-4 glass-card px-3 py-1 rounded-full font-label-caps text-[10px] text-primary">{item.status}</div>
               </div>
               <div className="p-6 flex flex-col flex-grow">
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-label-caps text-label-caps text-secondary uppercase">{item.region}</span>
-                  <span className="font-label-caps text-label-caps text-outline">{item.date}</span>
+                  <span className="font-label-caps text-label-caps text-outline">
+                    {new Date(item.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                  </span>
                 </div>
                 <h3 className="font-headline-sm text-headline-sm text-primary mb-4">{item.title}</h3>
                 <p className="font-body-md text-body-md text-on-surface-variant mb-6 line-clamp-3">
-                  {item.description}
+                  {item.content}
                 </p>
                 <div className="mt-auto">
-                  <Link href={`/news/${idx}`} className="text-primary font-button flex items-center gap-1 hover:gap-2 transition-all">
+                  <Link href={`/news/${item.id}`} className="text-primary font-button flex items-center gap-1 hover:gap-2 transition-all">
                     Lire la suite <span className="material-symbols-outlined text-[18px]">chevron_right</span>
                   </Link>
                 </div>

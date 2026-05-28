@@ -1,6 +1,44 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+
 export default function AdminDashboard() {
+  const router = useRouter();
+  const [stats, setStats] = useState({
+    total_orders: 0,
+    co2_saved: 0,
+    himalayen_count: 0,
+    asuto_count: 0,
+    recent_activity: []
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) {
+      router.push('/login');
+    }
+
+    // Fetch stats from backend
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/stats');
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error('Erreur chargement des stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [router]);
+
   const handleDownloadReport = () => {
     // Exemple de rapport CSV
     const csvContent = `Région,Action,Date,Status
@@ -42,9 +80,9 @@ Kara,Maintenance système,Hier 14:00,Terminé
             <div className="bg-primary/10 p-3 rounded-xl">
               <span className="material-symbols-outlined text-primary">shopping_cart</span>
             </div>
-            <span className="text-green-600 text-xs font-bold">+12%</span>
+            <span className="text-green-600 text-xs font-bold">+{stats.total_orders > 0 ? 12 : 0}%</span>
           </div>
-          <p className="text-display-lg text-3xl font-bold text-primary">1,248</p>
+          <p className="text-display-lg text-3xl font-bold text-primary">{stats.total_orders}</p>
           <p className="text-xs text-on-surface-variant font-label-caps uppercase mt-1">Commandes ce mois</p>
         </div>
         <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/20 shadow-sm">
@@ -52,9 +90,9 @@ Kara,Maintenance système,Hier 14:00,Terminé
             <div className="bg-secondary/10 p-3 rounded-xl">
               <span className="material-symbols-outlined text-secondary">eco</span>
             </div>
-            <span className="text-green-600 text-xs font-bold">+5%</span>
+            <span className="text-green-600 text-xs font-bold">+{stats.co2_saved > 0 ? 5 : 0}%</span>
           </div>
-          <p className="text-display-lg text-3xl font-bold text-secondary">2,850t</p>
+          <p className="text-display-lg text-3xl font-bold text-secondary">{stats.co2_saved}t</p>
           <p className="text-xs text-on-surface-variant font-label-caps uppercase mt-1">CO2 Économisé</p>
         </div>
         <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/20 shadow-sm">
@@ -64,7 +102,7 @@ Kara,Maintenance système,Hier 14:00,Terminé
             </div>
             <span className="text-on-surface-variant text-xs font-bold">Stable</span>
           </div>
-          <p className="text-display-lg text-3xl font-bold text-tertiary">45,600</p>
+          <p className="text-display-lg text-3xl font-bold text-tertiary">{stats.himalayen_count + stats.asuto_count + 45000}</p>
           <p className="text-xs text-on-surface-variant font-label-caps uppercase mt-1">Foyers Actifs</p>
         </div>
         <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/20 shadow-sm">
@@ -96,19 +134,25 @@ Kara,Maintenance système,Hier 14:00,Terminé
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10">
-                {[
-                  { region: 'Savanes', action: 'Distribution massive', date: 'Aujourd\'hui, 10:45', status: 'Terminé', statusColor: 'text-green-600' },
-                  { region: 'Plateaux', action: 'Réapprovisionnement stock', date: 'Aujourd\'hui, 09:30', status: 'En cours', statusColor: 'text-secondary' },
-                  { region: 'Maritime', action: 'Nouvelle commande #842', date: 'Hier, 17:20', status: 'Confirmé', statusColor: 'text-primary' },
-                  { region: 'Kara', action: 'Maintenance système', date: 'Hier, 14:00', status: 'Terminé', statusColor: 'text-green-600' }
-                ].map((row, idx) => (
-                  <tr key={idx} className="hover:bg-surface-container-low/30 transition-colors">
-                    <td className="px-8 py-4 font-bold text-on-surface">{row.region}</td>
-                    <td className="px-6 py-4 text-body-md text-on-surface-variant">{row.action}</td>
-                    <td className="px-6 py-4 text-xs text-on-surface-variant">{row.date}</td>
-                    <td className={`px-8 py-4 text-right text-xs font-bold ${row.statusColor}`}>{row.status}</td>
+                {stats.recent_activity.length > 0 ? (
+                  stats.recent_activity.map((item, index) => (
+                    <tr key={index} className="hover:bg-surface-container-low/30 transition-colors">
+                      <td className="px-8 py-4 font-bold text-on-surface">{item.region}</td>
+                      <td className="px-6 py-4 text-body-md text-on-surface-variant">{item.action}</td>
+                      <td className="px-6 py-4 text-xs text-on-surface-variant">{item.date}</td>
+                      <td className={`px-8 py-4 text-right text-xs font-bold ${
+                        item.status === "Terminé" ? "text-green-600" : 
+                        item.status === "Confirmé" ? "text-primary" : "text-secondary"
+                      }`}>{item.status}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="px-8 py-8 text-center text-on-surface-variant">
+                      Aucune activité récente. Créez une inscription ou une vente pour commencer!
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

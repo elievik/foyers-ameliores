@@ -1,4 +1,17 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+
 export default function AdminHeader() {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // Clear login state
+    localStorage.removeItem('isLoggedIn');
+    // Redirect to login page
+    router.push('/login');
+  };
+
   return (
     <header className="flex justify-between items-center h-16 px-8 sticky top-0 z-40 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md border-b border-outline-variant/30">
       <div className="flex items-center gap-4 flex-1">
@@ -18,6 +31,13 @@ export default function AdminHeader() {
         </button>
         <button className="text-on-surface-variant hover:text-primary transition-colors">
           <span className="material-symbols-outlined">help</span>
+        </button>
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-xl text-on-surface-variant hover:text-primary transition-colors shadow-sm"
+        >
+          <span className="material-symbols-outlined">logout</span>
+          <span className="text-xs font-bold">Déconnexion</span>
         </button>
         <div className="h-8 w-[1px] bg-outline-variant/30 mx-2"></div>
         <div className="flex items-center gap-2">

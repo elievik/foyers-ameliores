@@ -41,9 +41,21 @@ export default function Catalog() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const submitHimalayen = (e) => {
+  const submitHimalayen = async (e) => {
     e.preventDefault();
-    const message = `
+    
+    try {
+      // 1. Envoyer les données au backend
+      const response = await fetch('http://127.0.0.1:8000/api/orders/himalayen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) throw new Error('Erreur lors de l\'enregistrement');
+
+      // 2. Créer le message WhatsApp
+      const message = `
 📝 NOUVELLE INSCRIPTION - FOYER HIMALAYEN 📝
 
 👤 Nom: ${formData.nom || ''}
@@ -57,17 +69,40 @@ export default function Catalog() {
 📅 Date d'inscription: ${formData.date_inscription || new Date().toLocaleDateString('fr-FR')}
     `.trim();
 
-    openWhatsApp(message);
-    setShowHimalayenForm(false);
-    setFormData({});
+      // 3. Ouvrir WhatsApp et fermer le formulaire
+      openWhatsApp(message);
+      setShowHimalayenForm(false);
+      setFormData({});
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de l\'enregistrement. Veuillez réessayer.');
+    }
   };
 
-  const submitAsuto = (e) => {
+  const submitAsuto = async (e) => {
     e.preventDefault();
-    const quantite = formData.quantite || 1;
-    const total = parseInt(quantite) * 2500;
+    
+    try {
+      const quantite = parseInt(formData.quantite) || 1;
+      const total = quantite * 2500;
+      
+      const asutoData = {
+        ...formData,
+        quantite: quantite,
+        prix_unitaire: 2500
+      };
 
-    const message = `
+      // 1. Envoyer les données au backend
+      const response = await fetch('http://127.0.0.1:8000/api/orders/asuto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(asutoData),
+      });
+
+      if (!response.ok) throw new Error('Erreur lors de l\'enregistrement');
+
+      // 2. Créer le message WhatsApp
+      const message = `
 🛒 NOUVELLE COMMANDE - FOYER ASUTO 🛒
 
 👤 Nom: ${formData.nom || ''}
@@ -81,9 +116,14 @@ export default function Catalog() {
 💰 Total: ${total.toLocaleString()} CFA
     `.trim();
 
-    openWhatsApp(message);
-    setShowAsutoForm(false);
-    setFormData({});
+      // 3. Ouvrir WhatsApp et fermer le formulaire
+      openWhatsApp(message);
+      setShowAsutoForm(false);
+      setFormData({});
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de l\'enregistrement. Veuillez réessayer.');
+    }
   };
 
   const openWhatsApp = (message) => {
