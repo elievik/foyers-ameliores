@@ -1,10 +1,16 @@
+'use client';
 import Image from 'next/image';
+import { useState } from 'react';
 
 export default function Catalog() {
+  const [showHimalayenForm, setShowHimalayenForm] = useState(false);
+  const [showAsutoForm, setShowAsutoForm] = useState(false);
+  const [formData, setFormData] = useState({});
+
   const products = [
     {
-      name: 'Foyer Himalaya',
-      price: '15,000 CFA',
+      name: 'Foyer Himalayen',
+      price: 'Gratuit',
       type: 'Bois de Chauffe',
       typeColor: 'bg-primary',
       description: 'Le choix robuste pour les familles nombreuses. Optimisé pour une combustion lente et complète du bois, réduisant la fumée de 80%.',
@@ -16,8 +22,8 @@ export default function Catalog() {
       img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlOE1GvrVzky5IRcHpA3wspX782N5f8A94qVjHk55igzf9FIQAZ_AdfAhXHj3F_aAd5hZsJd_qUvVZhURDuu1jX07DUoqOLQEd4Phl5G2ylI9FvyKZ-hBK7cqdWJ-7kiXN7Jx5Oevx07gjf6ZTGI_lvPSrcawKgtusZiMyBZ0TVwCF7J8MmDYLj357oxdkQj5aLbiUETnmieu_8fNcIwSd8IeHfNJPjca95s8bYGxoRhtT6rGIxbWVj1tvtVayklUHZZZ5R15sKQ'
     },
     {
-      name: 'Foyer Asouton',
-      price: '12,500 CFA',
+      name: 'Foyer Asuto',
+      price: '2,500 CFA',
       type: 'Charbon de Bois',
       typeColor: 'bg-secondary-container text-on-secondary-container',
       description: 'L\'innovation portable pour les citadins. Conçu pour le charbon, il allie légèreté et performance thermique exceptionnelle.',
@@ -29,6 +35,61 @@ export default function Catalog() {
       img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDyJ8-82WrKvXEb6xSjvuLdBPKEQDOCTsMhzJQZ7WZGKe9vaNk9yd7QnBNCdza60D4JICYb72dC1RyHJeldjGMk9-h1xEGujsxNxigonoSLygwOWVDw5NMj2DK-CsLoGjBxrAQbk_SbYzEYcd-S7yHxlcZAP1lvGGc2QLKZvY8pQc1LJbPHt8tWutuAFxmtqlJdL4DxvTyHid6YJPt8nAHuppz7_sKcQoHW_4Rq1Dj8pjebu2VgFRZXZ2CQ3yi5Mil4udVSenSM1g'
     }
   ];
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const submitHimalayen = (e) => {
+    e.preventDefault();
+    const message = `
+📝 NOUVELLE INSCRIPTION - FOYER HIMALAYEN 📝
+
+👤 Nom: ${formData.nom || ''}
+👤 Prénoms: ${formData.prenoms || ''}
+⚤ Sexe: ${formData.sexe || ''}
+📞 Téléphone: ${formData.telephone || ''}
+🏘️ Ville/Commune: ${formData.ville_commune || ''}
+📍 Adresse/Village: ${formData.adresse_village || ''}
+🌍 Région: ${formData.region || ''}
+📍 Préfecture: ${formData.prefecture || ''}
+📅 Date d'inscription: ${formData.date_inscription || new Date().toLocaleDateString('fr-FR')}
+    `.trim();
+
+    openWhatsApp(message);
+    setShowHimalayenForm(false);
+    setFormData({});
+  };
+
+  const submitAsuto = (e) => {
+    e.preventDefault();
+    const quantite = formData.quantite || 1;
+    const total = parseInt(quantite) * 2500;
+
+    const message = `
+🛒 NOUVELLE COMMANDE - FOYER ASUTO 🛒
+
+👤 Nom: ${formData.nom || ''}
+👤 Prénoms: ${formData.prenoms || ''}
+⚤ Sexe: ${formData.sexe || ''}
+📞 Téléphone: ${formData.telephone || ''}
+🏘️ Ville: ${formData.ville || ''}
+📅 Date de vente: ${formData.date_vente || new Date().toLocaleDateString('fr-FR')}
+🔢 Quantité: ${quantite}
+💰 Prix unitaire: 2,500 CFA
+💰 Total: ${total.toLocaleString()} CFA
+    `.trim();
+
+    openWhatsApp(message);
+    setShowAsutoForm(false);
+    setFormData({});
+  };
+
+  const openWhatsApp = (message) => {
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/22890000000?text=${encodedMessage}`, '_blank');
+  };
 
   return (
     <main>
@@ -92,7 +153,9 @@ export default function Catalog() {
                     </div>
                   ))}
                 </div>
-                <button className="mt-auto w-full flex items-center justify-center gap-2 bg-[#25D366] text-white py-4 rounded-lg font-button text-button hover:brightness-110 transition-all">
+                <button 
+                  onClick={() => product.name.includes('Himalayen') ? setShowHimalayenForm(true) : setShowAsutoForm(true)}
+                  className="mt-auto w-full flex items-center justify-center gap-2 bg-[#25D366] text-white py-4 rounded-lg font-button text-button hover:brightness-110 transition-all">
                   <span className="material-symbols-outlined">chat</span>
                   Commander via WhatsApp
                 </button>
@@ -114,8 +177,8 @@ export default function Catalog() {
               <thead>
                 <tr className="bg-primary text-white">
                   <th className="p-6 font-headline-sm text-headline-sm">Caractéristiques</th>
-                  <th className="p-6 font-headline-sm text-headline-sm">Foyer Himalaya</th>
-                  <th className="p-6 font-headline-sm text-headline-sm">Foyer Asouton</th>
+                  <th className="p-6 font-headline-sm text-headline-sm">Foyer Himalayen</th>
+                  <th className="p-6 font-headline-sm text-headline-sm">Foyer Asuto</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant">
@@ -125,7 +188,7 @@ export default function Catalog() {
                   ['Efficacité', 'Haute (Économie 60%)', 'Excellente (Économie 50%)'],
                   ['Matériaux', 'Argile réfractaire massive', 'Céramique isolée et Inox'],
                   ['Poids', 'Fixe (Lourd)', 'Portable (Léger)'],
-                  ['Prix', '15,000 CFA', '12,500 CFA']
+                  ['Prix', 'Gratuit', '2,500 CFA']
                 ].map((row, idx) => (
                   <tr key={idx}>
                     <td className="p-6 font-bold text-primary bg-surface-container-low">{row[0]}</td>
@@ -155,6 +218,242 @@ export default function Catalog() {
           ))}
         </div>
       </section>
+
+      {/* Formulaire Himalayen */}
+      {showHimalayenForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-headline-md text-headline-md text-primary">Inscription - Foyer Himalayen</h3>
+              <button onClick={() => setShowHimalayenForm(false)} className="p-2 hover:bg-surface-container rounded-lg transition-colors">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <form onSubmit={submitHimalayen} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Nom</label>
+                  <input 
+                    name="nom"
+                    required
+                    onChange={handleInputChange}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Nom" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Prénoms</label>
+                  <input 
+                    name="prenoms"
+                    required
+                    onChange={handleInputChange}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Prénoms" 
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Sexe</label>
+                  <select 
+                    name="sexe"
+                    required
+                    onChange={handleInputChange}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all">
+                    <option value="">Sélectionner</option>
+                    <option value="Masculin">Masculin</option>
+                    <option value="Féminin">Féminin</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Téléphone</label>
+                  <input 
+                    name="telephone"
+                    required
+                    onChange={handleInputChange}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="+228..." 
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Ville/Commune</label>
+                <input 
+                  name="ville_commune"
+                  required
+                  onChange={handleInputChange}
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                  placeholder="Ville/Commune" 
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Adresse du ménage ou village</label>
+                <input 
+                  name="adresse_village"
+                  required
+                  onChange={handleInputChange}
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                  placeholder="Adresse" 
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Région</label>
+                  <select 
+                    name="region"
+                    required
+                    onChange={handleInputChange}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all">
+                    <option value="">Sélectionner</option>
+                    <option value="Savanes">Savanes</option>
+                    <option value="Kara">Kara</option>
+                    <option value="Centrale">Centrale</option>
+                    <option value="Plateaux">Plateaux</option>
+                    <option value="Maritime">Maritime</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Préfecture</label>
+                  <input 
+                    name="prefecture"
+                    required
+                    onChange={handleInputChange}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Préfecture" 
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Date d'inscription</label>
+                <input 
+                  name="date_inscription"
+                  required
+                  type="date"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                  onChange={handleInputChange}
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                />
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button type="button" onClick={() => setShowHimalayenForm(false)} className="flex-1 bg-surface-container text-on-surface py-3 rounded-xl font-button">Annuler</button>
+                <button type="submit" className="flex-1 bg-[#25D366] text-white py-3 rounded-xl font-button hover:brightness-110 flex items-center justify-center gap-2">
+                  <span className="material-symbols-outlined">chat</span>
+                  Valider et Envoyer sur WhatsApp
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Formulaire Asuto */}
+      {showAsutoForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-headline-md text-headline-md text-primary">Commande - Foyer Asuto (2,500f)</h3>
+              <button onClick={() => setShowAsutoForm(false)} className="p-2 hover:bg-surface-container rounded-lg transition-colors">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <form onSubmit={submitAsuto} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Nom</label>
+                  <input 
+                    name="nom"
+                    required
+                    onChange={handleInputChange}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Nom" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Prénoms</label>
+                  <input 
+                    name="prenoms"
+                    required
+                    onChange={handleInputChange}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Prénoms" 
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Sexe</label>
+                  <select 
+                    name="sexe"
+                    required
+                    onChange={handleInputChange}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all">
+                    <option value="">Sélectionner</option>
+                    <option value="Masculin">Masculin</option>
+                    <option value="Féminin">Féminin</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Téléphone</label>
+                  <input 
+                    name="telephone"
+                    required
+                    onChange={handleInputChange}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="+228..." 
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Ville</label>
+                <input 
+                  name="ville"
+                  required
+                  onChange={handleInputChange}
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                  placeholder="Ville" 
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Date de vente</label>
+                <input 
+                  name="date_vente"
+                  required
+                  type="date"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                  onChange={handleInputChange}
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Quantité</label>
+                <input 
+                  name="quantite"
+                  required
+                  type="number" 
+                  min="1" 
+                  defaultValue="1"
+                  onChange={handleInputChange}
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                  placeholder="1" 
+                />
+              </div>
+              <div className="bg-secondary/10 p-4 rounded-xl border border-secondary/20">
+                <p className="font-label-caps text-label-caps text-secondary uppercase text-xs mb-1">Total à payer</p>
+                <p className="text-3xl font-bold text-secondary">
+                  {(parseInt(formData.quantite) || 1) * 2500} CFA
+                </p>
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button type="button" onClick={() => setShowAsutoForm(false)} className="flex-1 bg-surface-container text-on-surface py-3 rounded-xl font-button">Annuler</button>
+                <button type="submit" className="flex-1 bg-[#25D366] text-white py-3 rounded-xl font-button hover:brightness-110 flex items-center justify-center gap-2">
+                  <span className="material-symbols-outlined">chat</span>
+                  Valider et Envoyer sur WhatsApp
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

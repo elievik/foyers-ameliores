@@ -15,7 +15,7 @@ export default function AdminSidebar() {
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 bg-surface-container dark:bg-surface-container-high shadow-sm flex flex-col py-6 z-50">
       <div className="px-6 mb-10">
-        <h1 className="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed">Foyers Améliorés</h1>
+        <h1 className="font-headline-sm text-headline-sm font-bold text-primary">Foyers Améliorés</h1>
         <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mt-1 text-[10px]">Togo Admin Panel</p>
       </div>
       <nav className="flex-1 space-y-1">

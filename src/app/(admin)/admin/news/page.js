@@ -1,10 +1,38 @@
+'use client';
+import { useState } from 'react';
+
 export default function AdminNews() {
-  const news = [
-    { title: 'Formation des ambassadeurs à Sokodé', date: '05 Oct 2023', status: 'Publié', region: 'Centrale', author: 'K. Mensah' },
-    { title: 'Kpalimé : 1000 foyers distribués', date: '28 Sept 2023', status: 'Brouillon', region: 'Plateaux', author: 'A. Tovo' },
-    { title: 'Impact social dans le Nord-Togo', date: '15 Sept 2023', status: 'Publié', region: 'Kara', author: 'L. Ségla' },
-    { title: 'Nouveau centre à Dapaong', date: '10 Sept 2023', status: 'Publié', region: 'Savanes', author: 'K. Amégan' },
-  ];
+  const [showNewsForm, setShowNewsForm] = useState(false);
+  const [showReportForm, setShowReportForm] = useState(false);
+  const [newsList, setNewsList] = useState([
+    { id: 1, title: 'Formation des ambassadeurs à Sokodé', date: '05 Oct 2023', status: 'Publié', region: 'Centrale', author: 'K. Mensah' },
+    { id: 2, title: 'Kpalimé : 1000 foyers distribués', date: '28 Sept 2023', status: 'Brouillon', region: 'Plateaux', author: 'A. Tovo' },
+    { id: 3, title: 'Impact social dans le Nord-Togo', date: '15 Sept 2023', status: 'Publié', region: 'Kara', author: 'L. Ségla' },
+    { id: 4, title: 'Nouveau centre à Dapaong', date: '10 Sept 2023', status: 'Publié', region: 'Savanes', author: 'K. Amégan' },
+  ]);
+
+  const handleDeleteArticle = (id) => {
+    if (confirm('Voulez-vous vraiment supprimer cet article ?')) {
+      setNewsList(newsList.filter(item => item.id !== id));
+    }
+  };
+
+  const handleEditArticle = (item) => {
+    alert(`Éditer l'article : ${item.title}`);
+    // Ici, tu peux ouvrir le formulaire avec les données pré-remplies
+  };
+
+  const handleNewsSubmit = (e) => {
+    e.preventDefault();
+    alert('Article enregistré avec succès !');
+    setShowNewsForm(false);
+  };
+
+  const handleReportSubmit = (e) => {
+    e.preventDefault();
+    alert('Rapport enregistré avec succès !');
+    setShowReportForm(false);
+  };
 
   return (
     <>
@@ -14,10 +42,16 @@ export default function AdminNews() {
           <h2 className="font-display-lg text-display-lg mt-2 text-primary">Actualités</h2>
           <p className="text-on-surface-variant mt-2 max-w-xl">Gérez les articles, rapports d'impact et témoignages publiés sur le site.</p>
         </div>
-        <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-button shadow-lg hover:brightness-110 transition-all active:scale-95">
-          <span className="material-symbols-outlined">add</span>
-          Nouvel Article
-        </button>
+        <div className="flex gap-4">
+          <button onClick={() => setShowReportForm(true)} className="flex items-center gap-2 px-6 py-3 bg-surface-container text-primary rounded-xl font-button shadow-lg hover:brightness-110 transition-all active:scale-95">
+            <span className="material-symbols-outlined">description</span>
+            Nouveau Rapport
+          </button>
+          <button onClick={() => setShowNewsForm(true)} className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-button shadow-lg hover:brightness-110 transition-all active:scale-95">
+            <span className="material-symbols-outlined">add</span>
+            Nouvel Article
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-outline-variant/20 overflow-hidden">
@@ -41,8 +75,8 @@ export default function AdminNews() {
             </tr>
           </thead>
           <tbody className="divide-y divide-outline-variant/10">
-            {news.map((item, idx) => (
-              <tr key={idx} className="hover:bg-surface-container-low/30 transition-colors group">
+            {newsList.map((item, idx) => (
+              <tr key={item.id} className="hover:bg-surface-container-low/30 transition-colors group">
                 <td className="px-8 py-5">
                   <p className="font-bold text-on-surface group-hover:text-primary transition-colors">{item.title}</p>
                   <p className="text-xs text-on-surface-variant">Par {item.author}</p>
@@ -58,8 +92,8 @@ export default function AdminNews() {
                 </td>
                 <td className="px-8 py-5 text-right">
                   <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"><span className="material-symbols-outlined text-xl">edit</span></button>
-                    <button className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors"><span className="material-symbols-outlined text-xl">delete</span></button>
+                    <button onClick={() => handleEditArticle(item)} className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"><span className="material-symbols-outlined text-xl">edit</span></button>
+                    <button onClick={() => handleDeleteArticle(item.id)} className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors"><span className="material-symbols-outlined text-xl">delete</span></button>
                   </div>
                 </td>
               </tr>
@@ -67,13 +101,95 @@ export default function AdminNews() {
           </tbody>
         </table>
         <div className="p-6 border-t border-outline-variant/10 flex items-center justify-between bg-surface-container-low/20">
-          <p className="text-xs text-on-surface-variant">4 articles trouvés</p>
+          <p className="text-xs text-on-surface-variant">{newsList.length} articles trouvés</p>
           <div className="flex gap-2">
             <button className="px-4 py-2 rounded-lg border border-outline-variant/30 text-xs hover:bg-surface-container transition-colors disabled:opacity-50" disabled>Précédent</button>
             <button className="px-4 py-2 rounded-lg border border-outline-variant/30 text-xs hover:bg-surface-container transition-colors disabled:opacity-50" disabled>Suivant</button>
           </div>
         </div>
       </div>
+
+      {/* Formulaire Nouvel Article */}
+      {showNewsForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-headline-md text-headline-md text-primary">Créer un Nouvel Article</h3>
+              <button onClick={() => setShowNewsForm(false)} className="p-2 hover:bg-surface-container rounded-lg transition-colors">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <form onSubmit={handleNewsSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Titre</label>
+                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Titre de l'article" />
+                </div>
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Région</label>
+                  <select required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all">
+                    <option>Savanes</option>
+                    <option>Kara</option>
+                    <option>Centrale</option>
+                    <option>Plateaux</option>
+                    <option>Maritime</option>
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Contenu</label>
+                <textarea required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all h-40" placeholder="Contenu de l'article..." />
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Image</label>
+                <div className="aspect-square rounded-2xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer">
+                  <span className="material-symbols-outlined text-3xl">add_a_photo</span>
+                  <span className="text-[10px] font-bold uppercase mt-2">Ajouter</span>
+                </div>
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button type="button" onClick={() => setShowNewsForm(false)} className="flex-1 bg-surface-container text-on-surface py-3 rounded-xl font-button">Annuler</button>
+                <button type="submit" className="flex-1 bg-primary text-white py-3 rounded-xl font-button hover:brightness-110">Enregistrer</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Formulaire Nouveau Rapport */}
+      {showReportForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-headline-md text-headline-md text-primary">Créer un Nouveau Rapport</h3>
+              <button onClick={() => setShowReportForm(false)} className="p-2 hover:bg-surface-container rounded-lg transition-colors">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <form onSubmit={handleReportSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Titre du Rapport</label>
+                <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Rapport d'impact..." />
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Description</label>
+                <textarea required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all h-40" placeholder="Description du rapport..." />
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Importer un fichier</label>
+                <div className="border-2 border-dashed border-outline-variant rounded-xl p-8 text-center cursor-pointer hover:bg-surface-container transition-colors">
+                  <span className="material-symbols-outlined text-4xl text-primary mb-2">cloud_upload</span>
+                  <p className="text-sm text-on-surface-variant">Glissez-déposez un fichier ou cliquez pour parcourir</p>
+                </div>
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button type="button" onClick={() => setShowReportForm(false)} className="flex-1 bg-surface-container text-on-surface py-3 rounded-xl font-button">Annuler</button>
+                <button type="submit" className="flex-1 bg-primary text-white py-3 rounded-xl font-button hover:brightness-110">Enregistrer</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

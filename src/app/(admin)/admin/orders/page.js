@@ -1,12 +1,43 @@
-import Image from 'next/image';
+'use client';
+import { useState } from 'react';
 
 export default function AdminOrders() {
+  const [showHimalayenForm, setShowHimalayenForm] = useState(false);
+  const [showAsutoForm, setShowAsutoForm] = useState(false);
   const orders = [
-    { id: '#842', client: 'Amavi Batchassi', city: 'Lomé', model: 'Himalaya', qty: 5, status: 'En cours', color: 'text-green-600' },
-    { id: '#841', client: 'Essivi Kpodar', city: 'Atakpamé', model: 'Asouton', qty: 12, status: 'Livré', color: 'text-primary' },
-    { id: '#840', client: 'Michel Sambo', city: 'Kara', model: 'Himalaya', qty: 2, status: 'En attente', color: 'text-on-surface-variant' },
-    { id: '#839', client: 'Komi Dogbé', city: 'Tsevié', model: 'Asouton', qty: 50, status: 'Confirmé', color: 'text-secondary' },
+    { id: '#842', client: 'Amavi Batchassi', city: 'Lomé', model: 'Himalayen', qty: 5, status: 'En cours', color: 'text-green-600' },
+    { id: '#841', client: 'Essivi Kpodar', city: 'Atakpamé', model: 'Asuto', qty: 12, status: 'Livré', color: 'text-primary' },
+    { id: '#840', client: 'Michel Sambo', city: 'Kara', model: 'Himalayen', qty: 2, status: 'En attente', color: 'text-on-surface-variant' },
+    { id: '#839', client: 'Komi Dogbé', city: 'Tsevié', model: 'Asuto', qty: 50, status: 'Confirmé', color: 'text-secondary' },
   ];
+
+  const handleHimalayenSubmit = (e) => {
+    e.preventDefault();
+    alert('Inscription Himalayen enregistrée avec succès !');
+    setShowHimalayenForm(false);
+  };
+
+  const handleAsutoSubmit = (e) => {
+    e.preventDefault();
+    alert('Vente Asuto enregistrée avec succès !');
+    setShowAsutoForm(false);
+  };
+
+  const handleExportOrders = () => {
+    // Générer CSV des commandes
+    const csvContent = `ID,Client,Ville,Modèle,Quantité,Status
+${orders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.status}`).join('\n')}
+`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'commandes.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <>
@@ -17,13 +48,9 @@ export default function AdminOrders() {
           <p className="text-on-surface-variant mt-2 max-w-xl">Supervisez les ventes en temps réel et gérez la distribution nationale.</p>
         </div>
         <div className="flex gap-4">
-          <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-high rounded-xl text-primary font-button text-button hover:bg-surface-container-highest transition-all shadow-sm active:scale-95">
+          <button onClick={handleExportOrders} className="flex items-center gap-2 px-6 py-3 bg-surface-container-high rounded-xl text-primary font-button text-button hover:bg-surface-container-highest transition-all shadow-sm active:scale-95">
             <span className="material-symbols-outlined">download</span>
             Exporter (CSV)
-          </button>
-          <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-button shadow-lg hover:brightness-110 transition-all active:scale-95">
-            <span className="material-symbols-outlined">add</span>
-            Nouvelle Commande
           </button>
         </div>
       </div>
@@ -33,8 +60,8 @@ export default function AdminOrders() {
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="font-headline-sm text-headline-sm text-primary">Himalaya</h3>
-                <p className="text-xs font-label-caps text-on-surface-variant uppercase tracking-widest">Modèle Premium</p>
+                <h3 className="font-headline-sm text-headline-sm text-primary">Himalayen</h3>
+                <p className="text-xs font-label-caps text-on-surface-variant uppercase tracking-widest">Modèle Premium (Inscription)</p>
               </div>
               <div className="bg-primary/10 p-3 rounded-2xl"><span className="material-symbols-outlined text-primary">inventory_2</span></div>
             </div>
@@ -45,18 +72,21 @@ export default function AdminOrders() {
             <div className="w-full bg-surface-container-highest rounded-full h-2 mb-2">
               <div className="bg-secondary h-2 rounded-full w-[78%]"></div>
             </div>
-            <div className="flex justify-between text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">
+            <div className="flex justify-between text-[10px] text-on-surface-variant font-bold uppercase tracking-widest mb-6">
               <span>Capacité: 1,600</span>
               <span>78% en stock</span>
             </div>
+            <button onClick={() => setShowHimalayenForm(true)} className="w-full bg-primary text-white py-3 rounded-xl font-button hover:brightness-110">
+              Nouvelle Inscription
+            </button>
           </div>
         </div>
         <div className="bg-surface-container-low rounded-3xl p-8 border border-outline-variant/10 relative overflow-hidden group shadow-sm">
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="font-headline-sm text-headline-sm text-primary">Asouton</h3>
-                <p className="text-xs font-label-caps text-on-surface-variant uppercase tracking-widest">Modèle Rural</p>
+                <h3 className="font-headline-sm text-headline-sm text-primary">Asuto</h3>
+                <p className="text-xs font-label-caps text-on-surface-variant uppercase tracking-widest">Modèle Urbain (Vente: 2500f)</p>
               </div>
               <div className="bg-error/10 p-3 rounded-2xl"><span className="material-symbols-outlined text-error">warning</span></div>
             </div>
@@ -67,10 +97,13 @@ export default function AdminOrders() {
             <div className="w-full bg-surface-container-highest rounded-full h-2 mb-2">
               <div className="bg-error h-2 rounded-full w-[28%]"></div>
             </div>
-            <div className="flex justify-between text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">
+            <div className="flex justify-between text-[10px] text-on-surface-variant font-bold uppercase tracking-widest mb-6">
               <span>Capacité: 1,600</span>
               <span className="text-error">Alerte: Stock Bas</span>
             </div>
+            <button onClick={() => setShowAsutoForm(true)} className="w-full bg-secondary text-white py-3 rounded-xl font-button hover:brightness-110">
+              Nouvelle Vente
+            </button>
           </div>
         </div>
       </div>
@@ -97,7 +130,7 @@ export default function AdminOrders() {
                   <p className="text-xs text-on-surface-variant">{order.city}</p>
                 </td>
                 <td className="px-6 py-5">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${order.model === 'Himalaya' ? 'bg-secondary-container/20 text-secondary' : 'bg-primary/10 text-primary'}`}>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${order.model === 'Himalayen' ? 'bg-secondary-container/20 text-secondary' : 'bg-primary/10 text-primary'}`}>
                     {order.model}
                   </span>
                 </td>
@@ -118,6 +151,136 @@ export default function AdminOrders() {
           </tbody>
         </table>
       </div>
+
+      {/* Formulaire Inscription Himalayen */}
+      {showHimalayenForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-headline-md text-headline-md text-primary">Inscription - Himalayen</h3>
+              <button onClick={() => setShowHimalayenForm(false)} className="p-2 hover:bg-surface-container rounded-lg transition-colors">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <form onSubmit={handleHimalayenSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Nom</label>
+                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Nom" />
+                </div>
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Prénoms</label>
+                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Prénoms" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Sexe</label>
+                  <select required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all">
+                    <option>Masculin</option>
+                    <option>Féminin</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Téléphone</label>
+                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="+228..." />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Ville/Commune</label>
+                <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Ville/Commune" />
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Adresse du ménage ou village</label>
+                <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Adresse" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Région</label>
+                  <select required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all">
+                    <option>Savanes</option>
+                    <option>Kara</option>
+                    <option>Centrale</option>
+                    <option>Plateaux</option>
+                    <option>Maritime</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Préfecture</label>
+                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Préfecture" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Date d'inscription</label>
+                <input required type="date" className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" />
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button type="button" onClick={() => setShowHimalayenForm(false)} className="flex-1 bg-surface-container text-on-surface py-3 rounded-xl font-button">Annuler</button>
+                <button type="submit" className="flex-1 bg-primary text-white py-3 rounded-xl font-button hover:brightness-110">Enregistrer</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Formulaire Vente Asuto */}
+      {showAsutoForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-headline-md text-headline-md text-primary">Vente - Asuto (2500f)</h3>
+              <button onClick={() => setShowAsutoForm(false)} className="p-2 hover:bg-surface-container rounded-lg transition-colors">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <form onSubmit={handleAsutoSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Nom</label>
+                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Nom" />
+                </div>
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Prénoms</label>
+                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Prénoms" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Sexe</label>
+                  <select required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all">
+                    <option>Masculin</option>
+                    <option>Féminin</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Téléphone</label>
+                  <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="+228..." />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Ville</label>
+                <input required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Ville" />
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Date de vente</label>
+                <input required type="date" className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" />
+              </div>
+              <div className="space-y-2">
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Quantité</label>
+                <input required type="number" min="1" className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="1" />
+              </div>
+              <div className="bg-secondary/10 p-4 rounded-xl border border-secondary/20">
+                <p className="font-label-caps text-label-caps text-secondary uppercase text-xs mb-1">Total</p>
+                <p className="text-3xl font-bold text-secondary">2,500f</p>
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button type="button" onClick={() => setShowAsutoForm(false)} className="flex-1 bg-surface-container text-on-surface py-3 rounded-xl font-button">Annuler</button>
+                <button type="submit" className="flex-1 bg-secondary text-white py-3 rounded-xl font-button hover:brightness-110">Enregistrer la Vente</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

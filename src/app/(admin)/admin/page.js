@@ -1,4 +1,25 @@
+'use client';
+
 export default function AdminDashboard() {
+  const handleDownloadReport = () => {
+    // Exemple de rapport CSV
+    const csvContent = `Région,Action,Date,Status
+Savanes,Distribution massive,Aujourd'hui 10:45,Terminé
+Plateaux,Réapprovisionnement stock,Aujourd'hui 09:30,En cours
+Maritime,Nouvelle commande #842,Hier 17:20,Confirmé
+Kara,Maintenance système,Hier 14:00,Terminé
+`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'rapport_global.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <>
       <div className="flex justify-between items-end mb-10">
@@ -8,7 +29,7 @@ export default function AdminDashboard() {
           <p className="text-on-surface-variant mt-2 max-w-xl">Bienvenue, Koffi. Voici un résumé des activités nationales pour aujourd'hui.</p>
         </div>
         <div className="flex gap-4">
-          <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-high rounded-xl text-primary font-button text-button hover:bg-surface-container-highest transition-all shadow-sm active:scale-95">
+          <button onClick={handleDownloadReport} className="flex items-center gap-2 px-6 py-3 bg-surface-container-high rounded-xl text-primary font-button text-button hover:bg-surface-container-highest transition-all shadow-sm active:scale-95">
             <span className="material-symbols-outlined">download</span>
             Rapport Global
           </button>

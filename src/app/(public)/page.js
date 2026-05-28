@@ -1,4 +1,6 @@
 import Image from 'next/image';
+import Link from 'next/link';
+
 
 export default function Home() {
   return (
@@ -67,17 +69,19 @@ export default function Home() {
               <h2 className="font-headline-md text-headline-md text-primary mb-4">L'excellence technologique locale</h2>
               <p className="font-body-md text-on-surface-variant">Conçus spécifiquement pour les foyers togolais, nos modèles allient durabilité et performance calorifique optimale.</p>
             </div>
-            <button className="flex items-center gap-2 text-primary font-button group">
-              Voir tout le catalogue <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
-            </button>
+            <Link href="/catalog">
+              <button className="flex items-center gap-2 text-primary font-button group">
+                Voir tout le catalogue <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </button>
+            </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Himalaya Model */}
+            {/* Himalayen Model */}
             <div className="group relative overflow-hidden rounded-2xl shadow-organic bg-surface border border-outline-variant/30">
               <div className="aspect-[16/10] overflow-hidden relative">
                 <Image 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                  alt="Modèle de foyer Himalaya" 
+                  alt="Modèle de foyer Himalayen" 
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUze5e26joP2hHn4jg02-IKUuQ59kEYoONxyGzvK3OfEkRUcWBt9Wnnyc4t6sUC0EeTdHa2uUuytaSKb-FT0xeVmbcmBE-779WI5IUSmI4zGD-Fjk1_UfsZOH1mVdBy9Wde-r3spaD79GRxl5mXpAQ9drNOHKj3IlyoMbZ3LH22FecQUAYr47jSh3ZLPjOk1mVkA2fVUbRyWmSLnnmLzACFizwrr1-L4vZ6QsUuk47BzTeVR-_otUCvXiz73c02mAFAr5oJPzzgA" 
                   fill
                 />
@@ -85,39 +89,10 @@ export default function Home() {
               <div className="p-8">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="font-headline-sm text-headline-sm text-primary">Himalaya</h3>
+                    <h3 className="font-headline-sm text-headline-sm text-primary">Himalayen</h3>
                     <p className="text-secondary font-label-caps uppercase text-xs font-bold tracking-widest">Efficacité Premium</p>
                   </div>
                   <span className="bg-primary-container text-on-primary-container px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Top Vente</span>
-                </div>
-                <p className="font-body-md text-on-surface-variant mb-6">Le choix idéal pour les familles urbaines. Optimisation maximale de la combustion pour le charbon de bois.</p>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center gap-2 text-primary font-semibold">
-                    <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Haute résistance thermique
-                  </li>
-                  <li className="flex items-center gap-2 text-primary font-semibold">
-                    <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Jusqu'à 50% de charbon économisé
-                  </li>
-                </ul>
-                <button className="w-full bg-primary text-on-primary py-4 rounded-lg font-button text-button hover:brightness-110 transition-all duration-300 shadow-sm">Détails du Modèle</button>
-              </div>
-            </div>
-            {/* Asouton Model */}
-            <div className="group relative overflow-hidden rounded-2xl shadow-organic bg-surface border border-outline-variant/30">
-              <div className="aspect-[16/10] overflow-hidden relative">
-                <Image 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                  alt="Modèle de foyer Asouton" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbx5WNP5KPSyH1-lkdMIV1yRznbPPyq_ws8ElMXO8pxuG90adfGrSZLKdJXRybIdTd5INylpvZl0HqvnZz1orhsiBwgOWv5gPkN1Ez73CS9edG6cHIozqKmmefF5DLQ4AM6cEu59wrtU7apNcoX1t8e5yBcFR8pmP5N8Ro55zK-DIjKXiwRKCO9h5N6wuayXA55fvRK1fVdQqadD89BTdml_swkaiBCuGtDoGWeTr19Nf9FhueNUgVJh4v3scxkGbIPjBrOfoMDw" 
-                  fill
-                />
-              </div>
-              <div className="p-8">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-headline-sm text-headline-sm text-primary">Asouton</h3>
-                    <p className="text-secondary font-label-caps uppercase text-xs font-bold tracking-widest">Champion Rural</p>
-                  </div>
                 </div>
                 <p className="font-body-md text-on-surface-variant mb-6">Conçu pour la cuisine au bois en milieu rural. Robuste, stable et incroyablement économe.</p>
                 <ul className="space-y-3 mb-8">
@@ -128,7 +103,40 @@ export default function Home() {
                     <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Zéro émission de fumée visible
                   </li>
                 </ul>
-                <button className="w-full bg-primary text-on-primary py-4 rounded-lg font-button text-button hover:brightness-110 transition-all duration-300 shadow-sm">Détails du Modèle</button>
+                <Link href="/catalog">
+                  <button className="w-full bg-primary text-on-primary py-4 rounded-lg font-button text-button hover:brightness-110 transition-all duration-300 shadow-sm">Détails du Modèle</button>
+                </Link>
+              </div>
+            </div>
+            {/* Asuto Model */}
+            <div className="group relative overflow-hidden rounded-2xl shadow-organic bg-surface border border-outline-variant/30">
+              <div className="aspect-[16/10] overflow-hidden relative">
+                <Image 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                  alt="Modèle de foyer Asuto" 
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbx5WNP5KPSyH1-lkdMIV1yRznbPPyq_ws8ElMXO8pxuG90adfGrSZLKdJXRybIdTd5INylpvZl0HqvnZz1orhsiBwgOWv5gPkN1Ez73CS9edG6cHIozqKmmefF5DLQ4AM6cEu59wrtU7apNcoX1t8e5yBcFR8pmP5N8Ro55zK-DIjKXiwRKCO9h5N6wuayXA55fvRK1fVdQqadD89BTdml_swkaiBCuGtDoGWeTr19Nf9FhueNUgVJh4v3scxkGbIPjBrOfoMDw" 
+                  fill
+                />
+              </div>
+              <div className="p-8">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="font-headline-sm text-headline-sm text-primary">Asuto</h3>
+                    <p className="text-secondary font-label-caps uppercase text-xs font-bold tracking-widest">Champion Urbain</p>
+                  </div>
+                </div>
+                <p className="font-body-md text-on-surface-variant mb-6">Le choix idéal pour les familles urbaines. Optimisation maximale de la combustion pour le charbon de bois.</p>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center gap-2 text-primary font-semibold">
+                    <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Haute résistance thermique
+                  </li>
+                  <li className="flex items-center gap-2 text-primary font-semibold">
+                    <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Jusqu'à 50% de charbon économisé
+                  </li>
+                </ul>
+                <Link href="/catalog">
+                  <button className="w-full bg-primary text-on-primary py-4 rounded-lg font-button text-button hover:brightness-110 transition-all duration-300 shadow-sm">Détails du Modèle</button>
+                </Link>
               </div>
             </div>
           </div>
@@ -193,7 +201,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="font-body-md text-on-surface-variant leading-relaxed">
-                "Depuis que nous utilisons le modèle Himalaya, je dépense moitié moins en charbon. Ma cuisine est propre, et mes enfants ne toussent plus à cause de la fumée. C'est le meilleur investissement que j'ai fait cette année."
+                "Depuis que nous utilisons le modèle Himalayen, je dépense moitié moins en bois. Ma cuisine est propre, et mes enfants ne toussent plus à cause de la fumée. C'est le meilleur investissement que j'ai fait cette année."
               </p>
             </div>
             <div className="glass-card p-10 rounded-3xl border border-outline-variant shadow-sm">
@@ -212,7 +220,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="font-body-md text-on-surface-variant leading-relaxed">
-                "L'Asouton est d'une robustesse incroyable. Nous cuisinons pour toute la famille avec très peu de bois. C'est une fierté de voir une telle technologie fabriquée et utilisée ici au Togo."
+                "L'Asuto est d'une robustesse incroyable. Nous cuisinons pour toute la famille avec très peu de charbon. C'est une fierté de voir une telle technologie fabriquée et utilisée ici au Togo."
               </p>
             </div>
           </div>
@@ -227,7 +235,9 @@ export default function Home() {
             <h2 className="font-display-lg text-display-lg-mobile md:text-display-lg text-on-primary mb-8 relative z-10">Rejoignez la révolution verte du Togo</h2>
             <p className="font-body-lg text-on-primary/80 mb-12 max-w-2xl mx-auto relative z-10">Commandez votre foyer amélioré aujourd'hui et bénéficiez de notre programme de subvention nationale.</p>
             <div className="flex flex-col md:flex-row gap-6 justify-center relative z-10">
-              <button className="bg-secondary text-on-primary px-10 py-5 rounded-xl font-button text-button shadow-organic hover:scale-105 transition-all">Commandez Maintenant</button>
+              <Link href="/catalog">
+                <button className="bg-secondary text-on-primary px-10 py-5 rounded-xl font-button text-button shadow-organic hover:scale-105 transition-all">Commandez Maintenant</button>
+              </Link>
               <button className="bg-primary-container text-on-primary px-10 py-5 rounded-xl font-button text-button border border-on-primary/20 hover:bg-on-primary-fixed-variant transition-all">Devenir Revendeur</button>
             </div>
           </div>
@@ -235,9 +245,11 @@ export default function Home() {
       </section>
 
       {/* Floating Action Button */}
-      <button className="fixed bottom-8 right-8 bg-secondary text-on-primary w-16 h-16 rounded-full flex items-center justify-center shadow-organic hover:scale-110 active:scale-95 transition-all z-40">
-        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_cart</span>
-      </button>
+      <Link href="/catalog">
+        <button className="fixed bottom-8 right-8 bg-secondary text-on-primary w-16 h-16 rounded-full flex items-center justify-center shadow-organic hover:scale-110 active:scale-95 transition-all z-40">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_cart</span>
+        </button>
+      </Link>
     </>
   );
 }

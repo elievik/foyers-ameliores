@@ -1,7 +1,24 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function News() {
+  const [email, setEmail] = useState('');
+  const router = useRouter();
+
+  const handleNewsletterSubmit = (e) => {
+    e.preventDefault();
+    if (email === 'foyer@gmail.com') {
+      router.push('/login');
+    } else {
+      // Logic for regular newsletter signup
+      alert('Merci pour votre inscription !');
+      setEmail('');
+    }
+  };
   const newsItems = [
     {
       region: 'Centrale',
@@ -192,12 +209,14 @@ export default function News() {
           <p className="font-body-lg text-body-lg text-on-surface-variant mb-10">
             Inscrivez-vous à notre newsletter mensuelle pour recevoir les dernières actualités sur l'écologie au Togo et nos rapports d'impact.
           </p>
-          <form className="flex flex-col md:flex-row gap-4">
+          <form onSubmit={handleNewsletterSubmit} className="flex flex-col md:flex-row gap-4">
             <input 
               className="flex-grow bg-surface-container-low border-transparent focus:border-primary focus:ring-0 rounded-lg p-4 font-body-md transition-all outline-none" 
               placeholder="votre@email.com" 
               required 
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
             <button className="bg-secondary text-on-secondary px-8 py-4 rounded-lg font-button text-button hover:brightness-110 transition-all shadow-md" type="submit">
               S'abonner maintenant
