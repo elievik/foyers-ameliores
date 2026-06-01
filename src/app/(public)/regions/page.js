@@ -1,53 +1,62 @@
+'use client';
+
 import Image from 'next/image';
+import { useState } from 'react';
 
 export default function Regions() {
+  const [searchQuery, setSearchQuery] = useState('');
+
   const regions = [
     {
-      name: 'Savanes',
-      distributed: '12,450',
-      icon: 'eco',
-      activity: 'Community workshop in Dapaong reached 50 households this Tuesday.',
-      quote: '"The smoke in my kitchen is gone. My children breathe better now."',
-      cite: 'Aminata, Dapaong',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAJU9ex3s_0SIeZXsaYTBweWicmDfNBJIcAiJoCbt2LUccauC0OYDk_vtwWvHQDEXVAZu2btoDTYjHgAmMWM_Enf8BTOH-hIHLpN5FHrV0zXcst9s4PgOZgqHYi5xZCjMifJ9XjT_uVxoPKPa2V1kRi5TG38TTmcK7Sq2WuZz2NbKENMDSbfK7A99ibWW_inYT4O86pnNuD8_q1IZuh6GoKBCkhHc3vfJqsjb3aPvMcPErJh9PI2pWchGu6jC7OfIvz4y1PyrK4jA'
-    },
-    {
-      name: 'Kara',
-      distributed: '9,820',
-      icon: 'forest',
-      activity: 'New distribution hub opened near the Sarakawa park to serve remote villages.',
-      quote: '"We use half the wood we used to. The forest around our village is growing back."',
-      cite: 'Koffi, Kara District',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDlaunG8xkV4zWuNyZhubthwdyNJbYMh8DCtQuTsqTTuHi0II4P4goOumdtyrFsjtPObKL33k_pvTSbPBJNmowr3SaY_ItXGE1qT2lmSexrnRiJcnxKarHQ058DXBa_qXJlXH1wvu6MUMGO-4943n8YZdMDa8z18PWXma5tVLS4D_h-5rxIzNYTjbnAc3t25DZgODm6vXD9ltUneagSFO-VIE3CBFdICTAbjpsjRBDHP-ewVkaFL76NOQJKrw9AUDCnImPJlvmR_g'
-    },
-    {
-      name: 'Centrale',
-      distributed: '7,100',
-      icon: 'agriculture',
-      activity: 'Impact assessment shows 40% reduction in respiratory illness in monitored households.',
-      quote: '"Cooking is no longer a chore that makes me cough. It\'s fast and clean."',
-      cite: 'Mazama, Sokodé',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCkc0bdlxHBCdF8n2PxfO3_EE3afy7WNf-JC11QcmpTkD3dx41zWgCtqTeUO4XdN5zXgKrh_iSFwodvdt5JuaIb71nrGFnCxh8uoWf2Grtr07fbCku8zJEZJBXDDjUCl2i8b7UpcX9STKzKIRA2XCviunPNjuG1Zk4cHWrZ6ByccipSXFNSEN1mQ8n7eKD4jnf_XKeUixu7U8vACkLoRpFHDmzFJm45YHz91MSPrIF7EYMq-UEWnBYgBQAWkdEkR46ubhz5phm1cA'
+      name: 'Maritime',
+      distributed: '0',
+      icon: 'waves',
+      activity: 'Aucune activité enregistrée',
+      quote: '',
+      cite: '',
+      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB28wVsxx6mWBwMfY8U3XmwaDWTaVHY7bM5pBKcncS3wh-IER_8fbxlnaRmKa4drB_4dmwo1HLS_vRMraIG8InmVgTaahPBcPh5g59_19cONAvenYkkb9D4Yrdw8uYV7FioGOnauEqTe29evnMNfadeuaRoVmRVcYhWcS3LGq9-QsZn6gpkmf9WxLWUzSgSIa16IOa7GZshgqf_6Z0o9Bqc2UCFvBJsx0qbPb-yVxUv7Toi5qx1vYS6-XDAxJ7VlnF0dTIcoZaFw'
     },
     {
       name: 'Plateaux',
-      distributed: '15,600',
+      distributed: '0',
       icon: 'cloud',
-      activity: 'Partnership with coffee cooperatives expanded to include 12 new villages.',
-      quote: '"Working in the plantations is easier when we spend less time gathering fuel."',
-      cite: 'Yao, Kpalimé',
+      activity: 'Aucune activité enregistrée',
+      quote: '',
+      cite: '',
       img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC5b4oMntUf_TQsSbrquIzskF0cx6QwrXDizvzCvGHftuU8HtumnAhYcOZx7101RIZqth3-fmP6pD3FXxSiTqVUArogYQnPyRzpvPF2nYAgfwLKat5gFSKlxTDZqSkhdIspNme_dIEX06w4NbImdpGk63wrCtZAuj0CnVG24DZ1mGScCSA9-GV2tBQshNJgVESVq6JN8tz87h0Tae_G59BjsvQ-sW11wpxCyY572aofeASeBOQZ7k-I-yX5zq3kxtPO5wrOFdFYeA'
     },
     {
-      name: 'Maritime',
-      distributed: '18,200',
-      icon: 'waves',
-      activity: 'Urban pilot program in Lomé showing high adoption rates among small street food vendors.',
-      quote: '"The stove is portable and powerful. It has changed my small business entirely."',
-      cite: 'Afi, Lomé Market',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB28wVsxx6mWBwMfY8U3XmwaDWTaVHY7bM5pBKcncS3wh-IER_8fbxlnaRmKa4drB_4dmwo1HLS_vRMraIG8InmVgTaahPBcPh5g59_19cONAvenYkkb9D4Yrdw8uYV7FioGOnauEqTe29evnMNfadeuaRoVmRVcYhWcS3LGq9-QsZn6gpkmf9WxLWUzSgSIa16IOa7GZshgqf_6Z0o9Bqc2UCFvBJsx0qbPb-yVxUv7Toi5qx1vYS6-XDAxJ7V5lnF0dTIcoZaFw'
+      name: 'Centrale',
+      distributed: '0',
+      icon: 'agriculture',
+      activity: 'Aucune activité enregistrée',
+      quote: '',
+      cite: '',
+      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCkc0bdlxHBCdF8n2PxfO3_EE3afy7WNf-JC11QcmpTkD3dx41zWgCtqTeUO4XdN5zXgKrh_iSFwodvdt5JuaIb71nrGFnCxh8uoWf2Grtr07fbCku8zJEZJBXDDjUCl2i8b7UpcX9STKzKIRA2XCviunPNjuG1Zk4cHWrZ6ByccipSXFNSEN1mQ8n7eKD4jnf_XKeUixu7U8vACkLoRpFHDmzFJm45YHz91MSPrIF7EYMq-UEWnBYgBQAWkdEkR46ubhz5phm1cA'
+    },
+    {
+      name: 'Kara',
+      distributed: '0',
+      icon: 'forest',
+      activity: 'Aucune activité enregistrée',
+      quote: '',
+      cite: '',
+      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDlaunG8xkV4zWuNyZhubthwdyNJbYMh8DCtQuTsqTTuHi0II4P4goOumdtyrFsjtPObKL33k_pvTSbPBJNmowr3SaY_ItXGE1qT2lmSexrnRiJcnxKarHQ058DXBa_qXJlXH1wvu6MUMGO-4943n8YZdMDa8z18PWXma5tVLS4D_h-5rxIzNYTjbnAc3t25DZgODm6vXD9ltUneagSFO-VIE3CBFdICTAbjpsjRBDHP-ewVkaFL76NOQJKrw9AUDCnImPJlvmR_g'
+    },
+    {
+      name: 'Savanes',
+      distributed: '0',
+      icon: 'eco',
+      activity: 'Aucune activité enregistrée',
+      quote: '',
+      cite: '',
+      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAJU9ex3s_0SIeZXsaYTBweWicmDfNBJIcAiJoCbt2LUccauC0OYDk_vtwWvHQDEXVAZu2btoDTYjHgAmMWM_Enf8BTOH-hIHLpN5FHrV0zXcst9s4PgOZgqHYi5xZCjMifJ9XjT_uVxoPKPa2V1kRi5TG38TTmcK7Sq2WuZz2NbKENMDSbfK7A99ibWW_inYT4O86pnNuD8_q1IZuh6GoKBCkhHc3vfJqsjb3aPvMcPErJh9PI2pWchGu6jC7OfIvz4y1PyrK4jA'
     }
   ];
+
+  const filteredRegions = regions.filter(region => 
+    region.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <main className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12">
@@ -58,6 +67,17 @@ export default function Regions() {
           <p className="text-body-lg text-on-surface-variant mb-8 max-w-2xl">
             Des savanes du Nord aux plaines côtières, notre réseau d'agents locaux et nos technologies durables transforment la façon dont le Togo cuisine. Explorez nos données régionales et les histoires de nos communautés.
           </p>
+          {/* Search Bar */}
+          <div className="relative mb-8">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+            <input 
+              type="text" 
+              placeholder="Rechercher une région..." 
+              className="w-full pl-12 pr-4 py-3 bg-surface-container rounded-xl border-none outline-none focus:ring-2 focus:ring-primary/50"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
           <div className="flex flex-wrap gap-4">
             <button className="bg-primary text-on-primary px-8 py-3 rounded-lg font-button text-button shadow-lg flex items-center gap-2 active:scale-95 transition-transform">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>assignment</span>
@@ -89,7 +109,7 @@ export default function Regions() {
 
       {/* Region Cards Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {regions.map((region) => (
+        {filteredRegions.map((region) => (
           <div key={region.name} className="group relative overflow-hidden rounded-3xl bg-surface-container-low border border-outline-variant/30 flex flex-col h-full shadow-sm hover:shadow-organic transition-all duration-300">
             <div className="h-48 overflow-hidden relative">
               <Image 
@@ -114,10 +134,12 @@ export default function Regions() {
                 <p className="font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase">Dernière activité</p>
                 <p className="text-body-md text-on-surface">{region.activity}</p>
               </div>
-              <blockquote className="italic text-body-md text-on-surface-variant border-t border-outline-variant/30 pt-4 mt-auto">
-                {region.quote}
-                <cite className="block not-italic font-bold text-primary mt-2">— {region.cite}</cite>
-              </blockquote>
+              {region.quote && (
+                <blockquote className="italic text-body-md text-on-surface-variant border-t border-outline-variant/30 pt-4 mt-auto">
+                  {region.quote}
+                  <cite className="block not-italic font-bold text-primary mt-2">— {region.cite}</cite>
+                </blockquote>
+              )}
             </div>
           </div>
         ))}
@@ -144,7 +166,7 @@ export default function Regions() {
             </div>
             <div>
               <p className="font-label-caps text-label-caps text-on-surface-variant uppercase">Impact National</p>
-              <h4 className="font-headline-sm text-headline-sm text-primary">63,170 Foyers Équipés</h4>
+              <h4 className="font-headline-sm text-headline-sm text-primary">0 Foyers Équipés</h4>
             </div>
           </div>
           <div className="h-px md:h-12 w-full md:w-px bg-outline-variant"></div>

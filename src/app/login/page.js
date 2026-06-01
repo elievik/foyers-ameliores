@@ -28,14 +28,31 @@ export default function LoginPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Default admin credentials
-    const ADMIN_EMAIL = 'foyer@gmail.com';
-    const ADMIN_PASSWORD = 'admin123';
+    // Get stored credentials or use defaults
+    const storedEmail = localStorage.getItem('adminEmail') || 'foyer@gmail.com';
+    const storedPassword = localStorage.getItem('adminPassword') || 'admin123';
     
     // Check credentials
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    if (email === storedEmail && password === storedPassword) {
       // Set login state (we can use localStorage for simple persistence)
       localStorage.setItem('isLoggedIn', 'true');
+      // Save default admin info if not already there
+      if (!localStorage.getItem('adminProfile')) {
+        localStorage.setItem('adminProfile', JSON.stringify({
+          prenom: 'Koffi',
+          nom: 'Mensah',
+          email: storedEmail
+        }));
+      } else {
+        // Update email in profile if needed
+        const existingProfile = JSON.parse(localStorage.getItem('adminProfile'));
+        if (existingProfile.email !== storedEmail) {
+          localStorage.setItem('adminProfile', JSON.stringify({
+            ...existingProfile,
+            email: storedEmail
+          }));
+        }
+      }
       // Redirect to admin dashboard
       router.push('/admin');
     } else {

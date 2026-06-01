@@ -1,14 +1,46 @@
+'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const [adminName, setAdminName] = useState('');
+
+  useEffect(() => {
+    const updateAdminName = () => {
+      const savedProfile = localStorage.getItem('adminProfile');
+      if (savedProfile) {
+        const profile = JSON.parse(savedProfile);
+        setAdminName(`${profile.prenom} ${profile.nom}`);
+      }
+    };
+    
+    // Initial load
+    updateAdminName();
+    
+    // Listen for storage changes (in case profile is updated in another tab)
+    window.addEventListener('storage', updateAdminName);
+    
+    // Custom event for profile updates
+    const handleProfileUpdate = () => updateAdminName();
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    
+    return () => {
+      window.removeEventListener('storage', updateAdminName);
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
+  }, []);
 
   const menuItems = [
     { name: 'Dashboard', icon: 'dashboard', href: '/admin' },
     { name: 'Actualités', icon: 'newspaper', href: '/admin/news' },
+    { name: 'Équipe', icon: 'group', href: '/admin/team' },
+    { name: 'Témoignages', icon: 'rate_review', href: '/admin/testimonials' },
+    { name: 'Images Produits', icon: 'photo_library', href: '/admin/product-images' },
     { name: 'Suivi Régional', icon: 'map', href: '/admin/data' },
     { name: 'Commandes', icon: 'shopping_cart', href: '/admin/orders' },
+    { name: 'Revendeurs', icon: 'group_add', href: '/admin/resellers' },
     { name: 'Paramètres', icon: 'settings', href: '/admin/settings' },
   ];
 
@@ -47,7 +79,7 @@ export default function AdminSidebar() {
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAn0IG8WnAAMCvaxYtTqN4KpAE7LVaPkE9ASyBdQbLK6kBeX3Ihn6X9D41qrMnoSDUgftYOMN6WLTYsduTEa2LrG7AdWuE_Q0o-83ZJJH587CTC0Phj04bY08DTBpW8mwrl2FDaTja9xDkoPo7CVSp2ifv7Qh31AT1qCKOGUJMmZA9Lz4eLEgNLJbISAC635X1adqTDNzGnhasXUEvjgPtb-nkUhd6IbPY1fpaPf66J_vg6vKKuwbUZ5uKJ7S5Emhfrc84BJdmVGg" 
           />
           <div className="overflow-hidden">
-            <p className="font-body-md text-body-md font-bold truncate">Koffi Mensah</p>
+            <p className="font-body-md text-body-md font-bold truncate">{adminName || 'Admin'}</p>
             <p className="text-[10px] text-on-surface-variant truncate uppercase font-label-caps">Administrateur</p>
           </div>
         </div>

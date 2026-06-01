@@ -1,6 +1,82 @@
+'use client';
+
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminSettings() {
+  const router = useRouter();
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [profileForm, setProfileForm] = useState({
+    prenom: '',
+    nom: '',
+    email: ''
+  });
+  const [notifications, setNotifications] = useState({
+    newOrders: true,
+    stockAlerts: true,
+    regionalReports: true
+  });
+
+  // Load saved profile from localStorage when component mounts
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('adminProfile');
+    if (savedProfile) {
+      setProfileForm(JSON.parse(savedProfile));
+    }
+    const savedNotifications = localStorage.getItem('adminNotifications');
+    if (savedNotifications) {
+      setNotifications(JSON.parse(savedNotifications));
+    }
+  }, []);
+
+  const handleSaveProfile = () => {
+    // Save to localStorage
+    localStorage.setItem('adminProfile', JSON.stringify(profileForm));
+    localStorage.setItem('adminNotifications', JSON.stringify(notifications));
+    // Also update the login email if changed
+    if (profileForm.email) {
+      localStorage.setItem('adminEmail', profileForm.email);
+    }
+    // Dispatch custom event to update sidebar
+    window.dispatchEvent(new CustomEvent('profileUpdated'));
+    alert('Profil et préférences sauvegardés !');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    router.push('/login');
+  };
+
+  const handlePasswordChange = (e) => {
+    e.preventDefault();
+    
+    // Get current stored password
+    const currentStoredPassword = localStorage.getItem('adminPassword') || 'admin123';
+    
+    // Check if current password matches
+    if (passwordForm.currentPassword !== currentStoredPassword) {
+      alert('Mot de passe actuel incorrect !');
+      return;
+    }
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      alert('Les nouveaux mots de passe ne correspondent pas');
+      return;
+    }
+    
+    // Save new password
+    localStorage.setItem('adminPassword', passwordForm.newPassword);
+    alert('Mot de passe mis à jour avec succès');
+    setShowPasswordModal(false);
+    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  };
+
   return (
     <>
       <div className="flex justify-between items-end mb-10">
@@ -9,7 +85,7 @@ export default function AdminSettings() {
           <h2 className="font-display-lg text-display-lg mt-2 text-primary">Paramètres</h2>
           <p className="text-on-surface-variant mt-2 max-w-xl">Gérez votre profil, vos préférences de notification et la sécurité de votre compte admin.</p>
         </div>
-        <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-button shadow-lg hover:brightness-110 transition-all active:scale-95">
+        <button onClick={handleSaveProfile} className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-button shadow-lg hover:brightness-110 transition-all active:scale-95">
           <span className="material-symbols-outlined">save</span>
           Enregistrer les changements
         </button>
@@ -36,7 +112,7 @@ export default function AdminSettings() {
               Langue & Région
             </button>
             <div className="h-px bg-outline-variant/20 my-2"></div>
-            <button className="w-full flex items-center gap-3 px-4 py-3 text-error hover:bg-error/5 rounded-xl text-left transition-colors font-bold">
+            <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-error hover:bg-error/5 rounded-xl text-left transition-colors font-bold">
               <span className="material-symbols-outlined">logout</span>
               Déconnexion
             </button>
@@ -82,16 +158,31 @@ export default function AdminSettings() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Prénom</label>
-                      <input className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none" defaultValue="Koffi" type="text" />
+                      <input 
+                        className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none" 
+                        type="text" 
+                        value={profileForm.prenom}
+                        onChange={(e) => setProfileForm({...profileForm, prenom: e.target.value})}
+                      />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Nom</label>
-                      <input className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none" defaultValue="Mensah" type="text" />
+                      <input 
+                        className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none" 
+                        type="text" 
+                        value={profileForm.nom}
+                        onChange={(e) => setProfileForm({...profileForm, nom: e.target.value})}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Adresse Email</label>
-                    <input className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none" defaultValue="k.mensah@foyers-togo.tg" type="email" />
+                    <input 
+                      className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none" 
+                      type="email" 
+                      value={profileForm.email}
+                      onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
+                    />
                   </div>
                 </div>
               </div>
@@ -112,9 +203,9 @@ export default function AdminSettings() {
             </div>
             <div className="p-8 space-y-6">
               {[
-                { title: 'Nouvelles commandes', desc: 'Recevoir une notification pour chaque nouvelle commande validée.', icon: 'shopping_cart' },
-                { title: 'Alertes de stock', desc: 'Être prévenu lorsque le stock d\'un modèle descend sous le seuil critique.', icon: 'inventory_2' },
-                { title: 'Rapports régionaux', desc: 'Notification hebdomadaire lors de la publication des rapports d\'impact.', icon: 'map' }
+                { title: 'Nouvelles commandes', desc: 'Recevoir une notification pour chaque nouvelle commande validée.', icon: 'shopping_cart', key: 'newOrders' },
+                { title: 'Alertes de stock', desc: 'Être prévenu lorsque le stock d\'un modèle descend sous le seuil critique.', icon: 'inventory_2', key: 'stockAlerts' },
+                { title: 'Rapports régionaux', desc: 'Notification hebdomadaire lors de la publication des rapports d\'impact.', icon: 'map', key: 'regionalReports' }
               ].map((pref, idx) => (
                 <div key={idx} className="flex items-center justify-between gap-6 p-4 rounded-2xl hover:bg-surface-container-low/50 transition-colors border border-transparent hover:border-outline-variant/10">
                   <div className="flex items-center gap-4">
@@ -127,7 +218,12 @@ export default function AdminSettings() {
                     </div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer" 
+                      checked={notifications[pref.key]}
+                      onChange={(e) => setNotifications({...notifications, [pref.key]: e.target.checked})}
+                    />
                     <div className="w-11 h-6 bg-surface-container rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
@@ -146,12 +242,67 @@ export default function AdminSettings() {
                 <p className="text-xs text-on-surface-variant">Dernière modification il y a 3 mois.</p>
               </div>
             </div>
-            <button className="px-6 py-2 border border-error text-error rounded-xl text-xs font-bold hover:bg-error hover:text-white transition-all">
+            <button onClick={() => setShowPasswordModal(true)} className="px-6 py-2 border border-error text-error rounded-xl text-xs font-bold hover:bg-error hover:text-white transition-all">
               Mettre à jour
             </button>
           </section>
         </div>
       </div>
+
+      {/* Modal Mot de passe */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4">
+            <div className="p-8">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-headline-md text-headline-md text-primary">Changer le mot de passe</h3>
+                <button onClick={() => setShowPasswordModal(false)} className="text-on-surface-variant hover:text-primary">
+                  <span className="material-symbols-outlined text-3xl">close</span>
+                </button>
+              </div>
+              <form onSubmit={handlePasswordChange} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block">Mot de passe actuel</label>
+                  <input 
+                    required 
+                    type="password" 
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Mot de passe actuel" 
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block">Nouveau mot de passe</label>
+                  <input 
+                    required 
+                    type="password" 
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Nouveau mot de passe" 
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block">Confirmer le nouveau mot de passe</label>
+                  <input 
+                    required 
+                    type="password" 
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
+                    placeholder="Confirmer le nouveau mot de passe" 
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                  />
+                </div>
+                <div className="flex gap-4 pt-4">
+                  <button type="button" onClick={() => setShowPasswordModal(false)} className="flex-1 bg-surface-container text-on-surface py-3 rounded-lg font-button hover:bg-surface-container-low transition-all">Annuler</button>
+                  <button type="submit" className="flex-1 bg-primary text-white py-3 rounded-lg font-button hover:brightness-110 transition-all">Mettre à jour</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

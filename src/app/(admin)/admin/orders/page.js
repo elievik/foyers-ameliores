@@ -167,15 +167,8 @@ ${allOrders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.stat
               <div className="bg-primary/10 p-3 rounded-2xl"><span className="material-symbols-outlined text-primary">inventory_2</span></div>
             </div>
             <div className="mb-4">
-              <span className="text-5xl font-bold text-secondary">1,248</span>
-              <span className="text-on-surface-variant font-body-md ml-2">unités</span>
-            </div>
-            <div className="w-full bg-surface-container-highest rounded-full h-2 mb-2">
-              <div className="bg-secondary h-2 rounded-full w-[78%]"></div>
-            </div>
-            <div className="flex justify-between text-[10px] text-on-surface-variant font-bold uppercase tracking-widest mb-6">
-              <span>Capacité: 1,600</span>
-              <span>78% en stock</span>
+              <span className="text-5xl font-bold text-secondary">{himalayenList.length}</span>
+              <span className="text-on-surface-variant font-body-md ml-2">inscriptions</span>
             </div>
             <button onClick={() => setShowHimalayenForm(true)} className="w-full bg-primary text-white py-3 rounded-xl font-button hover:brightness-110">
               Nouvelle Inscription
@@ -189,18 +182,11 @@ ${allOrders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.stat
                 <h3 className="font-headline-sm text-headline-sm text-primary">Asuto</h3>
                 <p className="text-xs font-label-caps text-on-surface-variant uppercase tracking-widest">Modèle Urbain (Vente: 2500f)</p>
               </div>
-              <div className="bg-error/10 p-3 rounded-2xl"><span className="material-symbols-outlined text-error">warning</span></div>
+              <div className="bg-secondary/10 p-3 rounded-2xl"><span className="material-symbols-outlined text-secondary">shopping_cart</span></div>
             </div>
             <div className="mb-4">
-              <span className="text-5xl font-bold text-primary">452</span>
-              <span className="text-on-surface-variant font-body-md ml-2">unités</span>
-            </div>
-            <div className="w-full bg-surface-container-highest rounded-full h-2 mb-2">
-              <div className="bg-error h-2 rounded-full w-[28%]"></div>
-            </div>
-            <div className="flex justify-between text-[10px] text-on-surface-variant font-bold uppercase tracking-widest mb-6">
-              <span>Capacité: 1,600</span>
-              <span className="text-error">Alerte: Stock Bas</span>
+              <span className="text-5xl font-bold text-primary">{asutoList.length}</span>
+              <span className="text-on-surface-variant font-body-md ml-2">ventes</span>
             </div>
             <button onClick={() => setShowAsutoForm(true)} className="w-full bg-secondary text-white py-3 rounded-xl font-button hover:brightness-110">
               Nouvelle Vente

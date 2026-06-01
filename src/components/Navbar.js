@@ -23,6 +23,9 @@ export default function Navbar() {
           <Link href="/news" className="text-on-surface hover:text-primary transition-colors font-medium text-body-md font-body-md">
             Actualités
           </Link>
+          <Link href="/contact" className="text-on-surface hover:text-primary transition-colors font-medium text-body-md font-body-md">
+            Contact
+          </Link>
         </nav>
         <Link href="/catalog">
           <button className="bg-secondary text-on-secondary px-6 py-2 rounded-lg font-button text-button hover:brightness-110 duration-150 transition-all active:scale-95 shadow-sm">

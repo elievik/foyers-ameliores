@@ -1,13 +1,60 @@
+'use client';
+
 import Image from 'next/image';
+import { useState } from 'react';
 
 export default function Contact() {
-  const regionalOffices = [
-    { name: 'Savanes', city: 'DAPAONG', phone: '+228 90 01 01 01', address: 'Quartier Administratif', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD2s5ie3VJKTfcaIBRv0aPvUET_uXqI7_g2jGyW1IuID68lQITV2p0YkGa5wcNBl7dii3ALZygJHcvWq1XSLgyAB9xuXbDtQmC4KSu-9aB4oEbiDej7qJwedeoWD81xqv73CQ0ixg-5aia_TPu8XQHC0yf_Qbdfiy_Iywm0Oerykb1tpIHg5iTH10ndWCKU6yW95f5WyBEweTP8OOhfvccseYP2cdssBav8mIgNrlrZIc0ipyT5w7xU1mZiVW9cW6OzAs1bgc4Y4A' },
-    { name: 'Kara', city: 'KARA CITY', phone: '+228 90 02 02 02', address: 'Avenue de la Kozah', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCIZ9fmccqRuoFL1V2EPrmVBhgiqQZXjdYEZmPo5wG4738SAVkucBiFLABCAtPs_Ms0c90TqP_ON9-xaBD7t2KSS-55dFSx1RCdPKHbXPEn4t8jNHSO1PjENaAtVXK2YhtHitRC4sE_X8GX3T0DAMR6EiyQhpSBoxaIG2kdD0gBdaXju3k0zk62jTFLxeP0FVCtTx91CJXdKvCsGNBlG8QJszYI7SGlKrGPjuV6r2TPGR3RJJORGJVHoAv935XyQoN2nDW_gZ1VXg' },
-    { name: 'Centrale', city: 'SOKODÉ', phone: '+228 90 03 03 03', address: 'Route Nationale N1', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBE4Mbu1wZYXlPIQWgnaeTq3lcJZVaIcn9ZSlfZ9abz_VjQtPd8YZQfgjn2BwzEgO0vXg4j6Tf_IShbhjG-7_PYkwNTIyZgzvXW62FHaOjY-YstehnA-VIuM4KdZaWZWE9Y6oWdfnMQQ5XWDbLYGjFjVd_7QL-CBIARupd_mqYVkb1FpxgjLSpLQIi7BJczA6WJP4y4bUmz4kh03wav9nG8mWyzX82RNVAfER57Sjl2tXNHHOClbTEfLfeFNgvapQItGDXwehMRhw' },
-    { name: 'Plateaux', city: 'KPALIMÉ', phone: '+228 90 04 04 04', address: 'Près du Mont Agou', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD8STKCvvRrnXQUaNW7qPhOaBLcCFwEHJWuIUjt_iOfYdt0s7Gtr2SGFvoZ-nYnXOP94_l7RBsUtyC1gTY9QRsa0EgDTEmtBVdW6_UM4vxqBoiQjLZz_HMjfsoCyH9QDQz9vpwxOhRheBut8m2QAWMeZJ4Mp9KHKmp0D0puK0G6NXOP58StSyzYqwlw0Dp_LFHDqOzhdJ8jLYAjPUWrgZhxzTQlKMHcEm3LbbaW03kSFPbzRCAsrMFprQ2GL4ROtbQl9pkAJch2XA' },
-    { name: 'Maritime', city: 'LOMÉ', phone: '+228 90 05 05 05', address: 'Zone Industrielle', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB91CwSEJ9KGk31z0xR4sVpY-wzatgeNLqjeqfdQmeq2DD3B1DUYFHIqZd4bGdcZ1tL9bjZ9eDs8pPcOxW00xcgS8fsJhTy7Z9CieBqsCxzsCO79GE9jDeBxpu9zVMN_Vb4kb81kyl7HfzIwJumMdAwKaupzNI44M352euC5xcR5HvgK5uUN6y0fFUbAYMqS-gr6BQCBbT7icZ7a1N6AIKbKezbzBRemGsevzJJqiMAcCUwQnuMU8M-4RM0jGgSEyw5TXgx24A-9g' }
+  const [formData, setFormData] = useState({
+    nom: '',
+    email: '',
+    type: 'avis',
+    message: ''
+  });
+  const [submitted, setSubmitted] = useState(false);
+
+  const reviews = [
+    {
+      name: 'Aminata Atanlé',
+      region: 'Région Centrale',
+      type: 'Bénéficiaire',
+      rating: 5,
+      text: 'Le foyer Himalayen a changé ma vie! Je consomme beaucoup moins de bois, et mes enfants ne toussent plus pendant la cuisson.',
+      date: '15 Mai 2026'
+    },
+    {
+      name: 'Kodjo Agbeko',
+      region: 'Région des Plateaux',
+      type: 'Revendeur',
+      rating: 4,
+      text: 'Produit de qualité, et le support technique est excellent. Les clients adorent le modèle Asuto.',
+      date: '20 Avril 2026'
+    },
+    {
+      name: 'Alice Mensah',
+      region: 'Région Maritime',
+      type: 'Bénéficiaire',
+      rating: 5,
+      text: 'Très satisfait du produit et du service. Je recommande à toutes les familles!',
+      date: '10 Juin 2026'
+    }
   ];
+
+  const regionalOffices = [
+    { name: 'Maritime', city: 'LOMÉ', phone: '+228 90 05 05 05', address: 'Zone Industrielle', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB91CwSEJ9KGk31z0xR4sVpY-wzatgeNLqjeqfdQmeq2DD3B1DUYFHIqZd4bGdcZ1tL9bjZ9eDs8pPcOxW00xcgS8fsJhTy7Z9CieBqsCxzsCO79GE9jDeBxpu9zVMN_Vb4kb81kyl7HfzIwJumMdAwKaupzNI44M352euC5xcR5HvgK5uUN6y0fFUbAYMqS-gr6BQCBbT7icZ7a1N6AIKbKezbzBRemGsevzJJqiMAcCUwQnuMU8M-4RM0jGgSEyw5TXgx24A-9g' },
+    { name: 'Plateaux', city: 'KPALIMÉ', phone: '+228 90 04 04 04', address: 'Près du Mont Agou', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD8STKCvvRrnXQUaNW7qPhOaBLcCFwEHJWuIUjt_iOfYdt0s7Gtr2SGFvoZ-nYnXOP94_l7RBsUtyC1gTY9QRsa0EgDTEmtBVdW6_UM4vxqBoiQjLZz_HMjfsoCyH9QDQz9vpwxOhRheBut8m2QAWMeZJ4Mp9KHKmp0D0puK0G6NXOP58StSyzYqwlw0Dp_LFHDqOzhdJ8jLYAjPUWrgZhxzTQlKMHcEm3LbbaW03kSFPbzRCAsrMFprQ2GL4ROtbQl9pkAJch2XA' },
+    { name: 'Centrale', city: 'SOKODÉ', phone: '+228 90 03 03 03', address: 'Route Nationale N1', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBE4Mbu1wZYXlPIQWgnaeTq3lcJZVaIcn9ZSlfZ9abz_VjQtPd8YZQfgjn2BwzEgO0vXg4j6Tf_IShbhjG-7_PYkwNTIyZgzvXW62FHaOjY-YstehnA-VIuM4KdZaWZWE9Y6oWdfnMQQ5XWDbLYGjFjVd_7QL-CBIARupd_mqYVkb1FpxgjLSpLQIi7BJczA6WJP4y4bUmz4khx03wav9nG8mWyzX82RNVAfER57Sjl2tXNHHOClbTEfLfeFNgvapQItGDXwehMRhw' },
+    { name: 'Kara', city: 'KARA CITY', phone: '+228 90 02 02 02', address: 'Avenue de la Kozah', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCIZ9fmccqRuoFL1V2EPrmVBhgiqQZXjdYEZmPo5wG4738SAVkucBiFLABCAtPs_Ms0c90TqP_ON9-xaBD7t2KSS-55dFSx1RCdPKHbXPEn4t8jNHSO1PjENaAtVXK2YhtHitRC4sE_X8GX3T0DAMR6EiyQhpSBoxaIG2kdD0gBdaXju3k0zk62jTFLxeP0FVCtTx91CJXdKvCsGNBlG8QJszYI7SGlKrGPjuV6r2TPGR3RJJORGJVHoAv935XyQoN2nDW_gZ1VXg' },
+    { name: 'Savanes', city: 'DAPAONG', phone: '+228 90 01 01 01', address: 'Quartier Administratif', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD2s5ie3VJKTfcaIBRv0aPvUET_uXqI7_g2jGyW1IuID68lQITV2p0YkGa5wcNBl7dii3ALZygJHcvWq1XSLgyAB9xuXbDtQmC4KSu-9aB4oEbiDej7qJwedeoWD81xqv73CQ0ixg-5aia_TPu8XQHC0yf_Qbdfiy_Iywm0Oerykb1tpIHg5iTH10ndWCKu6yW95f5WyBEweTP8OOhfvccseYP2cdssBav8mIgNrlrZIc0ipyT5w7xU1mZiVW9cW6OzAs1bgc4Y4A' }
+  ];
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSubmitted(true);
+    setTimeout(() => {
+      setSubmitted(false);
+      setFormData({ nom: '', email: '', type: 'avis', message: '' });
+    }, 3000);
+  };
 
   return (
     <main>
@@ -31,43 +78,84 @@ export default function Contact() {
 
       {/* Main Interaction Area */}
       <section className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop -mt-12 mb-24 grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-        {/* Contact Form */}
-        <div className="lg:col-span-7 bg-white p-8 md:p-12 rounded-xl shadow-organic border border-outline-variant/30">
-          <h2 className="font-headline-md text-headline-md text-tertiary mb-8">Envoyez un message</h2>
-          <form className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex flex-col space-y-2">
-                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase">Nom Complet</label>
-                <input className="bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all text-body-md outline-none" placeholder="Ex: Koffi Mensah" type="text"/>
+        {/* Contact Form & Reviews */}
+        <div className="lg:col-span-7 space-y-12">
+          {/* Contact Form */}
+          <div className="bg-white p-8 md:p-12 rounded-xl shadow-organic border border-outline-variant/30">
+            <h2 className="font-headline-md text-headline-md text-tertiary mb-8">Envoyez un message</h2>
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase">Nom Complet</label>
+                  <input className="bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all text-body-md outline-none" placeholder="Ex: Koffi Mensah" type="text" value={formData.nom} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} required />
+                </div>
+                <div className="flex flex-col space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase">Email</label>
+                  <input className="bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all text-body-md outline-none" placeholder="koffi@example.tg" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase">Téléphone</label>
+                  <input className="bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all text-body-md outline-none" placeholder="+228 00 00 00 00" type="tel"/>
+                </div>
+                <div className="flex flex-col space-y-2">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase">Type de message</label>
+                  <select className="bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all text-body-md outline-none appearance-none" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}>
+                    <option value="avis">Avis sur le produit</option>
+                    <option value="suggestion">Suggestion</option>
+                    <option value="temoignage">Témoignage</option>
+                    <option value="autre">Autre</option>
+                  </select>
+                </div>
               </div>
               <div className="flex flex-col space-y-2">
-                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase">Email</label>
-                <input className="bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all text-body-md outline-none" placeholder="koffi@example.tg" type="email"/>
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase">Message</label>
+                <textarea className="bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all text-body-md outline-none" placeholder="Comment pouvons-nous vous aider ?" rows="5" value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} required ></textarea>
               </div>
+              {submitted ? (
+                <div className="text-center py-6 bg-secondary/10 rounded-lg">
+                  <h3 className="font-headline-sm text-primary mb-2">Merci pour votre message!</h3>
+                  <p className="text-body-md text-on-surface-variant">Nous reviendrons vers vous très bientôt.</p>
+                </div>
+              ) : (
+                <button className="w-full bg-primary text-white py-4 rounded-lg font-button shadow-organic hover:bg-primary-container transition-all active:scale-[0.98]" type="submit">
+                  Envoyer le Message
+                </button>
+              )}
+            </form>
+          </div>
+
+          {/* Reviews Section */}
+          <div>
+            <h2 className="font-headline-md text-headline-md text-primary mb-8">Voix des Communautés</h2>
+            <div className="space-y-6">
+              {reviews.map((review, idx) => (
+                <div key={idx} className="bg-surface-container-low border border-outline-variant/30 p-6 rounded-xl shadow-sm">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center text-secondary font-bold">
+                        {review.name.charAt(0)}{review.name.split(' ')[1]?.charAt(0) || ''}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-on-surface">{review.name}</h4>
+                        <p className="text-label-caps text-label-caps text-secondary uppercase tracking-wider">
+                          {review.type} • {review.region}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex text-secondary items-center gap-1">
+                      {[...Array(review.rating)].map((_, i) => (
+                        <span key={i} className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-body-md text-on-surface-variant mb-2">{review.text}</p>
+                  <p className="text-xs text-on-surface-variant">{review.date}</p>
+                </div>
+              ))}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex flex-col space-y-2">
-                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase">Téléphone</label>
-                <input className="bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all text-body-md outline-none" placeholder="+228 00 00 00 00" type="tel"/>
-              </div>
-              <div className="flex flex-col space-y-2">
-                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase">Sujet</label>
-                <select className="bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all text-body-md outline-none appearance-none">
-                  <option>Achat de foyer</option>
-                  <option>Support technique</option>
-                  <option>Partenariat</option>
-                  <option>Autre</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex flex-col space-y-2">
-              <label className="font-label-caps text-label-caps text-on-surface-variant uppercase">Message</label>
-              <textarea className="bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all text-body-md outline-none" placeholder="Comment pouvons-nous vous aider ?" rows="5"></textarea>
-            </div>
-            <button className="w-full bg-primary text-white py-4 rounded-lg font-button shadow-organic hover:bg-primary-container transition-all active:scale-[0.98]" type="submit">
-              Envoyer le Message
-            </button>
-          </form>
+          </div>
         </div>
 
         {/* Quick Contact Sidebar */}
@@ -81,7 +169,7 @@ export default function Contact() {
               </div>
               <h3 className="font-headline-sm text-headline-sm mb-2">Support WhatsApp</h3>
               <p className="text-body-md opacity-90 mb-6">Réponse instantanée pour vos questions urgentes et commandes.</p>
-              <a className="inline-flex items-center bg-white text-secondary px-6 py-3 rounded-full font-button group-hover:scale-105 transition-transform" href="#">
+              <a className="inline-flex items-center bg-white text-secondary px-6 py-3 rounded-full font-button group-hover:scale-105 transition-transform" href="https://wa.me/22890000000" target="_blank" rel="noopener noreferrer">
                 Discuter maintenant
                 <span className="material-symbols-outlined ml-2">arrow_forward</span>
               </a>

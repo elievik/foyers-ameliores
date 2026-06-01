@@ -1,11 +1,18 @@
 'use client';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Catalog() {
   const [showHimalayenForm, setShowHimalayenForm] = useState(false);
   const [showAsutoForm, setShowAsutoForm] = useState(false);
   const [formData, setFormData] = useState({});
+  const [productImages, setProductImages] = useState([]);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/product-images/')
+      .then(res => res.json())
+      .then(data => setProductImages(data));
+  }, []);
 
   const products = [
     {
@@ -19,7 +26,8 @@ export default function Catalog() {
         { icon: 'health_and_safety', text: 'Réduction drastique des gaz nocifs' },
         { icon: 'savings', text: 'Rentabilisé en moins de 3 mois' }
       ],
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlOE1GvrVzky5IRcHpA3wspX782N5f8A94qVjHk55igzf9FIQAZ_AdfAhXHj3F_aAd5hZsJd_qUvVZhURDuu1jX07DUoqOLQEd4Phl5G2ylI9FvyKZ-hBK7cqdWJ-7kiXN7Jx5Oevx07gjf6ZTGI_lvPSrcawKgtusZiMyBZ0TVwCF7J8MmDYLj357oxdkQj5aLbiUETnmieu_8fNcIwSd8IeHfNJPjca95s8bYGxoRhtT6rGIxbWVj1tvtVayklUHZZZ5R15sKQ'
+      images: productImages.filter(i => i.product_name === 'Foyer Himalayen'),
+      defaultImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlOE1GvrVzky5IRcHpA3wspX782N5f8A94qVjHk55igzf9FIQAZ_AdfAhXHj3F_aAd5hZsJd_qUvVZhURDuu1jX07DUoqOLQEd4Phl5G2ylI9FvyKZ-hBK7cqdWJ-7kiXN7Jx5Oevx07gjf6ZTGI_lvPSrcawKgtusZiMyBZ0TVwCF7J8MmDYLj357oxdkQj5aLbiUETnmieu_8fNcIwSd8IeHfNJPjca95s8bYGxoRhtT6rGIxbWVj1tvtVayklUHZZZ5R15sKQ'
     },
     {
       name: 'Foyer Asuto',
@@ -32,9 +40,15 @@ export default function Catalog() {
         { icon: 'directions_walk', text: 'Facilement transportable' },
         { icon: 'timer', text: 'Cuisson 2x plus rapide' }
       ],
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDyJ8-82WrKvXEb6xSjvuLdBPKEQDOCTsMhzJQZ7WZGKe9vaNk9yd7QnBNCdza60D4JICYb72dC1RyHJeldjGMk9-h1xEGujsxNxigonoSLygwOWVDw5NMj2DK-CsLoGjBxrAQbk_SbYzEYcd-S7yHxlcZAP1lvGGc2QLKZvY8pQc1LJbPHt8tWutuAFxmtqlJdL4DxvTyHid6YJPt8nAHuppz7_sKcQoHW_4Rq1Dj8pjebu2VgFRZXZ2CQ3yi5Mil4udVSenSM1g'
+      images: productImages.filter(i => i.product_name === 'Foyer Asuto'),
+      defaultImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDyJ8-82WrKvXEb6xSjvuLdBPKEQDOCTsMhzJQZ7WZGKe9vaNk9yd7QnBNCdza60D4JICYb72dC1RyHJeldjGMk9-h1xEGujsxNxigonoSLygwOWVDw5NMj2DK-CsLoGjBxrAQbk_SbYzEYcd-S7yHxlcZAP1lvGGc2QLKZvY8pQc1LJbPHt8tWutuAFxmtqlJdL4DxvTyHid6YJPt8nAHuppz7_sKcQoHW_4Rq1Dj8pjebu2VgFRZXZ2CQ3yi5Mil4udVSenSM1g'
     }
   ];
+
+  const getFullUrl = (url) => {
+    if (!url) return '';
+    return url.startsWith('http') ? url : `http://127.0.0.1:8000${url}`;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -168,15 +182,7 @@ export default function Catalog() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {products.map((product) => (
             <div key={product.name} className="flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-organic group transition-all duration-300 hover:-translate-y-2 border border-outline-variant/30">
-              <div className="h-80 overflow-hidden relative">
-                <Image 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                  alt={product.name} 
-                  src={product.img} 
-                  fill
-                />
-                <div className={`absolute top-4 left-4 ${product.typeColor} px-3 py-1 rounded text-label-caps font-label-caps uppercase`}>{product.type}</div>
-              </div>
+              <ProductCarousel product={product} />
               <div className="p-8 flex flex-col flex-grow">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-headline-sm font-headline-sm text-primary">{product.name}</h3>
@@ -495,5 +501,57 @@ export default function Catalog() {
         </div>
       )}
     </main>
+  );
+}
+
+
+function ProductCarousel({ product }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const images = product.images.length > 0 ? product.images : [{ img_url: product.defaultImg }];
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  return (
+    <div className="h-80 relative overflow-hidden">
+      <div className="flex transition-transform duration-500 h-full" style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
+        {images.map((image, idx) => (
+        <div key={idx} className="min-w-full h-full relative">
+          <img 
+            alt="" 
+            src={getFullUrl(image.img_url)} 
+            className="w-full h-full object-cover" 
+          />
+        </div>
+      ))}
+      </div>
+
+      {images.length > 1 && (
+        <>
+          <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg transition-all hover:scale-110">
+            <span className="material-symbols-outlined">chevron_left</span>
+          </button>
+          <button onClick={nextSlide} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg transition-all hover:scale-110">
+            <span className="material-symbols-outlined">chevron_right</span>
+          </button>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+            {images.map((_, idx) => (
+              <div
+                key={idx}
+                className={`w-2 h-2 rounded-full transition-all ${idx === currentIndex ? 'bg-primary w-8' : 'bg-white/70'}`}
+                onClick={() => setCurrentIndex(idx)}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      <div className={`absolute top-4 left-4 ${product.typeColor} px-3 py-1 rounded text-label-caps font-label-caps uppercase`}>{product.type}</div>
+    </div>
   );
 }

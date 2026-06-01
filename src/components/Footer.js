@@ -13,11 +13,20 @@ export default function Footer() {
           </p>
         </div>
         <div className="flex flex-wrap justify-center gap-6">
+          <Link href="/about" className="text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors font-medium">
+            À Propos
+          </Link>
           <Link href="/regions" className="text-label-caps font-label-caps text-primary hover:text-secondary transition-colors font-bold">
             Régions
           </Link>
-          <Link href="/privacy" className="text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors font-medium">
-            Confidentialité
+          <Link href="/catalog" className="text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors font-medium">
+            Catalogue
+          </Link>
+          <Link href="/news" className="text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors font-medium">
+            Actualités
+          </Link>
+          <Link href="/contact" className="text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors font-medium">
+            Contact
           </Link>
         </div>
       </div>

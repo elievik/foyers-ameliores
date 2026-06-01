@@ -1,6 +1,24 @@
+'use client';
+
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 export default function About() {
+  const [teamMembers, setTeamMembers] = useState([]);
+
+  useEffect(() => {
+    const fetchTeam = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/team/');
+        if (res.ok) {
+          setTeamMembers(await res.json());
+        }
+      } catch (e) {
+        console.error("Error fetching team", e);
+      }
+    };
+    fetchTeam();
+  }, []);
   return (
     <>
       {/* Hero Narrative Section */}
@@ -137,25 +155,26 @@ export default function About() {
             <p className="text-on-surface-variant">Des experts passionnés dévoués à la cause environnementale.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { name: 'Koffi Amégan', role: 'Directeur Général', icon: 'leaderboard', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBSjYenRq9xoJyMtuaNB-hkJKyxbwUF0FSzODXLFiOMQ5uLRaYQY43qfFfx-HopBu59osjPT_fPuObs6svsCIxLPP_syXAP0QP9wY_MB7XLKtFqDbKyvTqbJ468AhRtw7pgOc_SdUEs6hYWHTMbgJaxq7N6Vqzyql5nDDm-IhKz6OwOvn2_rknaHKNu1gR49soUPByoe4vPw0t-4AYfamGt2Z08yxF-BxdhaBab3FtRn5levEY8gGNnjwZam5ug4b1KKl_WKku9ag' },
-              { name: 'Lomé Ségla', role: 'Responsable Innovation', icon: 'lightbulb', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCUiWVTXHTY0rRvxVa8xEBdWDTXCb5lXDSHZwYxWFOHwLmb4syRL7s0nuYA_YfjEdJ55xOf_FePNenQkRRa5VB9xMRQ9DzpsXQtIGq3FND2_Qx-TRCefjkLyvr6GovjjzA4OzhOx8tStdNi2ras0-3klmijMHsTXA6E7RgjAbaLFBMqNLRCfHoDwWIklxDItyVSJ1ZOBw8bbhgtE6dsCwCH_FraGpxSNjVupZxvuW5RIKYQOL-h6hrerUmsRLlnsJ20TWxfVjMNIA' },
-              { name: 'Akossiwa Tovo', role: 'Coordinatrice Sociale', icon: 'groups', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDGbfjjjlhbqiitECNzplGb_IslY6FaHYjb9EagnOPcEIJh8URJ4OW-wmxvK0deHNfhkJLG7JsIZ8kmkJmpEVoWHptqbknughEETWX99FpqleS25ZJ2hytrGC5TyGv7bnxnu4sPISBn8Z4Ml6_yWt81JkW7YeaNutMCFsw-cs044Eus7JR1gh3aa_kUDteWyDropAheP_YaoGZfNwPTf6wMmne090XnKbe6CzB5QXSOTZNnblj6GRrG8jxM0l9uXxj-K0V31ucEtw' },
-              { name: 'Yao Dzidzo', role: 'Expert Environnement', icon: 'eco', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCcCBtPQl5qnWoRNZeH8Zn1XB77lj905Twfmczr6wKW0Hvlsb2avDXrSpG-hrANP2pzCdUQDvI6Uzzr2sLWX1IO3by9M2_pRI2mSUG_Zk1inDYL4yahJOaKQ7uy1PUpOwgqDmfwlw-C49BKTGnpWEWgJxu_NTiPingqbo_arYA59z_gcIsCXhuBOB90yEEG9aR178RgN4xY_1WpgiwP9vS2bq2WfWRmeqle2ASMZdzRgOoOOkQzwwT0fvDfEIrDbW1pmpF9urIbKw' }
-            ].map((member) => (
-              <div key={member.name} className="group text-center">
-                <div className="relative mb-6 inline-block">
-                  <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-organic transition-transform group-hover:scale-105 duration-300">
-                    <img className="w-full h-full object-cover" alt={member.name} src={member.img} />
+            {teamMembers.length > 0 ? (
+              teamMembers.map((member) => (
+                <div key={member.id} className="group text-center">
+                  <div className="relative mb-6 inline-block">
+                    <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-organic transition-transform group-hover:scale-105 duration-300">
+                      <img className="w-full h-full object-cover" alt={member.name} src={member.img_url} />
+                    </div>
+                    <div className="absolute -bottom-2 -right-2 bg-secondary text-white p-2 rounded-full shadow-lg">
+                      <span className="material-symbols-outlined">{member.icon}</span>
+                    </div>
                   </div>
-                  <div className="absolute -bottom-2 -right-2 bg-secondary text-white p-2 rounded-full shadow-lg">
-                    <span className="material-symbols-outlined">{member.icon}</span>
-                  </div>
+                  <h4 className="text-headline-sm font-headline-sm text-primary">{member.name}</h4>
+                  <p className="text-label-caps font-label-caps text-secondary uppercase tracking-wider">{member.role}</p>
                 </div>
-                <h4 className="text-headline-sm font-headline-sm text-primary">{member.name}</h4>
-                <p className="text-label-caps font-label-caps text-secondary uppercase tracking-wider">{member.role}</p>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12 text-on-surface-variant">
+                Chargement de l'équipe...
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>

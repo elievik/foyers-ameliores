@@ -1,1 +1,1 @@
-from . import news, orders, reports
+from . import news, orders, reports, resellers

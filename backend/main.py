@@ -1,18 +1,24 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from database import engine, Base, get_db
-from routers import news, orders, reports
+from routers import news, orders, reports, resellers, team, product_images, testimonials
 from sqlalchemy.orm import Session
+import os
+import uuid
 
 # Créer les tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Foyers Améliorés Togo API")
 
+# Serve static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Configuration CORS pour Next.js
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -22,6 +28,10 @@ app.add_middleware(
 app.include_router(news.router, prefix="/api/news", tags=["Actualités"])
 app.include_router(orders.router, prefix="/api/orders", tags=["Commandes"])
 app.include_router(reports.router, prefix="/api/reports", tags=["Rapports"])
+app.include_router(resellers.router, prefix="/api/resellers", tags=["Demandes Revendeurs"])
+app.include_router(team.router)
+app.include_router(product_images.router)
+app.include_router(testimonials.router)
 
 @app.get("/")
 def read_root():
