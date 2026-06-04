@@ -18,6 +18,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [testimonials, setTestimonials] = useState([]);
+  const [heroImage, setHeroImage] = useState(null);
 
   const fetchTestimonials = async () => {
     try {
@@ -30,8 +31,20 @@ export default function Home() {
     }
   };
 
+  const fetchHeroImage = async () => {
+    try {
+      const res = await fetch('/api/hero-images/home');
+      if (res.ok) {
+        setHeroImage(await res.json());
+      }
+    } catch (e) {
+      console.error('Error fetching hero image:', e);
+    }
+  };
+
   useEffect(() => {
     fetchTestimonials();
+    fetchHeroImage();
   }, []);
 
   const handleSubmit = async (e) => {
