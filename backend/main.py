@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from database import engine, Base, get_db
-from routers import news, orders, reports, resellers, team, product_images, testimonials, regions, partners, hero_images
+from routers import news, orders, reports, resellers, team, product_images, testimonials, regions, partners, hero_images, contact
 from sqlalchemy.orm import Session
 import os
 import uuid
@@ -34,12 +34,13 @@ app.include_router(news.router, prefix="/api/news", tags=["Actualités"])
 app.include_router(orders.router, prefix="/api/orders", tags=["Commandes"])
 app.include_router(reports.router, prefix="/api/reports", tags=["Rapports"])
 app.include_router(resellers.router, prefix="/api/resellers", tags=["Demandes Revendeurs"])
-app.include_router(team.router)
-app.include_router(product_images.router)
-app.include_router(testimonials.router)
-app.include_router(regions.router)
-app.include_router(partners.router)
-app.include_router(hero_images.router)
+app.include_router(team.router, prefix="/api/team", tags=["Équipe"])
+app.include_router(product_images.router, prefix="/api/product-images", tags=["Images Produits"])
+app.include_router(testimonials.router, prefix="/api/testimonials", tags=["Témoignages"])
+app.include_router(regions.router, prefix="/api/regions", tags=["Régions"])
+app.include_router(partners.router, prefix="/api/partners", tags=["Partenaires"])
+app.include_router(hero_images.router, prefix="/api/hero-images", tags=["Hero Images"])
+app.include_router(contact.router, prefix="/api/contact", tags=["Contact"])
 
 @app.get("/")
 def read_root():

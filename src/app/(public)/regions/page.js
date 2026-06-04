@@ -24,7 +24,7 @@ export default function Regions() {
     fetchRegions();
   }, []);
 
-  const filteredRegions = regions.filter(region => 
+  const filteredRegions = (regions || []).filter(region => 
     region.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

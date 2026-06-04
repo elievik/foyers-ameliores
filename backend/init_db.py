@@ -2,7 +2,8 @@ from database import engine, Base, SessionLocal
 from models import (
     NewsArticle, Report, HimalayenInscription, 
     AsutoSale, ResellerRequest, TeamMember, 
-    ProductImage, Testimonial, Region, Partner, HeroImage
+    ProductImage, Testimonial, Region, Partner, HeroImage,
+    ContactInfo, RegionalOffice
 )
 
 # Create all tables (this will add new columns if they don't exist)
@@ -113,5 +114,48 @@ try:
             db.add(new_hero)
     db.commit()
     print("Initial hero images inserted or already present!")
+    
+    # Insert initial contact info
+    contact_info = db.query(ContactInfo).first()
+    if not contact_info:
+        contact_info = ContactInfo()
+        db.add(contact_info)
+        db.commit()
+        print("Initial contact info inserted!")
+    
+    # Insert initial regional offices
+    initial_offices = [
+        {"name": "Maritime", "city": "LOMÉ", "phone": "+228 90 05 05 05", "address": "Zone Industrielle", "img_url": "https://lh3.googleusercontent.com/aida-public/AB6AXuB91CwSEJ9KGk31z0xR4sVpY-wzatgeNLqjeqfdQmeq2DD3B1DUYFHIqZd4bGdcZ1tL9bjZ9eDs8pPcOxW00xcgS8fsJhTy7Z9CieBqsCxzsCO79GE9jDeBxpu9zVMN_Vb4kb81kyl7HfzIwJumMdAwKaupzNI44M352euC5xcR5HvgK5uUN6y0fFUbAYMqS-gr6BQCBbT7icZ7a1N6AIKbKezbzBRemGsevzJJqiMAcCUwQnuMU8M-4RM0jGgSEyw5TXgx24A-9g", "order": 0},
+        {"name": "Plateaux", "city": "KPALIMÉ", "phone": "+228 90 04 04 04", "address": "Près du Mont Agou", "img_url": "https://lh3.googleusercontent.com/aida-public/AB6AXuD8STKCvvRrnXQUaNW7qPhOaBLcCFwEHJWuIUjt_iOfYdt0s7Gtr2SGFvoZ-nYnXOP94_l7RBsUtyC1gTY9QRsa0EgDTEmtBVdW6_UM4vxqBoiQjLZz_HMjfsoCyH9QDQz9vpwxOhRheBut8m2QAWMeZJ4Mp9KHKmp9D0puK0G6NXOP58StSyzYqwlw0Dp_LFHDqOzhdJ8jLYAjPUWrgZhxzTQlKMHcEm3LbbaW03kSFPbzRCAsrMFprQ2GL4ROtbwQl9pkAJch2XA", "order": 1},
+        {"name": "Centrale", "city": "SOKODÉ", "phone": "+228 90 03 03 03", "address": "Route Nationale N1", "img_url": "https://lh3.googleusercontent.com/aida-public/AB6AXuBE4Mbu1wZYXlPIQWgnaeTq3lcJZVaIcn9ZSlfZ9abz_VjQtPd8YZQfgjn2BwzEgO0vXg4j6Tf_IShbhjG-7_PYkwNTIyZgzvXW62FHaOjY-YstehnA-VIuM4KdZaWZWE9Y6oWdfnMQQ5XWDbLYGjFjVd_7QL-CBIARupd_mqYVkb1FpxgjLSpLQIi7BJczA6WJP4y4bUmz4khx03wav9nG8mWyzX82RNVAfER57Sjl2tXNHHOClbTEfLfeNMgvapQItGDhwehMRhw", "order": 2},
+        {"name": "Kara", "city": "KARA CITY", "phone": "+228 90 02 02 02", "address": "Avenue de la Kozah", "img_url": "https://lh3.googleusercontent.com/aida-public/AB6AXuCIZ9fmccqRuoFL1V2EPrmVBhgiqQZXjdYEZmPo5wG4738SAVkucBiFLABCAtPs_Ms0c90TqP_ON9-xaBD7t2KSS-55dFSx1RCdPKHbXPEn4t8jNHSO1PjENaAtVXK2YhtHitRC4sE_X8GX3T0DAM6EiyQhpSBoxaIG2kdD0gBdaXju3k0zk62jTFLxeP0FVCtTx91CJXdKvCsGNBlG8QJszYI7SGlKrGPjuV6r2TPGR3RJJORGJVHoAv935XyQoN2nDW_gZ1VXg", "order": 3},
+        {"name": "Savanes", "city": "DAPAONG", "phone": "+228 90 01 01 01", "address": "Quartier Administratif", "img_url": "https://lh3.googleusercontent.com/aida-public/AB6AXuD2s5ie3VJKTcaIBRv0aPvUET_uXqI7_g2jGyW1IuID68lQITV2p0YkGa5wcNBl7dii3ALZygJHcvWq1XSLgyAB9xuXbDtQmC4KSu-9aB4oEbiDej7qJwedeoWD81xqv73CQ", "order": 4}
+    ]
+    for office_data in initial_offices:
+        existing = db.query(RegionalOffice).filter(RegionalOffice.name == office_data["name"]).first()
+        if not existing:
+            db.add(RegionalOffice(**office_data))
+    db.commit()
+    print("Initial regional offices inserted or already present!")
+
+    # Insert initial reports if they don't exist
+    initial_reports = [
+        {
+            "title": "Rapport Annuel 2023",
+            "description": "Résumé des activités et des impactes de l'année 2023",
+            "file_url": ""
+        },
+        {
+            "title": "Étude d'Impact 2024",
+            "description": "Évaluation de l'impact des foyers améliorés sur la santé et l'environnement",
+            "file_url": ""
+        }
+    ]
+    for report_data in initial_reports:
+        existing = db.query(Report).filter(Report.title == report_data["title"]).first()
+        if not existing:
+            db.add(Report(**report_data))
+    db.commit()
+    print("Initial reports inserted or already present!")
 finally:
     db.close()

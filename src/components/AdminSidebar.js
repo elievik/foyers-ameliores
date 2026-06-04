@@ -40,6 +40,8 @@ export default function AdminSidebar() {
     { name: 'Régions', icon: 'public', href: '/admin/regions' },
     { name: 'Partenaires', icon: 'business', href: '/admin/partners' },
     { name: 'Bannières', icon: 'wallpaper', href: '/admin/banners' },
+    { name: 'Contact', icon: 'contact_support', href: '/admin/contact' },
+    { name: 'Rapports', icon: 'description', href: '/admin/reports' },
     { name: 'Images Produits', icon: 'photo_library', href: '/admin/product-images' },
     { name: 'Suivi Régional', icon: 'map', href: '/admin/data' },
     { name: 'Commandes', icon: 'shopping_cart', href: '/admin/orders' },

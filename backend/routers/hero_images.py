@@ -7,7 +7,7 @@ from database import get_db
 import models
 import schemas
 
-router = APIRouter(prefix="/hero-images", tags=["hero-images"])
+router = APIRouter()
 
 # Ensure static/images directory exists
 os.makedirs("static/images", exist_ok=True)

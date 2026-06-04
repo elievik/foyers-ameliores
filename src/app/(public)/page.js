@@ -73,14 +73,20 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative min-h-[870px] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <Image 
-            className="w-full h-full object-cover" 
-            alt="Une famille togolaise souriante cuisinant avec un foyer amélioré dans une cuisine moderne et écologique" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBl0KHpcTlVrogx_VOf2OzprIE4DMZhe4wnKssR31xDMUD7c3dYGIgwFpLfjpISUYIYuyh9ebZTQk2extXis8LoV3dDMeMIyNhA-7vPO0ufzIOmS5BsloV-9UEiCthdw4Tb8VuQ44hHOFZnwRd9FeGS92r6q_EUTvDuBBDwvH-al2ZNLR6FbLtoDXCxp_Ce5nWF3fkDqBpksrrXTic4--gnaH9ADZRs8zb6MTgurOZjjIzbragYIoi-ie0VMqvWJxuzF6rBddY96Q"
-            fill
-            sizes="100vw"
-            priority
-          />
+          {heroImage?.image_url ? (
+            <Image 
+              className="w-full h-full object-cover" 
+              alt={heroImage.alt_text || "Bannière"}
+              src={heroImage.image_url}
+              fill
+              sizes="100vw"
+              priority
+            />
+          ) : (
+            <div className="w-full h-full bg-surface-container flex items-center justify-center">
+              <span className="material-symbols-outlined text-outline text-8xl">image</span>
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/60 to-transparent"></div>
         </div>
         <div className="relative z-10 w-full px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">

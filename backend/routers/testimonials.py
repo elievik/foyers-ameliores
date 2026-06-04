@@ -7,10 +7,7 @@ import os
 import uuid
 from typing import Optional
 
-router = APIRouter(
-    prefix="/api/testimonials",
-    tags=["testimonials"],
-)
+router = APIRouter()
 
 def get_db():
     db = SessionLocal()

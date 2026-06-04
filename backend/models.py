@@ -111,3 +111,22 @@ class HeroImage(Base):
     title = Column(String)
     image_url = Column(String)
     alt_text = Column(String, default="")
+
+
+class ContactInfo(Base):
+    __tablename__ = "contact_info"
+    id = Column(Integer, primary_key=True, index=True)
+    phone = Column(String, default="+228 22 45 00 01")
+    email = Column(String, default="contact@foyers-togo.tg")
+    whatsapp_number = Column(String, default="+22890000000")
+
+
+class RegionalOffice(Base):
+    __tablename__ = "regional_offices"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    city = Column(String)
+    phone = Column(String)
+    address = Column(String)
+    img_url = Column(String, default="")
+    order = Column(Integer, default=0)

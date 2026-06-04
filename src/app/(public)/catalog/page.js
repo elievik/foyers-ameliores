@@ -32,7 +32,7 @@ export default function Catalog() {
         { icon: 'health_and_safety', text: 'Réduction drastique des gaz nocifs' },
         { icon: 'savings', text: 'Rentabilisé en moins de 3 mois' }
       ],
-      images: productImages.filter(i => i.product_name === 'Foyer Himalayen'),
+      images: (productImages || []).filter(i => i.product_name === 'Foyer Himalayen'),
       defaultImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlOE1GvrVzky5IRcHpA3wspX782N5f8A94qVjHk55igzf9FIQAZ_AdfAhXHj3F_aAd5hZsJd_qUvVZhURDuu1jX07DUoqOLQEd4Phl5G2ylI9FvyKZ-hBK7cqdWJ-7kiXN7Jx5Oevx07gjf6ZTGI_lvPSrcawKgtusZiMyBZ0TVwCF7J8MmDYLj357oxdkQj5aLbiUETnmieu_8fNcIwSd8IeHfNJPjca95s8bYGxoRhtT6rGIxbWVj1tvtVayklUHZZZ5R15sKQ'
     },
     {
@@ -46,7 +46,7 @@ export default function Catalog() {
         { icon: 'directions_walk', text: 'Facilement transportable' },
         { icon: 'timer', text: 'Cuisson 2x plus rapide' }
       ],
-      images: productImages.filter(i => i.product_name === 'Foyer Asuto'),
+      images: (productImages || []).filter(i => i.product_name === 'Foyer Asuto'),
       defaultImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDyJ8-82WrKvXEb6xSjvuLdBPKEQDOCTsMhzJQZ7WZGKe9vaNk9yd7QnBNCdza60D4JICYb72dC1RyHJeldjGMk9-h1xEGujsxNxigonoSLygwOWVDw5NMj2DK-CsLoGjBxrAQbk_SbYzEYcd-S7yHxlcZAP1lvGGc2QLKZvY8pQc1LJbPHt8tWutuAFxmtqlJdL4DxvTyHid6YJPt8nAHuppz7_sKcQoHW_4Rq1Dj8pjebu2VgFRZXZ2CQ3yi5Mil4udVSenSM1g'
     }
   ];

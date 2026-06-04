@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 export default function About() {
   const [teamMembers, setTeamMembers] = useState([]);
   const [partners, setPartners] = useState([]);
+  const [heroImage, setHeroImage] = useState(null);
 
   const fetchTeam = async () => {
     try {
@@ -29,23 +30,39 @@ export default function About() {
     }
   };
 
+  const fetchHeroImage = async () => {
+    try {
+      const res = await fetch('/api/hero-images/about');
+      if (res.ok) {
+        setHeroImage(await res.json());
+      }
+    } catch (e) {
+      console.error('Error fetching hero image:', e);
+    }
+  };
+
   useEffect(() => {
     fetchTeam();
     fetchPartners();
+    fetchHeroImage();
   }, []);
   return (
     <>
       {/* Hero Narrative Section */}
       <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <Image 
-            className="w-full h-full object-cover opacity-15 grayscale" 
-            alt="Paysage des Plateaux au Togo au lever du soleil" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKmeEPDBOQoGtc2dS5nEe9HF-eWi768kabmAFnbhgjH7g8SAXpa6TOzAGprzA-5PaCdQ3cn3r_ZKzS6V62Qv5EWRBUI8qebCGalEEBux0tCTJ8Moqzhx5GHr_GKYECYv_NHvaQpQNFK59E8iWRIx3qSNgcBOcK-JoM_cYFvFS063Kmx7Hn4zOanzXbn1ehyBSX69Kk8rpQJAQGKKCSMSl64Yiz3Nxd9fjNTjtNUEOAaTxHCztZM_NdZV0z_lESItqijpn1hKrpSQ"
-            fill
-            sizes="100vw"
-            priority
-          />
+          {heroImage?.image_url ? (
+            <Image 
+              className="w-full h-full object-cover opacity-15 grayscale" 
+              alt={heroImage.alt_text || "Bannière"}
+              src={heroImage.image_url}
+              fill
+              sizes="100vw"
+              priority
+            />
+          ) : (
+            <div className="w-full h-full bg-surface-container"></div>
+          )}
         </div>
         <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop relative z-10 grid md:grid-cols-2 gap-12 items-center">
           <div>

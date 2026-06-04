@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -11,6 +11,8 @@ export default function Contact() {
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [contactInfo, setContactInfo] = useState(null);
+  const [regionalOffices, setRegionalOffices] = useState([]);
 
   const reviews = [
     {
@@ -39,13 +41,22 @@ export default function Contact() {
     }
   ];
 
-  const regionalOffices = [
-    { name: 'Maritime', city: 'LOMÉ', phone: '+228 90 05 05 05', address: 'Zone Industrielle', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB91CwSEJ9KGk31z0xR4sVpY-wzatgeNLqjeqfdQmeq2DD3B1DUYFHIqZd4bGdcZ1tL9bjZ9eDs8pPcOxW00xcgS8fsJhTy7Z9CieBqsCxzsCO79GE9jDeBxpu9zVMN_Vb4kb81kyl7HfzIwJumMdAwKaupzNI44M352euC5xcR5HvgK5uUN6y0fFUbAYMqS-gr6BQCBbT7icZ7a1N6AIKbKezbzBRemGsevzJJqiMAcCUwQnuMU8M-4RM0jGgSEyw5TXgx24A-9g' },
-    { name: 'Plateaux', city: 'KPALIMÉ', phone: '+228 90 04 04 04', address: 'Près du Mont Agou', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD8STKCvvRrnXQUaNW7qPhOaBLcCFwEHJWuIUjt_iOfYdt0s7Gtr2SGFvoZ-nYnXOP94_l7RBsUtyC1gTY9QRsa0EgDTEmtBVdW6_UM4vxqBoiQjLZz_HMjfsoCyH9QDQz9vpwxOhRheBut8m2QAWMeZJ4Mp9KHKmp0D0puK0G6NXOP58StSyzYqwlw0Dp_LFHDqOzhdJ8jLYAjPUWrgZhxzTQlKMHcEm3LbbaW03kSFPbzRCAsrMFprQ2GL4ROtbQl9pkAJch2XA' },
-    { name: 'Centrale', city: 'SOKODÉ', phone: '+228 90 03 03 03', address: 'Route Nationale N1', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBE4Mbu1wZYXlPIQWgnaeTq3lcJZVaIcn9ZSlfZ9abz_VjQtPd8YZQfgjn2BwzEgO0vXg4j6Tf_IShbhjG-7_PYkwNTIyZgzvXW62FHaOjY-YstehnA-VIuM4KdZaWZWE9Y6oWdfnMQQ5XWDbLYGjFjVd_7QL-CBIARupd_mqYVkb1FpxgjLSpLQIi7BJczA6WJP4y4bUmz4khx03wav9nG8mWyzX82RNVAfER57Sjl2tXNHHOClbTEfLfeFNgvapQItGDXwehMRhw' },
-    { name: 'Kara', city: 'KARA CITY', phone: '+228 90 02 02 02', address: 'Avenue de la Kozah', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCIZ9fmccqRuoFL1V2EPrmVBhgiqQZXjdYEZmPo5wG4738SAVkucBiFLABCAtPs_Ms0c90TqP_ON9-xaBD7t2KSS-55dFSx1RCdPKHbXPEn4t8jNHSO1PjENaAtVXK2YhtHitRC4sE_X8GX3T0DAMR6EiyQhpSBoxaIG2kdD0gBdaXju3k0zk62jTFLxeP0FVCtTx91CJXdKvCsGNBlG8QJszYI7SGlKrGPjuV6r2TPGR3RJJORGJVHoAv935XyQoN2nDW_gZ1VXg' },
-    { name: 'Savanes', city: 'DAPAONG', phone: '+228 90 01 01 01', address: 'Quartier Administratif', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD2s5ie3VJKTfcaIBRv0aPvUET_uXqI7_g2jGyW1IuID68lQITV2p0YkGa5wcNBl7dii3ALZygJHcvWq1XSLgyAB9xuXbDtQmC4KSu-9aB4oEbiDej7qJwedeoWD81xqv73CQ0ixg-5aia_TPu8XQHC0yf_Qbdfiy_Iywm0Oerykb1tpIHg5iTH10ndWCKu6yW95f5WyBEweTP8OOhfvccseYP2cdssBav8mIgNrlrZIc0ipyT5w7xU1mZiVW9cW6OzAs1bgc4Y4A' }
-  ];
+  const fetchContactData = async () => {
+    try {
+      const [infoRes, officesRes] = await Promise.all([
+        fetch('/api/contact/info'),
+        fetch('/api/contact/regional-offices')
+      ]);
+      if (infoRes.ok) setContactInfo(await infoRes.json());
+      if (officesRes.ok) setRegionalOffices(await officesRes.json());
+    } catch (err) {
+      console.error('Error fetching contact data:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchContactData();
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -170,7 +181,7 @@ export default function Contact() {
               </div>
               <h3 className="font-headline-sm text-headline-sm mb-2">Support WhatsApp</h3>
               <p className="text-body-md opacity-90 mb-6">Réponse instantanée pour vos questions urgentes et commandes.</p>
-              <a className="inline-flex items-center bg-white text-secondary px-6 py-3 rounded-full font-button group-hover:scale-105 transition-transform" href="https://wa.me/22890000000" target="_blank" rel="noopener noreferrer">
+              <a className="inline-flex items-center bg-white text-secondary px-6 py-3 rounded-full font-button group-hover:scale-105 transition-transform" href={`https://wa.me/${contactInfo?.whatsapp_number?.replace(/\D/g, '') || '22890000000'}`} target="_blank" rel="noopener noreferrer">
                 Discuter maintenant
                 <span className="material-symbols-outlined ml-2">arrow_forward</span>
               </a>
@@ -181,25 +192,25 @@ export default function Contact() {
           </div>
           {/* Contact Info Cards */}
           <div className="grid grid-cols-1 gap-4">
-            <div className="bg-surface-container-low p-6 rounded-xl flex items-center space-x-4 border border-outline-variant/30">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined">call</span>
+              <div className="bg-surface-container-low p-6 rounded-xl flex items-center space-x-4 border border-outline-variant/30">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                  <span className="material-symbols-outlined">call</span>
+                </div>
+                <div>
+                  <p className="text-label-caps font-label-caps text-on-surface-variant uppercase">Téléphone</p>
+                  <p className="font-headline-sm text-headline-sm text-tertiary">{contactInfo?.phone || '+228 22 45 00 01'}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-label-caps font-label-caps text-on-surface-variant uppercase">Téléphone</p>
-                <p className="font-headline-sm text-headline-sm text-tertiary">+228 22 45 00 01</p>
+              <div className="bg-surface-container-low p-6 rounded-xl flex items-center space-x-4 border border-outline-variant/30">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                  <span className="material-symbols-outlined">mail</span>
+                </div>
+                <div>
+                  <p className="text-label-caps font-label-caps text-on-surface-variant uppercase">Email</p>
+                  <p className="font-headline-sm text-headline-sm text-tertiary">{contactInfo?.email || 'contact@foyers-togo.tg'}</p>
+                </div>
               </div>
             </div>
-            <div className="bg-surface-container-low p-6 rounded-xl flex items-center space-x-4 border border-outline-variant/30">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined">mail</span>
-              </div>
-              <div>
-                <p className="text-label-caps font-label-caps text-on-surface-variant uppercase">Email</p>
-                <p className="font-headline-sm text-headline-sm text-tertiary">contact@foyers-togo.tg</p>
-              </div>
-            </div>
-          </div>
           {/* FAQ Link Card */}
           <div className="bg-surface-bright border-2 border-dashed border-outline-variant p-8 rounded-xl text-center">
             <h4 className="font-headline-sm text-headline-sm text-primary mb-2">Des questions fréquentes ?</h4>
@@ -221,15 +232,19 @@ export default function Contact() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {regionalOffices.map((office) => (
-              <div key={office.name} className="glass-card p-6 rounded-xl shadow-organic flex flex-col items-center text-center group hover:-translate-y-2 transition-transform border border-outline-variant/30">
-                <div className="w-16 h-16 rounded-full overflow-hidden mb-4 border-2 border-primary relative">
-                  <Image 
-                    className="w-full h-full object-cover" 
-                    alt={office.name} 
-                    src={office.img} 
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
+              <div key={office.id} className="glass-card p-6 rounded-xl shadow-organic flex flex-col items-center text-center group hover:-translate-y-2 transition-transform border border-outline-variant/30">
+                <div className="w-16 h-16 rounded-full overflow-hidden mb-4 border-2 border-primary relative bg-surface-container flex items-center justify-center">
+                  {office.img_url ? (
+                    <Image 
+                      className="w-full h-full object-cover" 
+                      alt={office.name} 
+                      src={office.img_url} 
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+                  ) : (
+                    <span className="material-symbols-outlined text-outline text-3xl">location_on</span>
+                  )}
                 </div>
                 <h3 className="font-headline-sm text-headline-sm text-tertiary mb-2">{office.name}</h3>
                 <p className="text-label-caps font-label-caps text-secondary mb-4 uppercase">{office.city}</p>

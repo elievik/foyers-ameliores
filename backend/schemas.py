@@ -232,3 +232,55 @@ class HeroImage(HeroImageBase):
     id: int
     class Config:
         orm_mode = True
+
+
+# Contact Info
+class ContactInfoBase(BaseModel):
+    phone: str
+    email: str
+    whatsapp_number: str
+
+
+class ContactInfoCreate(ContactInfoBase):
+    pass
+
+
+class ContactInfoUpdate(ContactInfoBase):
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    whatsapp_number: Optional[str] = None
+
+
+class ContactInfo(ContactInfoBase):
+    id: int
+    class Config:
+        orm_mode = True
+
+
+# Regional Offices
+class RegionalOfficeBase(BaseModel):
+    name: str
+    city: str
+    phone: str
+    address: str
+    img_url: str = ""
+    order: int = 0
+
+
+class RegionalOfficeCreate(RegionalOfficeBase):
+    pass
+
+
+class RegionalOfficeUpdate(RegionalOfficeBase):
+    name: Optional[str] = None
+    city: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    img_url: Optional[str] = None
+    order: Optional[int] = None
+
+
+class RegionalOffice(RegionalOfficeBase):
+    id: int
+    class Config:
+        orm_mode = True
