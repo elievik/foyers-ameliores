@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from database import engine, Base, get_db
-from routers import news, orders, reports, resellers, team, product_images, testimonials
+from routers import news, orders, reports, resellers, team, product_images, testimonials, regions, partners, hero_images
 from sqlalchemy.orm import Session
 import os
 import uuid
@@ -18,7 +18,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Configuration CORS pour Next.js
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://192.168.0.101:3000",
+        "http://192.168.0.102:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,6 +37,9 @@ app.include_router(resellers.router, prefix="/api/resellers", tags=["Demandes Re
 app.include_router(team.router)
 app.include_router(product_images.router)
 app.include_router(testimonials.router)
+app.include_router(regions.router)
+app.include_router(partners.router)
+app.include_router(hero_images.router)
 
 @app.get("/")
 def read_root():

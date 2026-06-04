@@ -39,8 +39,8 @@ export default function AdminNews() {
     const fetchData = async () => {
       try {
         const [newsRes, reportsRes] = await Promise.all([
-          fetch('http://127.0.0.1:8000/api/news'),
-          fetch('http://127.0.0.1:8000/api/reports')
+          fetch('/api/news'),
+          fetch('/api/reports')
         ]);
         if (newsRes.ok) {
           const data = await newsRes.json();
@@ -60,7 +60,7 @@ export default function AdminNews() {
   const handleDeleteArticle = async (id) => {
     if (confirm('Voulez-vous vraiment supprimer cet article ?')) {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/news/${id}`, {
+        const res = await fetch(`/api/news/${id}`, {
           method: 'DELETE',
         });
         if (res.ok) {
@@ -102,8 +102,8 @@ export default function AdminNews() {
 
     try {
       const url = editingArticle 
-        ? `http://127.0.0.1:8000/api/news/${editingArticle.id}`
-        : 'http://127.0.0.1:8000/api/news';
+        ? `/api/news/${editingArticle.id}`
+        : '/api/news';
       const method = editingArticle ? 'PATCH' : 'POST';
       
       const res = await fetch(url, {
@@ -150,7 +150,7 @@ export default function AdminNews() {
     }
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/reports', {
+      const res = await fetch('/api/reports', {
         method: 'POST',
         body: formData,
       });
@@ -174,7 +174,7 @@ export default function AdminNews() {
   const handleDeleteReport = async (id) => {
     if (confirm('Voulez-vous vraiment supprimer ce rapport ?')) {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/reports/${id}`, {
+        const res = await fetch(`/api/reports/${id}`, {
           method: 'DELETE',
         });
         if (res.ok) {

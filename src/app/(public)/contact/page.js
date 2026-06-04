@@ -66,6 +66,7 @@ export default function Contact() {
             alt="Paysage Togolais serein" 
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuC67FJiioFkhjnGW8UszcmekRrI87f-vySoMe3zbP4yMNC2PMCXBTgSuZHeKaR0sE9l1pxZCrlFbFD1EPoWOl6QK4hWyQG8xNidN9ngw-Gj7oSgrqo7VPosg77BVTVWW-MWB2m958EAMDsbrYO58eaQrVFI-P4gE6DDxMR5og81cvnLdANie0xIcNP6kPRR9hjmWnj4nn0vDdSqhcDNNtElbh7wcic0PxThaZ6k0a4Xw1MrZRCdsGdIyrxKVmeNa637ZMbSyM19Ow" 
             fill
+            sizes="100vw"
             priority
           />
         </div>
@@ -227,6 +228,7 @@ export default function Contact() {
                     alt={office.name} 
                     src={office.img} 
                     fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
                   />
                 </div>
                 <h3 className="font-headline-sm text-headline-sm text-tertiary mb-2">{office.name}</h3>

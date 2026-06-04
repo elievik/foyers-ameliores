@@ -11,30 +11,42 @@ export default function AdminTestimonialsPage() {
     location: '',
     text: '',
     avatar_url: '',
+    file: null,
     order: 0,
   });
+
+  const fetchTestimonials = async () => {
+    const res = await fetch('/api/testimonials/');
+    const data = await res.json();
+    setTestimonials(data);
+  };
 
   useEffect(() => {
     fetchTestimonials();
   }, []);
 
-  const fetchTestimonials = async () => {
-    const res = await fetch('http://127.0.0.1:8000/api/testimonials/');
-    const data = await res.json();
-    setTestimonials(data);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const formDataObj = new FormData();
+    formDataObj.append('name', formData.name);
+    formDataObj.append('location', formData.location);
+    formDataObj.append('text', formData.text);
+    formDataObj.append('order', formData.order.toString());
+    if (formData.file) {
+      formDataObj.append('file', formData.file);
+    }
+    if (formData.avatar_url) {
+      formDataObj.append('avatar_url', formData.avatar_url);
+    }
+
     const url = editingTestimonial
-      ? `http://127.0.0.1:8000/api/testimonials/${editingTestimonial.id}`
-      : 'http://127.0.0.1:8000/api/testimonials/';
+      ? `/api/testimonials/${editingTestimonial.id}`
+      : '/api/testimonials/';
     const method = editingTestimonial ? 'PATCH' : 'POST';
 
     await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
+      body: formDataObj,
     });
 
     setIsModalOpen(false);
@@ -44,6 +56,7 @@ export default function AdminTestimonialsPage() {
       location: '',
       text: '',
       avatar_url: '',
+      file: null,
       order: 0,
     });
     fetchTestimonials();
@@ -51,13 +64,20 @@ export default function AdminTestimonialsPage() {
 
   const handleEdit = (testimonial) => {
     setEditingTestimonial(testimonial);
-    setFormData(testimonial);
+    setFormData({
+      name: testimonial.name,
+      location: testimonial.location,
+      text: testimonial.text,
+      avatar_url: testimonial.avatar_url,
+      file: null,
+      order: testimonial.order,
+    });
     setIsModalOpen(true);
   };
 
   const handleDelete = async (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce témoignage?')) {
-      await fetch(`http://127.0.0.1:8000/api/testimonials/${id}`, { method: 'DELETE' });
+      await fetch(`/api/testimonials/${id}`, { method: 'DELETE' });
       fetchTestimonials();
     }
   };
@@ -78,6 +98,7 @@ export default function AdminTestimonialsPage() {
               location: '',
               text: '',
               avatar_url: '',
+              file: null,
               order: 0,
             });
             setIsModalOpen(true);
@@ -125,7 +146,7 @@ export default function AdminTestimonialsPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-3xl p-8 shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl p-8 shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h3 className="font-headline-md text-headline-md text-primary mb-6">
               {editingTestimonial ? 'Modifier le Témoignage' : 'Ajouter un Témoignage'}
             </h3>
@@ -161,12 +182,22 @@ export default function AdminTestimonialsPage() {
                 />
               </div>
               <div>
+                <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Télécharger un avatar</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                  onChange={(e) => setFormData({ ...formData, file: e.target.files[0], avatar_url: '' })}
+                />
+              </div>
+              <div className="text-center text-sm text-on-surface-variant">OU</div>
+              <div>
                 <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">URL de l'avatar (optionnel)</label>
                 <input
                   type="url"
                   className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
                   value={formData.avatar_url}
-                  onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value, file: null })}
                 />
               </div>
               <div>

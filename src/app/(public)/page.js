@@ -19,13 +19,9 @@ export default function Home() {
   const [success, setSuccess] = useState(false);
   const [testimonials, setTestimonials] = useState([]);
 
-  useEffect(() => {
-    fetchTestimonials();
-  }, []);
-
   const fetchTestimonials = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/testimonials/');
+      const res = await fetch('/api/testimonials/');
       if (res.ok) {
         setTestimonials(await res.json());
       }
@@ -34,11 +30,15 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    fetchTestimonials();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/resellers', {
+      const response = await fetch('/api/resellers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,6 +65,7 @@ export default function Home() {
             alt="Une famille togolaise souriante cuisinant avec un foyer amélioré dans une cuisine moderne et écologique" 
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuBl0KHpcTlVrogx_VOf2OzprIE4DMZhe4wnKssR31xDMUD7c3dYGIgwFpLfjpISUYIYuyh9ebZTQk2extXis8LoV3dDMeMIyNhA-7vPO0ufzIOmS5BsloV-9UEiCthdw4Tb8VuQ44hHOFZnwRd9FeGS92r6q_EUTvDuBBDwvH-al2ZNLR6FbLtoDXCxp_Ce5nWF3fkDqBpksrrXTic4--gnaH9ADZRs8zb6MTgurOZjjIzbragYIoi-ie0VMqvWJxuzF6rBddY96Q"
             fill
+            sizes="100vw"
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/60 to-transparent"></div>
@@ -136,6 +137,7 @@ export default function Home() {
                   alt="Modèle de foyer Himalayen" 
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUze5e26joP2hHn4jg02-IKUuQ59kEYoONxyGzvK3OfEkRUcWBt9Wnnyc4t6sUC0EeTdHa2uUuytaSKb-FT0xeVmbcmBE-779WI5IUSmI4zGD-Fjk1_UfsZOH1mVdBy9Wde-r3spaD79GRxl5mXpAQ9drNOHKj3IlyoMbZ3LH22FecQUAYr47jSh3ZLPjOk1mVkA2fVUbRyWmSLnnmLzACFizwrr1-L4vZ6QsUuk47BzTeVR-_otUCvXiz73c02mAFAr5oJPzzgA" 
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>
               <div className="p-8">
@@ -168,6 +170,7 @@ export default function Home() {
                   alt="Modèle de foyer Asuto" 
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbx5WNP5KPSyH1-lkdMIV1yRznbPPyq_ws8ElMXO8pxuG90adfGrSZLKdJXRybIdTd5INylpvZl0HqvnZz1orhsiBwgOWv5gPkN1Ez73CS9edG6cHIozqKmmefF5DLQ4AM6cEu59wrtU7apNcoX1t8e5yBcFR8pmP5N8Ro55zK-DIjKXiwRKCO9h5N6wuayXA55fvRK1fVdQqadD89BTdml_swkaiBCuGtDoGWeTr19Nf9FhueNUgVJh4v3scxkGbIPjBrOfoMDw" 
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>
               <div className="p-8">
@@ -217,6 +220,7 @@ export default function Home() {
                   alt={region.name} 
                   src={region.img} 
                   fill
+                  sizes="(max-width: 768px) 100vw, 20vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                 <div className="absolute bottom-0 left-0 p-6 w-full">

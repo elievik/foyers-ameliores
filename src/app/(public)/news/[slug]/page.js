@@ -10,18 +10,18 @@ export default function ArticleDetail({ params }) {
 
   const getFullUrl = (url) => {
     if (!url) return '';
-    return url.startsWith('http') ? url : `http://127.0.0.1:8000${url}`;
+    return url.startsWith('http') ? url : `${url}`;
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const articleRes = await fetch(`http://127.0.0.1:8000/api/news/slug/${params.slug}`);
+        const articleRes = await fetch(`/api/news/slug/${params.slug}`);
         if (articleRes.ok) {
           const data = await articleRes.json();
           setArticle(data);
           
-          const allNewsRes = await fetch('http://127.0.0.1:8000/api/news');
+          const allNewsRes = await fetch('/api/news');
           if (allNewsRes.ok) {
             const allNews = await allNewsRes.json();
             const related = allNews.filter(item => item.id !== data.id && item.status === 'Publié').slice(0, 3);

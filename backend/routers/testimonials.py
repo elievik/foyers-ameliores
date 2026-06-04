@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from database import SessionLocal
 import models
 import schemas
+import os
+import uuid
+from typing import Optional
 
 router = APIRouter(
     prefix="/api/testimonials",
@@ -23,8 +26,32 @@ def get_testimonials(db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=schemas.Testimonial)
-def create_testimonial(testimonial: schemas.TestimonialCreate, db: Session = Depends(get_db)):
-    db_testimonial = models.Testimonial(**testimonial.dict())
+async def create_testimonial(
+    name: str = Form(...),
+    location: str = Form(...),
+    text: str = Form(...),
+    order: int = Form(0),
+    file: Optional[UploadFile] = File(None),
+    avatar_url: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
+    image_url = avatar_url
+    if file:
+        file_extension = os.path.splitext(file.filename)[1]
+        file_name = f"{uuid.uuid4()}{file_extension}"
+        file_path = f"static/images/{file_name}"
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        image_url = f"/static/images/{file_name}"
+    
+    db_testimonial = models.Testimonial(
+        name=name,
+        location=location,
+        text=text,
+        avatar_url=image_url,
+        order=order
+    )
     db.add(db_testimonial)
     db.commit()
     db.refresh(db_testimonial)
@@ -32,12 +59,40 @@ def create_testimonial(testimonial: schemas.TestimonialCreate, db: Session = Dep
 
 
 @router.patch("/{testimonial_id}", response_model=schemas.Testimonial)
-def update_testimonial(testimonial_id: int, testimonial: schemas.TestimonialUpdate, db: Session = Depends(get_db)):
+async def update_testimonial(
+    testimonial_id: int,
+    name: Optional[str] = Form(None),
+    location: Optional[str] = Form(None),
+    text: Optional[str] = Form(None),
+    order: Optional[int] = Form(None),
+    file: Optional[UploadFile] = File(None),
+    avatar_url: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
     db_testimonial = db.query(models.Testimonial).filter(models.Testimonial.id == testimonial_id).first()
     if not db_testimonial:
         raise HTTPException(status_code=404, detail="Testimonial not found")
-    for key, value in testimonial.dict().items():
-        setattr(db_testimonial, key, value)
+    
+    if name:
+        db_testimonial.name = name
+    if location:
+        db_testimonial.location = location
+    if text:
+        db_testimonial.text = text
+    if order is not None:
+        db_testimonial.order = order
+    
+    if file:
+        file_extension = os.path.splitext(file.filename)[1]
+        file_name = f"{uuid.uuid4()}{file_extension}"
+        file_path = f"static/images/{file_name}"
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        db_testimonial.avatar_url = f"/static/images/{file_name}"
+    elif avatar_url:
+        db_testimonial.avatar_url = avatar_url
+    
     db.commit()
     db.refresh(db_testimonial)
     return db_testimonial
@@ -48,6 +103,13 @@ def delete_testimonial(testimonial_id: int, db: Session = Depends(get_db)):
     db_testimonial = db.query(models.Testimonial).filter(models.Testimonial.id == testimonial_id).first()
     if not db_testimonial:
         raise HTTPException(status_code=404, detail="Testimonial not found")
+    
+    # Delete file if it's a local file
+    if db_testimonial.avatar_url and db_testimonial.avatar_url.startswith("/static/images/"):
+        file_path = db_testimonial.avatar_url.replace("/static/", "")
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    
     db.delete(db_testimonial)
     db.commit()
     return {"message": "Testimonial deleted"}

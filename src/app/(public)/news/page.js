@@ -14,8 +14,8 @@ export default function News() {
     const fetchData = async () => {
       try {
         const [newsRes, reportsRes] = await Promise.all([
-          fetch('http://127.0.0.1:8000/api/news'),
-          fetch('http://127.0.0.1:8000/api/reports')
+          fetch('/api/news'),
+          fetch('/api/reports')
         ]);
         if (newsRes.ok) {
           const data = await newsRes.json();
@@ -44,7 +44,7 @@ export default function News() {
 
   const getFullUrl = (url) => {
     if (!url) return '';
-    return url.startsWith('http') ? url : `http://127.0.0.1:8000${url}`;
+    return url.startsWith('http') ? url : `${url}`;
   };
 
   const featuredArticle = newsItems.find(item => item.featured === 1 && item.status === 'Publié') || 

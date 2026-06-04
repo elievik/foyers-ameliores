@@ -24,8 +24,8 @@ export default function AdminOrders() {
     const fetchData = async () => {
       try {
         const [himalayenRes, asutoRes] = await Promise.all([
-          fetch('http://127.0.0.1:8000/api/orders/himalayen'),
-          fetch('http://127.0.0.1:8000/api/orders/asuto')
+          fetch('/api/orders/himalayen'),
+          fetch('/api/orders/asuto')
         ]);
         setHimalayenList(await himalayenRes.json());
         setAsutoList(await asutoRes.json());
@@ -39,7 +39,7 @@ export default function AdminOrders() {
   const handleHimalayenSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/orders/himalayen', {
+      const response = await fetch('/api/orders/himalayen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(himalayenForm),
@@ -49,7 +49,7 @@ export default function AdminOrders() {
         setShowHimalayenForm(false);
         setHimalayenForm({});
         // Recharger la liste
-        const res = await fetch('http://127.0.0.1:8000/api/orders/himalayen');
+        const res = await fetch('/api/orders/himalayen');
         setHimalayenList(await res.json());
       }
     } catch (error) {
@@ -64,7 +64,7 @@ export default function AdminOrders() {
         ...asutoForm,
         prix_unitaire: 2500
       };
-      const response = await fetch('http://127.0.0.1:8000/api/orders/asuto', {
+      const response = await fetch('/api/orders/asuto', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(asutoData),
@@ -74,7 +74,7 @@ export default function AdminOrders() {
         setShowAsutoForm(false);
         setAsutoForm({});
         // Recharger la liste
-        const res = await fetch('http://127.0.0.1:8000/api/orders/asuto');
+        const res = await fetch('/api/orders/asuto');
         setAsutoList(await res.json());
       }
     } catch (error) {

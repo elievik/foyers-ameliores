@@ -1,0 +1,234 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
+export default function AdminBannersPage() {
+  const [heroImages, setHeroImages] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingHero, setEditingHero] = useState(null);
+  const [formData, setFormData] = useState({
+    page: '',
+    title: '',
+    alt_text: '',
+    image_url: '',
+    file: null
+  });
+
+  const fetchHeroImages = async () => {
+    const res = await fetch('/api/hero-images/');
+    const data = await res.json();
+    setHeroImages(data);
+  };
+
+  useEffect(() => {
+    fetchHeroImages();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formDataObj = new FormData();
+    
+    if (formData.page) formDataObj.append('page', formData.page);
+    if (formData.title) formDataObj.append('title', formData.title);
+    if (formData.alt_text) formDataObj.append('alt_text', formData.alt_text);
+    if (formData.image_url) formDataObj.append('image_url', formData.image_url);
+    if (formData.file) formDataObj.append('file', formData.file);
+
+    const url = editingHero 
+      ? `/api/hero-images/${editingHero.id}` 
+      : '/api/hero-images/';
+    const method = editingHero ? 'PATCH' : 'POST';
+
+    await fetch(url, {
+      method,
+      body: formDataObj
+    });
+
+    setIsModalOpen(false);
+    setEditingHero(null);
+    setFormData({
+      page: '',
+      title: '',
+      alt_text: '',
+      image_url: '',
+      file: null
+    });
+    fetchHeroImages();
+  };
+
+  const handleEdit = (hero) => {
+    setEditingHero(hero);
+    setFormData({
+      page: hero.page,
+      title: hero.title,
+      alt_text: hero.alt_text,
+      image_url: hero.image_url,
+      file: null
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) {
+      await fetch(`/api/hero-images/${id}`, { method: 'DELETE' });
+      fetchHeroImages();
+    }
+  };
+
+  return (
+    <>
+      <div className="flex justify-between items-end mb-10">
+        <div>
+          <span className="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Gestion des Bannières</span>
+          <h2 className="font-display-lg text-display-lg mt-2 text-primary">Images des Bannières</h2>
+          <p className="text-on-surface-variant mt-2 max-w-xl">Gérez les images des bannières pour les différentes pages du site.</p>
+        </div>
+        <button
+          onClick={() => {
+            setEditingHero(null);
+            setFormData({
+              page: '',
+              title: '',
+              alt_text: '',
+              image_url: '',
+              file: null
+            });
+            setIsModalOpen(true);
+          }}
+          className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-button shadow-lg hover:brightness-110 transition-all active:scale-95"
+        >
+          <span className="material-symbols-outlined">add</span>Ajouter une Image
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {heroImages.map((hero) => (
+          <div key={hero.id} className="glass-card p-6 rounded-2xl border border-outline-variant shadow-sm">
+            <div className="h-40 overflow-hidden rounded-xl mb-4 relative bg-surface-container flex items-center justify-center">
+              {hero.image_url ? (
+                <img
+                  src={hero.image_url}
+                  alt={hero.alt_text}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="material-symbols-outlined text-outline text-5xl">image</span>
+              )}
+            </div>
+            <div className="space-y-2">
+              <p className="font-bold text-primary text-lg">{hero.title}</p>
+              <p className="text-sm text-on-surface-variant font-label-caps uppercase">Page: {hero.page}</p>
+              {hero.alt_text && (
+                <p className="text-xs text-on-surface-variant">Alt: {hero.alt_text}</p>
+              )}
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={() => handleEdit(hero)}
+                className="flex-1 flex items-center justify-center gap-1 px-4 py-2 rounded-lg text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-all"
+              >
+                <span className="material-symbols-outlined text-sm">edit</span>Modifier
+              </button>
+              <button
+                onClick={() => handleDelete(hero.id)}
+                className="flex items-center justify-center gap-1 px-4 py-2 rounded-lg text-sm font-medium text-error bg-error/10 hover:bg-error/20 transition-all"
+              >
+                <span className="material-symbols-outlined text-sm">delete</span>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-8">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-headline-md text-headline-md text-primary">
+                  {editingHero ? 'Modifier la Bannière' : 'Ajouter une Bannière'}
+                </h3>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-on-surface-variant hover:text-primary"
+                >
+                  <span className="material-symbols-outlined text-3xl">close</span>
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Page</label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    placeholder="ex: home, about, regions"
+                    value={formData.page}
+                    onChange={(e) => setFormData({ ...formData, page: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Titre</label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    placeholder="Titre de la bannière"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Texte alternatif (alt)</label>
+                  <input
+                    type="text"
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    placeholder="Description de l'image"
+                    value={formData.alt_text}
+                    onChange={(e) => setFormData({ ...formData, alt_text: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Télécharger une image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                    onChange={(e) => setFormData({ ...formData, file: e.target.files[0], image_url: '' })}
+                  />
+                </div>
+                <div className="text-center text-sm text-on-surface-variant">OU</div>
+                <div>
+                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">URL de l'image</label>
+                  <input
+                    type="url"
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    placeholder="https://example.com/image.jpg"
+                    value={formData.image_url}
+                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value, file: null })}
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 px-4 py-3 rounded-lg font-medium text-on-surface-variant bg-surface-container-low hover:bg-surface-container transition-all"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-3 rounded-lg font-button bg-primary text-white hover:brightness-110 transition-all"
+                  >
+                    {editingHero ? 'Mettre à jour' : 'Ajouter'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

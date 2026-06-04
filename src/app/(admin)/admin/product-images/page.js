@@ -13,15 +13,15 @@ export default function AdminProductImages() {
     order: 0,
   });
 
-  useEffect(() => {
-    fetchImages();
-  }, []);
-
   const fetchImages = async () => {
-    const res = await fetch('http://127.0.0.1:8000/api/product-images/');
+    const res = await fetch('/api/product-images/');
     const data = await res.json();
     setImages(data);
   };
+
+  useEffect(() => {
+    fetchImages();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,8 +36,8 @@ export default function AdminProductImages() {
     }
 
     const url = editingImage
-      ? `http://127.0.0.1:8000/api/product-images/${editingImage.id}`
-      : 'http://127.0.0.1:8000/api/product-images/';
+      ? `/api/product-images/${editingImage.id}`
+      : '/api/product-images/';
     const method = editingImage ? 'PATCH' : 'POST';
 
     await fetch(url, {
@@ -69,7 +69,7 @@ export default function AdminProductImages() {
 
   const handleDelete = async (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette image?')) {
-      await fetch(`http://127.0.0.1:8000/api/product-images/${id}`, { method: 'DELETE' });
+      await fetch(`/api/product-images/${id}`, { method: 'DELETE' });
       fetchImages();
     }
   };
@@ -194,7 +194,7 @@ export default function AdminProductImages() {
 }
 
 function ImageCard({ image, onEdit, onDelete }) {
-  const fullUrl = image.img_url.startsWith('http') ? image.img_url : `http://127.0.0.1:8000${image.img_url}`;
+  const fullUrl = image.img_url.startsWith('http') ? image.img_url : `${image.img_url}`;
   return (
     <div className="bg-white rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden relative group">
       <img src={fullUrl} alt="" className="w-full aspect-square object-cover" />

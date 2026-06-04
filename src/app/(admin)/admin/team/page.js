@@ -11,30 +11,42 @@ export default function AdminTeamPage() {
     role: '',
     icon: 'person',
     img_url: '',
+    file: null,
     order: 0,
   });
+
+  const fetchTeam = async () => {
+    const res = await fetch('/api/team/');
+    const data = await res.json();
+    setTeam(data);
+  };
 
   useEffect(() => {
     fetchTeam();
   }, []);
 
-  const fetchTeam = async () => {
-    const res = await fetch('http://127.0.0.1:8000/api/team/');
-    const data = await res.json();
-    setTeam(data);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const formDataObj = new FormData();
+    formDataObj.append('name', formData.name);
+    formDataObj.append('role', formData.role);
+    formDataObj.append('icon', formData.icon);
+    formDataObj.append('order', formData.order.toString());
+    if (formData.file) {
+      formDataObj.append('file', formData.file);
+    }
+    if (formData.img_url) {
+      formDataObj.append('img_url', formData.img_url);
+    }
+
     const url = editingMember
-      ? `http://127.0.0.1:8000/api/team/${editingMember.id}`
-      : 'http://127.0.0.1:8000/api/team/';
+      ? `/api/team/${editingMember.id}`
+      : '/api/team/';
     const method = editingMember ? 'PATCH' : 'POST';
 
     await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
+      body: formDataObj,
     });
 
     setIsModalOpen(false);
@@ -44,6 +56,7 @@ export default function AdminTeamPage() {
       role: '',
       icon: 'person',
       img_url: '',
+      file: null,
       order: 0,
     });
     fetchTeam();
@@ -51,13 +64,20 @@ export default function AdminTeamPage() {
 
   const handleEdit = (member) => {
     setEditingMember(member);
-    setFormData(member);
+    setFormData({
+      name: member.name,
+      role: member.role,
+      icon: member.icon,
+      img_url: member.img_url,
+      file: null,
+      order: member.order,
+    });
     setIsModalOpen(true);
   };
 
   const handleDelete = async (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce membre?')) {
-      await fetch(`http://127.0.0.1:8000/api/team/${id}`, { method: 'DELETE' });
+      await fetch(`/api/team/${id}`, { method: 'DELETE' });
       fetchTeam();
     }
   };
@@ -78,6 +98,7 @@ export default function AdminTeamPage() {
               role: '',
               icon: 'person',
               img_url: '',
+              file: null,
               order: 0,
             });
             setIsModalOpen(true);
@@ -95,8 +116,12 @@ export default function AdminTeamPage() {
             className="bg-white rounded-2xl shadow-sm border border-outline-variant/20 p-6 flex flex-col items-center text-center"
           >
             <div className="relative mb-4">
-              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                <img className="w-full h-full object-cover" alt={member.name} src={member.img_url} />
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg flex items-center justify-center bg-surface-container">
+                {member.img_url ? (
+                  <img className="w-full h-full object-cover" alt={member.name} src={member.img_url} />
+                ) : (
+                  <span className="material-symbols-outlined text-outline text-6xl">{member.icon}</span>
+                )}
               </div>
               <div className="absolute -bottom-2 -right-2 bg-secondary text-white p-2 rounded-full shadow-md">
                 <span className="material-symbols-outlined">{member.icon}</span>
@@ -159,13 +184,22 @@ export default function AdminTeamPage() {
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">URL de la Photo</label>
+                <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Télécharger une photo</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                  onChange={(e) => setFormData({ ...formData, file: e.target.files[0], img_url: '' })}
+                />
+              </div>
+              <div className="text-center text-sm text-on-surface-variant">OU</div>
+              <div>
+                <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">URL de la photo</label>
                 <input
                   type="url"
-                  required
                   className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
                   value={formData.img_url}
-                  onChange={(e) => setFormData({ ...formData, img_url: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, img_url: e.target.value, file: null })}
                 />
               </div>
               <div>

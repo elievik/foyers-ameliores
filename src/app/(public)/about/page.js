@@ -5,19 +5,33 @@ import { useEffect, useState } from 'react';
 
 export default function About() {
   const [teamMembers, setTeamMembers] = useState([]);
+  const [partners, setPartners] = useState([]);
+
+  const fetchTeam = async () => {
+    try {
+      const res = await fetch('/api/team/');
+      if (res.ok) {
+        setTeamMembers(await res.json());
+      }
+    } catch (e) {
+      console.error('Error fetching team', e);
+    }
+  };
+
+  const fetchPartners = async () => {
+    try {
+      const res = await fetch('/api/partners/');
+      if (res.ok) {
+        setPartners(await res.json());
+      }
+    } catch (e) {
+      console.error('Error fetching partners', e);
+    }
+  };
 
   useEffect(() => {
-    const fetchTeam = async () => {
-      try {
-        const res = await fetch('http://127.0.0.1:8000/api/team/');
-        if (res.ok) {
-          setTeamMembers(await res.json());
-        }
-      } catch (e) {
-        console.error("Error fetching team", e);
-      }
-    };
     fetchTeam();
+    fetchPartners();
   }, []);
   return (
     <>
@@ -29,6 +43,7 @@ export default function About() {
             alt="Paysage des Plateaux au Togo au lever du soleil" 
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKmeEPDBOQoGtc2dS5nEe9HF-eWi768kabmAFnbhgjH7g8SAXpa6TOzAGprzA-5PaCdQ3cn3r_ZKzS6V62Qv5EWRBUI8qebCGalEEBux0tCTJ8Moqzhx5GHr_GKYECYv_NHvaQpQNFK59E8iWRIx3qSNgcBOcK-JoM_cYFvFS063Kmx7Hn4zOanzXbn1ehyBSX69Kk8rpQJAQGKKCSMSl64Yiz3Nxd9fjNTjtNUEOAaTxHCztZM_NdZV0z_lESItqijpn1hKrpSQ"
             fill
+            sizes="100vw"
             priority
           />
         </div>
@@ -50,6 +65,7 @@ export default function About() {
                 alt="Foyer biomasse moderne amélioré" 
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDM5TqhpKd5nM09IUh93g62xZ-f52UyRpg3M7ErfZ9_jcu2wUz5fl-YQl9Vakh0NGRM_AGHX3nBUmZmQ7m0cnlDqCJ4hiK_A1ceSleP9fWreK5se8fWqKdPMsgEIgMat-kwEiGCzmRcebqkG2EQ9BhES1kizeTy8RJSFq3Y6eia4CoGIdzbh1Oznol-1VJcpT7bG0fqK8fG1QgKWDg-Y9FCKrONsGLcTTKzVFS14r7iE11tqq-_KJBjGn2nE4Rj0mzNQy2VLVqAng"
                 fill
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
             <div className="absolute -bottom-6 -left-6 glass-card p-8 rounded-2xl shadow-organic max-w-[240px]">
@@ -159,8 +175,12 @@ export default function About() {
               teamMembers.map((member) => (
                 <div key={member.id} className="group text-center">
                   <div className="relative mb-6 inline-block">
-                    <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-organic transition-transform group-hover:scale-105 duration-300">
-                      <img className="w-full h-full object-cover" alt={member.name} src={member.img_url} />
+                    <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-organic transition-transform group-hover:scale-105 duration-300 flex items-center justify-center bg-surface-container">
+                      {member.img_url ? (
+                        <img className="w-full h-full object-cover" alt={member.name} src={member.img_url} />
+                      ) : (
+                        <span className="material-symbols-outlined text-outline text-6xl">{member.icon}</span>
+                      )}
                     </div>
                     <div className="absolute -bottom-2 -right-2 bg-secondary text-white p-2 rounded-full shadow-lg">
                       <span className="material-symbols-outlined">{member.icon}</span>
@@ -184,9 +204,25 @@ export default function About() {
         <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop text-center">
           <h3 className="text-label-caps font-label-caps text-on-surface-variant mb-12 uppercase tracking-[0.2em]">Ils nous font confiance</h3>
           <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-60 grayscale hover:grayscale-0 transition-all">
-            {['GIZ', 'UNDP', 'ECOWAS', 'BOAD', 'ATRE'].map((partner) => (
-              <span key={partner} className="text-headline-sm font-bold text-outline">{partner}</span>
-            ))}
+            {partners.length > 0 ? (
+              partners.map((partner) => (
+                <div key={partner.id} className="flex items-center justify-center">
+                  {partner.logo_url ? (
+                    <img
+                      src={partner.logo_url}
+                      alt={partner.name}
+                      className="h-16 object-contain"
+                    />
+                  ) : (
+                    <span className="text-headline-sm font-bold text-outline">{partner.name}</span>
+                  )}
+                </div>
+              ))
+            ) : (
+              ['GIZ', 'UNDP', 'ECOWAS', 'BOAD', 'ATRE'].map((partner) => (
+                <span key={partner} className="text-headline-sm font-bold text-outline">{partner}</span>
+              ))
+            )}
           </div>
         </div>
       </section>

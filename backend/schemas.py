@@ -163,3 +163,72 @@ class Testimonial(TestimonialBase):
     id: int
     class Config:
         orm_mode = True
+
+# Regions
+class RegionBase(BaseModel):
+    name: str
+    distributed: str = "0"
+    icon: str = "public"
+    activity: str = "Aucune activité enregistrée"
+    quote: Optional[str] = None
+    cite: Optional[str] = None
+    img_url: str
+    order: int = 0
+
+class RegionCreate(RegionBase):
+    pass
+
+class RegionUpdate(RegionBase):
+    name: Optional[str] = None
+    distributed: Optional[str] = None
+    icon: Optional[str] = None
+    activity: Optional[str] = None
+    quote: Optional[str] = None
+    cite: Optional[str] = None
+    img_url: Optional[str] = None
+    order: Optional[int] = None
+
+class Region(RegionBase):
+    id: int
+    class Config:
+        orm_mode = True
+
+# Partners
+class PartnerBase(BaseModel):
+    name: str
+    logo_url: str
+    order: int = 0
+
+class PartnerCreate(PartnerBase):
+    pass
+
+class PartnerUpdate(PartnerBase):
+    name: Optional[str] = None
+    logo_url: Optional[str] = None
+    order: Optional[int] = None
+
+class Partner(PartnerBase):
+    id: int
+    class Config:
+        orm_mode = True
+
+# Hero Images
+class HeroImageBase(BaseModel):
+    page: str
+    title: str
+    image_url: str
+    alt_text: str = ""
+
+class HeroImageCreate(HeroImageBase):
+    pass
+
+class HeroImageUpdate(HeroImageBase):
+    page: Optional[str] = None
+    title: Optional[str] = None
+    image_url: Optional[str] = None
+    alt_text: Optional[str] = None
+
+class HeroImage(HeroImageBase):
+    id: int
+    class Config:
+        orm_mode = True

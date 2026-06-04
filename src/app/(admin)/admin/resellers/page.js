@@ -27,7 +27,7 @@ export default function AdminResellers() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/api/resellers');
+        const res = await fetch('/api/resellers');
         if (res.ok) {
           setRequests(await res.json());
         }
@@ -40,14 +40,14 @@ export default function AdminResellers() {
 
   const handleUpdateStatus = async (id, status) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/resellers/${id}`, {
+      const res = await fetch(`/api/resellers/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
       if (res.ok) {
         // Recharger la liste
-        const resFresh = await fetch('http://127.0.0.1:8000/api/resellers');
+        const resFresh = await fetch('/api/resellers');
         setRequests(await resFresh.json());
       }
     } catch (error) {
@@ -58,7 +58,7 @@ export default function AdminResellers() {
   const handleDeleteRequest = async (id) => {
     if (confirm('Supprimer cette demande ?')) {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/resellers/${id}`, {
+        const res = await fetch(`/api/resellers/${id}`, {
           method: 'DELETE',
         });
         if (res.ok) {
@@ -73,7 +73,7 @@ export default function AdminResellers() {
   const handleAddReseller = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/resellers', {
+      const res = await fetch('/api/resellers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -82,7 +82,7 @@ export default function AdminResellers() {
         setShowForm(false);
         setFormData({ nom: '', prenoms: '', telephone: '', ville: '', region: '', autre: '' });
         // Recharger la liste
-        const resFresh = await fetch('http://127.0.0.1:8000/api/resellers');
+        const resFresh = await fetch('/api/resellers');
         setRequests(await resFresh.json());
       }
     } catch (error) {

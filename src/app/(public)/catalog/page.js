@@ -2,6 +2,11 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
+const getFullUrl = (url) => {
+  if (!url) return '';
+  return url.startsWith('http') ? url : `${url}`;
+};
+
 export default function Catalog() {
   const [showHimalayenForm, setShowHimalayenForm] = useState(false);
   const [showAsutoForm, setShowAsutoForm] = useState(false);
@@ -9,9 +14,10 @@ export default function Catalog() {
   const [productImages, setProductImages] = useState([]);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/product-images/')
+    fetch('/api/product-images/')
       .then(res => res.json())
-      .then(data => setProductImages(data));
+      .then(data => setProductImages(data))
+      .catch(err => console.error('Error fetching product images:', err));
   }, []);
 
   const products = [
@@ -45,10 +51,6 @@ export default function Catalog() {
     }
   ];
 
-  const getFullUrl = (url) => {
-    if (!url) return '';
-    return url.startsWith('http') ? url : `http://127.0.0.1:8000${url}`;
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -60,7 +62,7 @@ export default function Catalog() {
     
     try {
       // 1. Envoyer les données au backend
-      const response = await fetch('http://127.0.0.1:8000/api/orders/himalayen', {
+      const response = await fetch('/api/orders/himalayen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -107,7 +109,7 @@ export default function Catalog() {
       };
 
       // 1. Envoyer les données au backend
-      const response = await fetch('http://127.0.0.1:8000/api/orders/asuto', {
+      const response = await fetch('/api/orders/asuto', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(asutoData),
@@ -155,6 +157,7 @@ export default function Catalog() {
             alt="Paysage du Togo au lever du soleil" 
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLy_9RkTQ0rzquZvuoyaLgZrV8jmLv7ZTr5HZPBP5yeZg04JOwuTRaDk6RBbjw2OGUejP5BH3nMi9wljfd9FRtZZsQlnsMsgBUClT-tTmtYwZIjziACR7lohAuGoRCdX7-v9CAca_hnm4A6KKIOwXZ7V7D0WggTGZmNEDn5HfVQ17z6DxpM6R2Y3NwRq0brpx_Q3xoIibtoWs3ciFwK-FEqfLsfAUPLwH8N8aDc3IJxhGndcCnR6Y5in1rmSOe6FOQdHbYFM3GpQ" 
             fill
+            sizes="100vw"
             priority
           />
           <div className="absolute inset-0 bg-primary/40 backdrop-blur-[2px]"></div>

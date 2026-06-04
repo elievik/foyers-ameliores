@@ -84,3 +84,30 @@ class Testimonial(Base):
     text = Column(String)
     avatar_url = Column(String, nullable=True)
     order = Column(Integer, default=0)
+
+class Region(Base):
+    __tablename__ = "regions"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    distributed = Column(String, default="0")
+    icon = Column(String, default="public")
+    activity = Column(String, default="Aucune activité enregistrée")
+    quote = Column(String, nullable=True)
+    cite = Column(String, nullable=True)
+    img_url = Column(String)
+    order = Column(Integer, default=0)
+
+class Partner(Base):
+    __tablename__ = "partners"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    logo_url = Column(String)
+    order = Column(Integer, default=0)
+
+class HeroImage(Base):
+    __tablename__ = "hero_images"
+    id = Column(Integer, primary_key=True, index=True)
+    page = Column(String, unique=True, index=True)  # e.g., "home", "about", "regions"
+    title = Column(String)
+    image_url = Column(String)
+    alt_text = Column(String, default="")

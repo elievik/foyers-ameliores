@@ -24,7 +24,7 @@ export default function AdminDashboard() {
     // Fetch stats from backend
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/api/stats');
+        const res = await fetch('/api/stats');
         if (res.ok) {
           const data = await res.json();
           setStats(data);
