@@ -14,10 +14,18 @@ export default function AdminBannersPage() {
     file: null
   });
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://foyers-ameliores.onrender.com';
+
   const fetchHeroImages = async () => {
-    const res = await fetch('/api/hero-images/');
-    const data = await res.json();
-    setHeroImages(data);
+    try {
+      const res = await fetch(`${API_URL}/api/hero-images/`);
+      if (res.ok) {
+        const data = await res.json();
+        setHeroImages(data);
+      }
+    } catch (e) {
+      console.error("Fetch error:", e);
+    }
   };
 
   useEffect(() => {
@@ -41,8 +49,8 @@ export default function AdminBannersPage() {
     if (formData.file) formDataObj.append('file', formData.file);
 
     const url = editingHero 
-      ? `/api/hero-images/${editingHero.id}` 
-      : '/api/hero-images/';
+      ? `${API_URL}/api/hero-images/${editingHero.id}` 
+      : `${API_URL}/api/hero-images/`;
     const method = editingHero ? 'PATCH' : 'POST';
 
     try {
@@ -99,8 +107,12 @@ export default function AdminBannersPage() {
 
   const handleDelete = async (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) {
-      await fetch(`/api/hero-images/${id}`, { method: 'DELETE' });
-      fetchHeroImages();
+      try {
+        await fetch(`${API_URL}/api/hero-images/${id}`, { method: 'DELETE' });
+        fetchHeroImages();
+      } catch (e) {
+        console.error("Delete error:", e);
+      }
     }
   };
 
