@@ -26,6 +26,12 @@ export default function AdminBannersPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!editingHero && !formData.file && !formData.image_url) {
+      alert("Erreur: Veuillez télécharger une image ou fournir une URL d'image.");
+      return;
+    }
+
     const formDataObj = new FormData();
     
     if (formData.page) formDataObj.append('page', formData.page);
@@ -46,8 +52,20 @@ export default function AdminBannersPage() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        alert(`Erreur: ${errorData.detail || 'Une erreur est survenue'}`);
+        let errorMsg = 'Une erreur est survenue';
+        try {
+          const errorData = await res.json();
+          console.error("Backend Error Data:", errorData);
+          if (errorData.detail) {
+            // FastAPI 422 errors have detail as an array
+            if (Array.isArray(errorData.detail)) {
+              errorMsg = errorData.detail.map(e => `${e.loc.join('.')}: ${e.msg}`).join(', ');
+            } else {
+              errorMsg = errorData.detail;
+            }
+          }
+        } catch (e) {}
+        alert(`Erreur: ${errorMsg}`);
         return;
       }
 

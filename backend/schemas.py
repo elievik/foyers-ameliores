@@ -216,7 +216,7 @@ class Partner(PartnerBase):
 class HeroImageBase(BaseModel):
     page: str
     title: str
-    image_url: str
+    image_url: Optional[str] = None
     alt_text: str = ""
 
 class HeroImageCreate(HeroImageBase):
