@@ -3,6 +3,9 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const apiURLObj = new URL(API_URL);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ["192.168.0.101", "192.168.0.102", "localhost", "127.0.0.1"],
@@ -13,11 +16,11 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://127.0.0.1:8000/api/:path*",
+        destination: `${API_URL}/api/:path*`,
       },
       {
         source: "/static/:path*",
-        destination: "http://127.0.0.1:8000/static/:path*",
+        destination: `${API_URL}/static/:path*`,
       },
     ];
   },
@@ -40,6 +43,11 @@ const nextConfig = {
         protocol: "http",
         hostname: "127.0.0.1",
         port: "8000",
+      },
+      {
+        protocol: apiURLObj.protocol.replace(':', ''),
+        hostname: apiURLObj.hostname,
+        port: apiURLObj.port || '',
       },
     ],
   },
