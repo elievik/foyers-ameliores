@@ -55,7 +55,7 @@ export default function AdminSidebar() {
         <h1 className="font-headline-sm text-headline-sm font-bold text-primary">Foyers Améliorés</h1>
         <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mt-1 text-[10px]">Togo Admin Panel</p>
       </div>
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
           return (
