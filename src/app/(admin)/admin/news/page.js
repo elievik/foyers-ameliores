@@ -186,6 +186,84 @@ export default function AdminNews() {
     }
   };
 
+  const buildArticleUrl = (item) => `${window.location.origin}/news/${item.slug}`;
+
+  const getShareableImageFile = async (item) => {
+    if (!item?.image_url) return null;
+
+    try {
+      const imageUrl = item.image_url.startsWith('http')
+        ? item.image_url
+        : `${window.location.origin}${item.image_url}`;
+
+      const response = await fetch(imageUrl);
+      if (!response.ok) return null;
+
+      const blob = await response.blob();
+      const extension = blob.type.split('/')[1] || 'png';
+      return new File([blob], `article-${item.slug || 'image'}.${extension}`, { type: blob.type || 'image/png' });
+    } catch (error) {
+      console.error('Erreur préparation image de partage:', error);
+      return null;
+    }
+  };
+
+  const handleCopyLink = async (item) => {
+    try {
+      const articleUrl = buildArticleUrl(item);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(articleUrl);
+        alert('Lien copié avec succès !');
+        return;
+      }
+
+      const tempInput = document.createElement('input');
+      tempInput.value = articleUrl;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      alert('Lien copié avec succès !');
+    } catch (error) {
+      console.error('Erreur copie du lien:', error);
+      alert('Impossible de copier le lien.');
+    }
+  };
+
+  const handleShareArticle = async (item) => {
+    try {
+      const articleUrl = buildArticleUrl(item);
+      const shareText = `${item.title}\n\n${(item.content || '').replace(/\s+/g, ' ').trim().slice(0, 160)}...`;
+
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        const imageFile = await getShareableImageFile(item);
+        const sharePayload = {
+          title: item.title,
+          text: shareText,
+          url: articleUrl,
+        };
+
+        if (imageFile && navigator.canShare?.({ files: [imageFile], title: item.title, text: shareText, url: articleUrl })) {
+          sharePayload.files = [imageFile];
+        }
+
+        await navigator.share(sharePayload);
+        return;
+      }
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(articleUrl);
+        alert('Lien copié avec succès (partage non disponible sur ce navigateur) !');
+        return;
+      }
+
+      throw new Error('Clipboard unavailable');
+    } catch (error) {
+      console.error('Erreur partage:', error);
+      alert('Impossible de partager l\'article.');
+    }
+  };
+
   return (
     <>
       <div className="flex justify-between items-end mb-10">
@@ -225,7 +303,7 @@ export default function AdminNews() {
         <h3 className="font-headline-md text-headline-md text-primary mb-6">Articles</h3>
         <div className="bg-white rounded-3xl shadow-sm border border-outline-variant/20 overflow-hidden">
           <div className="p-8 border-b border-outline-variant/10 flex justify-between items-center gap-4">
-            <div className="relative flex-grow max-w-md">
+            <div className="relative grow max-w-md">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">search</span>
               <input className="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20" placeholder="Rechercher un article..." type="text"/>
             </div>
@@ -260,6 +338,8 @@ export default function AdminNews() {
                   </td>
                   <td className="px-8 py-5 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleCopyLink(item)} className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Copier le lien"><span className="material-symbols-outlined text-xl">content_copy</span></button>
+                      <button onClick={() => handleShareArticle(item)} className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Partager"><span className="material-symbols-outlined text-xl">share</span></button>
                       <button onClick={() => handleEditArticle(item)} className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"><span className="material-symbols-outlined text-xl">edit</span></button>
                       <button onClick={() => handleDeleteArticle(item.id)} className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors"><span className="material-symbols-outlined text-xl">delete</span></button>
                     </div>
