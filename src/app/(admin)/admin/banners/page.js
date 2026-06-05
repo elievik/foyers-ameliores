@@ -39,21 +39,32 @@ export default function AdminBannersPage() {
       : '/api/hero-images/';
     const method = editingHero ? 'PATCH' : 'POST';
 
-    await fetch(url, {
-      method,
-      body: formDataObj
-    });
+    try {
+      const res = await fetch(url, {
+        method,
+        body: formDataObj
+      });
 
-    setIsModalOpen(false);
-    setEditingHero(null);
-    setFormData({
-      page: '',
-      title: '',
-      alt_text: '',
-      image_url: '',
-      file: null
-    });
-    fetchHeroImages();
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        alert(`Erreur: ${errorData.detail || 'Une erreur est survenue'}`);
+        return;
+      }
+
+      setIsModalOpen(false);
+      setEditingHero(null);
+      setFormData({
+        page: '',
+        title: '',
+        alt_text: '',
+        image_url: '',
+        file: null
+      });
+      fetchHeroImages();
+    } catch (err) {
+      alert("Erreur lors de la communication avec le serveur.");
+      console.error(err);
+    }
   };
 
   const handleEdit = (hero) => {
@@ -159,14 +170,20 @@ export default function AdminBannersPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Page</label>
-                  <input
-                    type="text"
+                  <select
                     required
-                    className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
-                    placeholder="ex: home, about, regions"
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
                     value={formData.page}
                     onChange={(e) => setFormData({ ...formData, page: e.target.value })}
-                  />
+                  >
+                    <option value="" disabled>Sélectionnez une page</option>
+                    <option value="home">Accueil (home)</option>
+                    <option value="about">À propos (about)</option>
+                    <option value="regions">Régions (regions)</option>
+                    <option value="catalog">Catalogue (catalog)</option>
+                    <option value="news">Actualités (news)</option>
+                    <option value="contact">Contact (contact)</option>
+                  </select>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Titre</label>
