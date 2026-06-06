@@ -7,6 +7,18 @@ export default function Regions() {
   const [searchQuery, setSearchQuery] = useState('');
   const [regions, setRegions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [heroImage, setHeroImage] = useState(null);
+
+  const fetchHeroImage = async () => {
+    try {
+      const res = await fetch('/api/hero-images/regions');
+      if (res.ok) {
+        setHeroImage(await res.json());
+      }
+    } catch (e) {
+      console.error('Error fetching hero image:', e);
+    }
+  };
 
   const fetchRegions = async () => {
     try {
@@ -22,6 +34,7 @@ export default function Regions() {
 
   useEffect(() => {
     fetchRegions();
+    fetchHeroImage();
   }, []);
 
   const filteredRegions = (regions || []).filter(region => 
@@ -37,10 +50,27 @@ export default function Regions() {
   }
 
   return (
-    <main className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12">
-      {/* Hero & Map Section */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-24">
-        <div className="lg:col-span-7">
+    <>
+      {/* Hero Section with Blurred Background */}
+      <section className="relative w-full overflow-hidden">
+        {heroImage?.image_url && (
+          <div className="absolute inset-0 z-0">
+            <Image 
+              className="w-full h-full object-cover" 
+              alt={heroImage.alt_text || "Bannière Régions"} 
+              src={heroImage.image_url} 
+              fill
+              sizes="100vw"
+              priority
+            />
+            {/* Blur and overlay to ensure text is readable */}
+            <div className="absolute inset-0 bg-surface/80 backdrop-blur-md"></div>
+          </div>
+        )}
+        
+        <div className="relative z-10 max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-16 lg:py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-7">
           <h1 className="font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-6">Notre Impact au Togo</h1>
           <p className="text-body-lg text-on-surface-variant mb-8 max-w-2xl">
             Des savanes du Nord aux plaines côtières, notre réseau d'agents locaux et nos technologies durables transforment la façon dont le Togo cuisine. Explorez nos données régionales et les histoires de nos communautés.
@@ -83,8 +113,12 @@ export default function Regions() {
               <div className="absolute top-[90%] left-[52%] w-4 h-4 bg-secondary rounded-full animate-pulse"></div>
             </div>
           </div>
+            </div>
+          </div>
         </div>
       </section>
+
+      <main className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12">
 
       {/* Region Cards Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -170,5 +204,6 @@ export default function Regions() {
         </div>
       </section>
     </main>
+    </>
   );
 }

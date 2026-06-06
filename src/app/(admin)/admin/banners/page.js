@@ -244,8 +244,9 @@ export default function AdminBannersPage() {
                     className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
                     onChange={(e) => setFormData({ ...formData, file: e.target.files[0], image_url: '' })}
                   />
+                  <p className="text-xs text-error mt-1">⚠️ Note: Sur les serveurs gratuits (comme Render), les images téléchargées ici peuvent disparaître après un redémarrage du serveur. Privilégiez l'option URL ci-dessous.</p>
                 </div>
-                <div className="text-center text-sm text-on-surface-variant">OU</div>
+                <div className="text-center text-sm text-on-surface-variant">OU (Recommandé)</div>
                 <div>
                   <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">URL de l'image</label>
                   <input
