@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import database
+from storage import upload_file_to_supabase
 import models
 import schemas
 import os
@@ -56,13 +57,7 @@ async def create_article(
     # Handle image
     final_image_url = image_url
     if file:
-        file_extension = os.path.splitext(file.filename)[1]
-        file_name = f"{uuid.uuid4()}{file_extension}"
-        file_path = f"static/images/{file_name}"
-        with open(file_path, "wb") as buffer:
-            content_bytes = await file.read()
-            buffer.write(content_bytes)
-        final_image_url = f"/static/images/{file_name}"
+        final_image_url = await upload_file_to_supabase(file)
     
     db_article = models.NewsArticle(
         title=title,
@@ -117,13 +112,7 @@ async def update_article(
         
     # Handle image
     if file:
-        file_extension = os.path.splitext(file.filename)[1]
-        file_name = f"{uuid.uuid4()}{file_extension}"
-        file_path = f"static/images/{file_name}"
-        with open(file_path, "wb") as buffer:
-            content_bytes = await file.read()
-            buffer.write(content_bytes)
-        db_article.image_url = f"/static/images/{file_name}"
+        db_article.image_url = await upload_file_to_supabase(file)
     elif image_url:
         db_article.image_url = image_url
         

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from database import SessionLocal
+from storage import upload_file_to_supabase
 import models
 import schemas
 import os
@@ -32,13 +33,7 @@ async def create_team_member(
 ):
     image_url = img_url
     if file:
-        file_extension = os.path.splitext(file.filename)[1]
-        file_name = f"{uuid.uuid4()}{file_extension}"
-        file_path = f"static/images/{file_name}"
-        with open(file_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
-        image_url = f"/static/images/{file_name}"
+        image_url = await upload_file_to_supabase(file)
     
     db_member = models.TeamMember(
         name=name,
@@ -77,13 +72,7 @@ async def update_team_member(
         db_member.order = order
     
     if file:
-        file_extension = os.path.splitext(file.filename)[1]
-        file_name = f"{uuid.uuid4()}{file_extension}"
-        file_path = f"static/images/{file_name}"
-        with open(file_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
-        db_member.img_url = f"/static/images/{file_name}"
+        db_member.img_url = await upload_file_to_supabase(file)
     elif img_url:
         db_member.img_url = img_url
     

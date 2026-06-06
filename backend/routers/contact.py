@@ -4,6 +4,7 @@ from typing import Optional
 import os
 import uuid
 from database import get_db
+from storage import upload_file_to_supabase
 import models
 import schemas
 
@@ -82,14 +83,7 @@ async def create_regional_office(
 ):
     final_img_url = img_url
     if file:
-        file_extension = os.path.splitext(file.filename)[1]
-        unique_filename = f"{uuid.uuid4()}{file_extension}"
-        file_location = f"static/images/{unique_filename}"
-        
-        with open(file_location, "wb") as f:
-            f.write(await file.read())
-        
-        final_img_url = f"/static/images/{unique_filename}"
+        final_img_url = await upload_file_to_supabase(file)
     
     db_office = models.RegionalOffice(
         name=name,
@@ -134,14 +128,7 @@ async def update_regional_office(
     
     final_img_url = img_url
     if file:
-        file_extension = os.path.splitext(file.filename)[1]
-        unique_filename = f"{uuid.uuid4()}{file_extension}"
-        file_location = f"static/images/{unique_filename}"
-        
-        with open(file_location, "wb") as f:
-            f.write(await file.read())
-        
-        final_img_url = f"/static/images/{unique_filename}"
+        final_img_url = await upload_file_to_supabase(file)
     
     if final_img_url is not None:
         db_office.img_url = final_img_url

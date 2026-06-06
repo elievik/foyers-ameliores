@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from database import SessionLocal
+from storage import upload_file_to_supabase
 import models
 import schemas
 import os
@@ -35,13 +36,7 @@ async def create_region(
 ):
     image_url = img_url
     if file:
-        file_extension = os.path.splitext(file.filename)[1]
-        file_name = f"{uuid.uuid4()}{file_extension}"
-        file_path = f"static/images/{file_name}"
-        with open(file_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
-        image_url = f"/static/images/{file_name}"
+        image_url = await upload_file_to_supabase(file)
     
     if not image_url:
         raise HTTPException(status_code=400, detail="Either file or img_url must be provided")
@@ -95,13 +90,7 @@ async def update_region(
         db_region.order = order
     
     if file:
-        file_extension = os.path.splitext(file.filename)[1]
-        file_name = f"{uuid.uuid4()}{file_extension}"
-        file_path = f"static/images/{file_name}"
-        with open(file_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
-        db_region.img_url = f"/static/images/{file_name}"
+        db_region.img_url = await upload_file_to_supabase(file)
     elif img_url:
         db_region.img_url = img_url
     
