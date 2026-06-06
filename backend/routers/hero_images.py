@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 import os
 import uuid
+import base64
 from database import get_db
 import models
 import schemas
@@ -39,14 +40,10 @@ async def create_hero_image(
     
     final_url = image_url
     if file:
-        file_extension = os.path.splitext(file.filename)[1]
-        unique_filename = f"{uuid.uuid4()}{file_extension}"
-        file_location = f"static/images/{unique_filename}"
-        
-        with open(file_location, "wb") as f:
-            f.write(await file.read())
-        
-        final_url = f"/static/images/{unique_filename}"
+        content = await file.read()
+        b64_encoded = base64.b64encode(content).decode('utf-8')
+        mime_type = file.content_type or "image/jpeg"
+        final_url = f"data:{mime_type};base64,{b64_encoded}"
     
     db_hero = models.HeroImage(
         page=page,
@@ -87,14 +84,10 @@ async def update_hero_image(
     
     final_url = image_url
     if file:
-        file_extension = os.path.splitext(file.filename)[1]
-        unique_filename = f"{uuid.uuid4()}{file_extension}"
-        file_location = f"static/images/{unique_filename}"
-        
-        with open(file_location, "wb") as f:
-            f.write(await file.read())
-        
-        final_url = f"/static/images/{unique_filename}"
+        content = await file.read()
+        b64_encoded = base64.b64encode(content).decode('utf-8')
+        mime_type = file.content_type or "image/jpeg"
+        final_url = f"data:{mime_type};base64,{b64_encoded}"
     
     if final_url is not None:
         db_hero.image_url = final_url
