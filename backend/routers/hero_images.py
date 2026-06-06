@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from typing import Optional
 import os
 import uuid
-import base64
 from database import get_db
+from storage import upload_file_to_supabase
 import models
 import schemas
 
@@ -40,10 +40,7 @@ async def create_hero_image(
     
     final_url = image_url
     if file:
-        content = await file.read()
-        b64_encoded = base64.b64encode(content).decode('utf-8')
-        mime_type = file.content_type or "image/jpeg"
-        final_url = f"data:{mime_type};base64,{b64_encoded}"
+        final_url = await upload_file_to_supabase(file)
     
     db_hero = models.HeroImage(
         page=page,
@@ -84,10 +81,7 @@ async def update_hero_image(
     
     final_url = image_url
     if file:
-        content = await file.read()
-        b64_encoded = base64.b64encode(content).decode('utf-8')
-        mime_type = file.content_type or "image/jpeg"
-        final_url = f"data:{mime_type};base64,{b64_encoded}"
+        final_url = await upload_file_to_supabase(file)
     
     if final_url is not None:
         db_hero.image_url = final_url
