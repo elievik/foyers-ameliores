@@ -21,6 +21,7 @@ def get_reports(db: Session = Depends(get_db)):
 async def create_report(
     title: str = Form(...),
     description: str = Form(...),
+    region: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
     file_url: Optional[str] = Form(None),
     db: Session = Depends(get_db)
@@ -32,7 +33,8 @@ async def create_report(
     db_report = models.Report(
         title=title,
         description=description,
-        file_url=final_file_url
+        file_url=final_file_url,
+        region=region
     )
     db.add(db_report)
     db.commit()

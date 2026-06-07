@@ -37,6 +37,7 @@ class NewsArticle(NewsArticleBase):
 class ReportBase(BaseModel):
     title: str
     description: str
+    region: Optional[str] = None
 
 class ReportCreate(ReportBase):
     file_url: str
@@ -174,6 +175,7 @@ class RegionBase(BaseModel):
     cite: Optional[str] = None
     img_url: str
     order: int = 0
+    is_hidden: int = 0
 
 class RegionCreate(RegionBase):
     pass
@@ -187,6 +189,7 @@ class RegionUpdate(RegionBase):
     cite: Optional[str] = None
     img_url: Optional[str] = None
     order: Optional[int] = None
+    is_hidden: Optional[int] = None
 
 class Region(RegionBase):
     id: int

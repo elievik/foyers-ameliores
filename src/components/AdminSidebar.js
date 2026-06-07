@@ -37,7 +37,6 @@ export default function AdminSidebar() {
     { name: 'Actualités', icon: 'newspaper', href: '/admin/news' },
     { name: 'Équipe', icon: 'group', href: '/admin/team' },
     { name: 'Témoignages', icon: 'rate_review', href: '/admin/testimonials' },
-    { name: 'Régions', icon: 'public', href: '/admin/regions' },
     { name: 'Partenaires', icon: 'business', href: '/admin/partners' },
     { name: 'Bannières', icon: 'wallpaper', href: '/admin/banners' },
     { name: 'Contact', icon: 'contact_support', href: '/admin/contact' },

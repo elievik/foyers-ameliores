@@ -28,6 +28,7 @@ async def create_region(
     quote: Optional[str] = Form(None),
     cite: Optional[str] = Form(None),
     order: int = Form(0),
+    is_hidden: int = Form(0),
     file: Optional[UploadFile] = File(None),
     img_url: Optional[str] = Form(None),
     db: Session = Depends(get_db)
@@ -47,7 +48,8 @@ async def create_region(
         quote=quote,
         cite=cite,
         img_url=image_url,
-        order=order
+        order=order,
+        is_hidden=is_hidden
     )
     db.add(db_region)
     db.commit()
@@ -64,6 +66,7 @@ async def update_region(
     quote: Optional[str] = Form(None),
     cite: Optional[str] = Form(None),
     order: Optional[int] = Form(None),
+    is_hidden: Optional[int] = Form(None),
     file: Optional[UploadFile] = File(None),
     img_url: Optional[str] = Form(None),
     db: Session = Depends(get_db)
@@ -86,6 +89,8 @@ async def update_region(
         db_region.cite = cite
     if order is not None:
         db_region.order = order
+    if is_hidden is not None:
+        db_region.is_hidden = is_hidden
     
     if file:
         db_region.img_url = await upload_file_to_supabase(file)

@@ -21,6 +21,7 @@ class Report(Base):
     title = Column(String, index=True)
     description = Column(Text)
     file_url = Column(String)
+    region = Column(String, nullable=True)
 
 class HimalayenInscription(Base):
     __tablename__ = "himalayen_inscriptions"
@@ -96,6 +97,7 @@ class Region(Base):
     cite = Column(String, nullable=True)
     img_url = Column(String)
     order = Column(Integer, default=0)
+    is_hidden = Column(Integer, default=0)
 
 class Partner(Base):
     __tablename__ = "partners"

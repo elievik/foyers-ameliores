@@ -12,6 +12,7 @@ export default function Catalog() {
   const [showAsutoForm, setShowAsutoForm] = useState(false);
   const [formData, setFormData] = useState({});
   const [productImages, setProductImages] = useState([]);
+  const [regions, setRegions] = useState([]);
   const [contactInfo, setContactInfo] = useState({ whatsapp_number: '+22890000000' });
 
   useEffect(() => {
@@ -26,6 +27,11 @@ export default function Catalog() {
         if (data && data.whatsapp_number) setContactInfo(data);
       })
       .catch(err => console.error('Error fetching contact info:', err));
+
+    fetch('/api/regions/')
+      .then(res => res.json())
+      .then(data => setRegions(data))
+      .catch(err => console.error('Error fetching regions:', err));
   }, []);
 
   const products = [
@@ -371,11 +377,9 @@ export default function Catalog() {
                     onChange={handleInputChange}
                     className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all">
                     <option value="">Sélectionner</option>
-                    <option value="Savanes">Savanes</option>
-                    <option value="Kara">Kara</option>
-                    <option value="Centrale">Centrale</option>
-                    <option value="Plateaux">Plateaux</option>
-                    <option value="Maritime">Maritime</option>
+                    {regions.filter(r => r.is_hidden !== 1).map((r) => (
+                      <option key={r.id} value={r.name}>{r.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="space-y-2">

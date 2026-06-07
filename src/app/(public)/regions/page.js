@@ -38,7 +38,7 @@ export default function Regions() {
   }, []);
 
   const filteredRegions = (regions || []).filter(region => 
-    region.name.toLowerCase().includes(searchQuery.toLowerCase())
+    region.is_hidden !== 1 && region.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (loading) {
