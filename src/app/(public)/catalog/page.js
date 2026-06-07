@@ -12,12 +12,20 @@ export default function Catalog() {
   const [showAsutoForm, setShowAsutoForm] = useState(false);
   const [formData, setFormData] = useState({});
   const [productImages, setProductImages] = useState([]);
+  const [contactInfo, setContactInfo] = useState({ whatsapp_number: '+22890000000' });
 
   useEffect(() => {
     fetch('/api/product-images/')
       .then(res => res.json())
       .then(data => setProductImages(data))
       .catch(err => console.error('Error fetching product images:', err));
+      
+    fetch('/api/contact/info')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.whatsapp_number) setContactInfo(data);
+      })
+      .catch(err => console.error('Error fetching contact info:', err));
   }, []);
 
   const products = [
@@ -61,11 +69,16 @@ export default function Catalog() {
     e.preventDefault();
     
     try {
+      const himalayenData = {
+        ...formData,
+        date_inscription: formData.date_inscription || new Date().toISOString().split('T')[0]
+      };
+
       // 1. Envoyer les données au backend
       const response = await fetch('/api/orders/himalayen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(himalayenData),
       });
 
       if (!response.ok) throw new Error('Erreur lors de l\'enregistrement');
@@ -105,7 +118,8 @@ export default function Catalog() {
       const asutoData = {
         ...formData,
         quantite: quantite,
-        prix_unitaire: 2500
+        prix_unitaire: 2500,
+        date_vente: formData.date_vente || new Date().toISOString().split('T')[0]
       };
 
       // 1. Envoyer les données au backend
@@ -144,7 +158,10 @@ export default function Catalog() {
 
   const openWhatsApp = (message) => {
     const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/22890000000?text=${encodedMessage}`, '_blank');
+    let phone = contactInfo.whatsapp_number || '+22890000000';
+    // Remove '+' or spaces for the wa.me link
+    phone = phone.replace(/[^0-9]/g, '');
+    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
   };
 
   return (

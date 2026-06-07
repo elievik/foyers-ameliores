@@ -86,15 +86,6 @@ export default function Regions() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex flex-wrap gap-4">
-            <button className="bg-primary text-on-primary px-8 py-3 rounded-lg font-button text-button shadow-lg flex items-center gap-2 active:scale-95 transition-transform">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>assignment</span>
-              Soumettre un rapport
-            </button>
-            <button className="border-2 border-primary text-primary px-8 py-3 rounded-lg font-button text-button hover:bg-primary-container transition-colors">
-              Voir les Stats Globales
-            </button>
-          </div>
         </div>
         <div className="lg:col-span-5 flex justify-center">
           <div className="relative w-full max-w-md aspect-[1/2] bg-surface-container-low rounded-3xl p-8 flex items-center justify-center">
@@ -161,18 +152,6 @@ export default function Regions() {
             </div>
           </div>
         ))}
-        {/* Agent CTA Card */}
-        <div className="relative overflow-hidden rounded-3xl bg-primary text-on-primary p-8 flex flex-col justify-center items-start group shadow-organic">
-          <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-            <span className="material-symbols-outlined text-[120px]">badge</span>
-          </div>
-          <h3 className="font-headline-sm text-headline-sm mb-4 relative z-10">Portail Agent Local</h3>
-          <p className="text-on-primary-container mb-8 relative z-10">Accédez aux outils spécialisés, téléchargez les manuels de formation et soumettez vos rapports d'activité.</p>
-          <button className="bg-secondary text-on-primary px-6 py-3 rounded-lg font-button text-button shadow-lg hover:brightness-110 active:scale-95 transition-all relative z-10 flex items-center gap-2">
-            Tableau de Bord Agent
-            <span className="material-symbols-outlined">arrow_forward</span>
-          </button>
-        </div>
       </div>
 
       {/* Global Progress Ticker */}

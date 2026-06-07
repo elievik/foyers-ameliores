@@ -32,15 +32,26 @@ export default function LoginPage() {
     const storedEmail = localStorage.getItem('adminEmail') || 'foyer@gmail.com';
     const storedPassword = localStorage.getItem('adminPassword') || 'admin123';
     
+    // Agent credentials mapping
+    const agents = {
+      'maritime@gmail.com': { pass: 'maritime123', region: 'Maritime' },
+      'plateau@gmail.com': { pass: 'plateau123', region: 'Plateaux' },
+      'centrale@gmail.com': { pass: 'centrale123', region: 'Centrale' },
+      'kara@gmail.com': { pass: 'kara124', region: 'Kara' },
+      'savane@gmail.com': { pass: 'kara123', region: 'Savanes' }
+    };
+    
     // Check credentials
     if (email === storedEmail && password === storedPassword) {
-      // Set login state (we can use localStorage for simple persistence)
+      // Set login state
       localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userRole', 'admin');
+      
       // Save default admin info if not already there
       if (!localStorage.getItem('adminProfile')) {
         localStorage.setItem('adminProfile', JSON.stringify({
-          prenom: 'Koffi',
-          nom: 'Mensah',
+          prenom: 'Admin',
+          nom: 'Global',
           email: storedEmail
         }));
       } else {
@@ -54,6 +65,17 @@ export default function LoginPage() {
         }
       }
       // Redirect to admin dashboard
+      router.push('/admin');
+    } else if (agents[email] && agents[email].pass === password) {
+      // Login as Agent
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userRole', 'agent');
+      localStorage.setItem('agentRegion', agents[email].region);
+      localStorage.setItem('adminProfile', JSON.stringify({
+        prenom: 'Agent',
+        nom: agents[email].region,
+        email: email
+      }));
       router.push('/admin');
     } else {
       alert('Email ou mot de passe incorrect !');
