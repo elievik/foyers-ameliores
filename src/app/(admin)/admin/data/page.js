@@ -32,7 +32,8 @@ export default function AdminData() {
     file: null,
   });
 
-  const [photos, setPhotos] = useState([1,2,3,4,5].map(idx => ({ id: idx, url: `https://picsum.photos/seed/${idx + 100}/400/400` })));
+  const [photos, setPhotos] = useState([]);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
 
   const fetchRegions = async () => {
     try {
@@ -44,8 +45,19 @@ export default function AdminData() {
     }
   };
 
+  const fetchMedia = async () => {
+    try {
+      const res = await fetch('/api/media/');
+      const data = await res.json();
+      setPhotos(data);
+    } catch (error) {
+      console.error('Error fetching media:', error);
+    }
+  };
+
   useEffect(() => {
     fetchRegions();
+    fetchMedia();
   }, []);
 
   const toggleRegionVisibility = async (region) => {
@@ -162,13 +174,47 @@ export default function AdminData() {
     }
   };
 
-  const deletePhoto = (id) => {
-    setPhotos(prev => prev.filter(p => p.id !== id));
+  const deletePhoto = async (filename) => {
+    if (!confirm('Voulez-vous vraiment supprimer cette photo ?')) return;
+    try {
+      const res = await fetch(`/api/media/${filename}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchMedia();
+      } else {
+        alert('Erreur lors de la suppression');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Erreur lors de la suppression');
+    }
   };
 
-  const handleAddPhoto = () => {
-    const newId = Date.now();
-    setPhotos(prev => [...prev, { id: newId, url: `https://picsum.photos/seed/${newId}/400/400` }]);
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setIsUploadingMedia(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const res = await fetch('/api/media/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (res.ok) {
+        fetchMedia();
+      } else {
+        const errorData = await res.json();
+        alert(errorData.detail || 'Erreur lors de l\\'upload');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Erreur lors de l\\'upload');
+    } finally {
+      setIsUploadingMedia(false);
+      e.target.value = ''; // Reset input
+    }
   };
 
   return (
@@ -269,28 +315,44 @@ export default function AdminData() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {photos.map((photo) => (
-            <div key={photo.id} className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer shadow-sm">
-              <Image className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Field Photo" src={photo.url} fill />
-              <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                <button className="w-8 h-8 bg-white rounded-full text-primary flex items-center justify-center hover:scale-110 transition-transform">
-                  <span className="material-symbols-outlined text-sm">visibility</span>
+            <div key={photo.name} className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-outline-variant/20">
+              <Image className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Field Photo" src={photo.url} fill sizes="(max-width: 768px) 50vw, 16vw" />
+              <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(photo.url);
+                    alert('Lien copié dans le presse-papier !');
+                  }} 
+                  className="w-10 h-10 bg-white rounded-full text-primary flex items-center justify-center hover:scale-110 transition-transform shadow-md"
+                  title="Copier le lien"
+                >
+                  <span className="material-symbols-outlined text-sm">content_copy</span>
                 </button>
                 <button 
-                  onClick={() => deletePhoto(photo.id)} 
-                  className="w-8 h-8 bg-white rounded-full text-error flex items-center justify-center hover:scale-110 transition-transform"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deletePhoto(photo.name);
+                  }} 
+                  className="w-10 h-10 bg-white rounded-full text-error flex items-center justify-center hover:scale-110 transition-transform shadow-md"
+                  title="Supprimer"
                 >
                   <span className="material-symbols-outlined text-sm">delete</span>
                 </button>
               </div>
             </div>
           ))}
-          <div 
-            onClick={handleAddPhoto} 
-            className="aspect-square rounded-2xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-3xl">add_a_photo</span>
-            <span className="text-[10px] font-bold uppercase mt-2">Ajouter</span>
-          </div>
+          <label className="aspect-square rounded-2xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer relative overflow-hidden">
+            {isUploadingMedia ? (
+              <span className="text-[10px] font-bold uppercase mt-2">Chargement...</span>
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-3xl">add_a_photo</span>
+                <span className="text-[10px] font-bold uppercase mt-2">Ajouter</span>
+              </>
+            )}
+            <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={isUploadingMedia} />
+          </label>
         </div>
       </div>
 

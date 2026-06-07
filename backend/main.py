@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from database import engine, Base, get_db
-from routers import news, orders, reports, resellers, team, product_images, testimonials, regions, partners, hero_images, contact
+from routers import news, orders, reports, resellers, team, product_images, testimonials, regions, partners, hero_images, contact, media
 from sqlalchemy.orm import Session
 import os
 import uuid
@@ -36,6 +36,7 @@ app.include_router(regions.router, prefix="/api/regions", tags=["Régions"])
 app.include_router(partners.router, prefix="/api/partners", tags=["Partenaires"])
 app.include_router(hero_images.router, prefix="/api/hero-images", tags=["Hero Images"])
 app.include_router(contact.router, prefix="/api/contact", tags=["Contact"])
+app.include_router(media.router, prefix="/api/media", tags=["Médiathèque"])
 
 @app.get("/")
 def read_root():

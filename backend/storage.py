@@ -60,3 +60,41 @@ async def upload_file_to_supabase(file: UploadFile) -> str:
     except Exception as e:
         print(f"Error uploading to Supabase: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur inattendue: {str(e)}")
+
+def list_files_from_supabase() -> list:
+    """
+    List all files in the Supabase bucket.
+    """
+    try:
+        client = get_supabase_client()
+        res = client.storage.from_(BUCKET_NAME).list()
+        
+        media = []
+        for f in res:
+            if f.get('name') and not f.get('name').startswith('.'):
+                url = client.storage.from_(BUCKET_NAME).get_public_url(f['name'])
+                media.append({
+                    "id": f.get('id', f['name']),
+                    "name": f['name'],
+                    "url": url,
+                    "created_at": f.get('created_at')
+                })
+        
+        # Sort by creation date descending
+        media.sort(key=lambda x: x.get('created_at') or '', reverse=True)
+        return media
+    except Exception as e:
+        print(f"Error listing files from Supabase: {e}")
+        return []
+
+def delete_file_from_supabase(filename: str) -> bool:
+    """
+    Deletes a file from Supabase storage.
+    """
+    try:
+        client = get_supabase_client()
+        res = client.storage.from_(BUCKET_NAME).remove([filename])
+        return True
+    except Exception as e:
+        print(f"Error deleting file from Supabase: {e}")
+        return False
