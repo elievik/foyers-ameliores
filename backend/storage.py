@@ -6,7 +6,7 @@ from fastapi import UploadFile, HTTPException
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://bpujrgwsnynydxmmkvab.supabase.co")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwdWpyZ3dzbnlueWR4bW1rdmFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NjgzNTMsImV4cCI6MjA5NjM0NDM1M30.MMi_Ij9xPWi2-gi0Ppeip1paS5R0d8IF6RlHRFCBkbk")
-BUCKET_NAME = os.getenv("SUPABASE_BUCKET", "foyers-images")
+BUCKET_NAME = os.getenv("SUPABASE_BUCKET", "images de foyers")
 
 # We don't initialize globally to avoid crashing the server on startup if the key is invalid.
 supabase: Client = None
