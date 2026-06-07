@@ -4,8 +4,6 @@ from database import SessionLocal
 from storage import upload_file_to_supabase
 import models
 import schemas
-import os
-import uuid
 from typing import Optional
 
 router = APIRouter()
@@ -89,12 +87,6 @@ def delete_testimonial(testimonial_id: int, db: Session = Depends(get_db)):
     db_testimonial = db.query(models.Testimonial).filter(models.Testimonial.id == testimonial_id).first()
     if not db_testimonial:
         raise HTTPException(status_code=404, detail="Testimonial not found")
-    
-    # Delete file if it's a local file
-    if db_testimonial.avatar_url and db_testimonial.avatar_url.startswith("/static/images/"):
-        file_path = db_testimonial.avatar_url.replace("/static/", "")
-        if os.path.exists(file_path):
-            os.remove(file_path)
     
     db.delete(db_testimonial)
     db.commit()

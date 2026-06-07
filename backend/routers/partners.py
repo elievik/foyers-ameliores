@@ -4,8 +4,6 @@ from database import SessionLocal
 from storage import upload_file_to_supabase
 import models
 import schemas
-import os
-import uuid
 from typing import Optional
 
 router = APIRouter()
@@ -78,12 +76,6 @@ def delete_partner(partner_id: int, db: Session = Depends(get_db)):
     db_partner = db.query(models.Partner).filter(models.Partner.id == partner_id).first()
     if not db_partner:
         raise HTTPException(status_code=404, detail="Partner not found")
-    
-    # Delete file if it's a local file
-    if db_partner.logo_url.startswith("/static/images/"):
-        file_path = db_partner.logo_url.replace("/static/", "")
-        if os.path.exists(file_path):
-            os.remove(file_path)
     
     db.delete(db_partner)
     db.commit()

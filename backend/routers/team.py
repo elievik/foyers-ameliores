@@ -4,8 +4,6 @@ from database import SessionLocal
 from storage import upload_file_to_supabase
 import models
 import schemas
-import os
-import uuid
 from typing import Optional
 
 router = APIRouter()
@@ -85,12 +83,6 @@ def delete_team_member(member_id: int, db: Session = Depends(get_db)):
     db_member = db.query(models.TeamMember).filter(models.TeamMember.id == member_id).first()
     if not db_member:
         raise HTTPException(status_code=404, detail="Member not found")
-    
-    # Delete file if it's a local file
-    if db_member.img_url and db_member.img_url.startswith("/static/images/"):
-        file_path = db_member.img_url.replace("/static/", "")
-        if os.path.exists(file_path):
-            os.remove(file_path)
     
     db.delete(db_member)
     db.commit()

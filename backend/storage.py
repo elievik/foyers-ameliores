@@ -1,10 +1,11 @@
 import os
 import uuid
+# pyrefly: ignore [missing-import]
 from supabase import create_client, Client
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://bpujrgwsnynydxmmkvab.supabase.co")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "sb_publishable_wxs2HdE3on6x5XTEttnoQQ_QGdDeHNm")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwdWpyZ3dzbnlueWR4bW1rdmFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NjgzNTMsImV4cCI6MjA5NjM0NDM1M30.MMi_Ij9xPWi2-gi0Ppeip1paS5R0d8IF6RlHRFCBkbk")
 BUCKET_NAME = os.getenv("SUPABASE_BUCKET", "foyers-images")
 
 # We don't initialize globally to avoid crashing the server on startup if the key is invalid.
@@ -17,7 +18,7 @@ def get_supabase_client() -> Client:
             supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         except Exception as e:
             print(f"Failed to initialize Supabase client: {e}")
-            raise e
+            raise HTTPException(status_code=500, detail=f"Erreur de configuration Supabase: {str(e)}")
     return supabase
 
 async def upload_file_to_supabase(file: UploadFile) -> str:
@@ -27,16 +28,6 @@ async def upload_file_to_supabase(file: UploadFile) -> str:
     try:
         client = get_supabase_client()
         
-        # Create bucket if it doesn't exist (this might fail if the key lacks permissions,
-        # but we'll try catching it or assume the bucket exists)
-        try:
-            client.storage.get_bucket(BUCKET_NAME)
-        except Exception:
-            try:
-                client.storage.create_bucket(BUCKET_NAME, public=True)
-            except Exception as e:
-                print(f"Bucket creation info/error: {e}")
-
         # Read file content
         content = await file.read()
         
@@ -46,15 +37,26 @@ async def upload_file_to_supabase(file: UploadFile) -> str:
         
         # Upload to Supabase
         mime_type = file.content_type or "application/octet-stream"
-        res = client.storage.from_(BUCKET_NAME).upload(
-            file=content,
-            path=unique_filename,
-            file_options={"content-type": mime_type}
-        )
+        
+        try:
+            res = client.storage.from_(BUCKET_NAME).upload(
+                file=content,
+                path=unique_filename,
+                file_options={"content-type": mime_type}
+            )
+        except Exception as e:
+            print("Supabase Upload Error:", str(e))
+            if "Bucket not found" in str(e):
+                raise HTTPException(status_code=400, detail=f"Le dossier (bucket) '{BUCKET_NAME}' n'existe pas sur Supabase. Veuillez le créer.")
+            if "row-level security" in str(e).lower() or "unauthorized" in str(e).lower() or "new row violates" in str(e).lower():
+                raise HTTPException(status_code=403, detail="Permission refusée par Supabase. Utilisez la clé 'service_role' ou configurez les policies.")
+            raise HTTPException(status_code=500, detail=f"Erreur lors de l'envoi sur Supabase: {str(e)}")
         
         # Get public URL
         public_url = client.storage.from_(BUCKET_NAME).get_public_url(unique_filename)
         return public_url
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error uploading to Supabase: {e}")
-        raise e
+        raise HTTPException(status_code=500, detail=f"Erreur inattendue: {str(e)}")

@@ -4,8 +4,6 @@ from database import SessionLocal
 from storage import upload_file_to_supabase
 import models
 import schemas
-import os
-import uuid
 from typing import Optional
 
 router = APIRouter()
@@ -103,12 +101,6 @@ def delete_region(region_id: int, db: Session = Depends(get_db)):
     db_region = db.query(models.Region).filter(models.Region.id == region_id).first()
     if not db_region:
         raise HTTPException(status_code=404, detail="Region not found")
-    
-    # Delete file if it's a local file
-    if db_region.img_url.startswith("/static/images/"):
-        file_path = db_region.img_url.replace("/static/", "")
-        if os.path.exists(file_path):
-            os.remove(file_path)
     
     db.delete(db_region)
     db.commit()
