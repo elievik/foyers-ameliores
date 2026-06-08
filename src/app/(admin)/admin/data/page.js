@@ -118,10 +118,17 @@ export default function AdminData() {
     const method = editingRegion ? 'PATCH' : 'POST';
 
     try {
-      await fetch(url, {
+      const res = await fetch(url, {
         method,
         body: formDataObj,
       });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ detail: `Erreur serveur (${res.status})` }));
+        const errorMsg = errorData?.detail || `Erreur ${res.status}`;
+        alert(`Erreur lors de la sauvegarde de la région :\n${errorMsg}`);
+        return;
+      }
 
       setIsRegionModalOpen(false);
       setEditingRegion(null);
@@ -139,7 +146,7 @@ export default function AdminData() {
       fetchRegions();
     } catch (error) {
       console.error('Error saving region:', error);
-      alert('Erreur lors de la sauvegarde de la région.');
+      alert('Erreur lors de la sauvegarde de la région : problème réseau ou serveur inaccessible.');
     }
   };
 

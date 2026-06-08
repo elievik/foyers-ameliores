@@ -33,12 +33,9 @@ async def create_region(
     img_url: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
-    image_url = img_url
-    if file:
+    image_url = img_url or ""
+    if file and file.filename:
         image_url = await upload_file_to_supabase(file)
-    
-    if not image_url:
-        raise HTTPException(status_code=400, detail="Either file or img_url must be provided")
     
     db_region = models.Region(
         name=name,

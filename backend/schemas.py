@@ -173,7 +173,7 @@ class RegionBase(BaseModel):
     activity: str = "Aucune activité enregistrée"
     quote: Optional[str] = None
     cite: Optional[str] = None
-    img_url: str
+    img_url: Optional[str] = ""
     order: int = 0
     is_hidden: int = 0
 

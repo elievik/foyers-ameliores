@@ -19,6 +19,7 @@ export default function Home() {
   const [success, setSuccess] = useState(false);
   const [testimonials, setTestimonials] = useState([]);
   const [heroImage, setHeroImage] = useState(null);
+  const [regions, setRegions] = useState([]);
 
   const fetchTestimonials = async () => {
     try {
@@ -42,9 +43,23 @@ export default function Home() {
     }
   };
 
+  const fetchRegions = async () => {
+    try {
+      const res = await fetch('/api/regions/');
+      if (res.ok) {
+        const data = await res.json();
+        // Only show visible regions (is_hidden === 0)
+        setRegions(data.filter(r => !r.is_hidden));
+      }
+    } catch (e) {
+      console.error('Error fetching regions:', e);
+    }
+  };
+
   useEffect(() => {
     fetchTestimonials();
     fetchHeroImage();
+    fetchRegions();
   }, []);
 
   const handleSubmit = async (e) => {
@@ -224,34 +239,40 @@ export default function Home() {
         </div>
         <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto relative z-10">
           <h2 className="font-headline-md text-headline-md mb-12 text-center text-tertiary-fixed">Présence Nationale</h2>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {/* Region Cards */}
-            {[
-              { name: 'Savanes', foyers: '12,000', sat: '98%', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDa251jeNkSssmssl3YD6Fsw6ofS50neuKWvZWC0h8sQEdb9AE-byzxhC00icNhul3KSHLitsr1qcnm-hfGqlpfxgN8Y5PbuFQR0nFY-dJi1Dsx5NXHJsMdTexLj6vbIcj5Pb73bNhLHbPZe-VxegAmoks7lm_Ld3cvZXJj45SeiGOUqBfC1DzBa80QHd1FQmvggr3ZZf6oI6MnZKG250gXmPu7JwtA7qneBY1eZs4lBAcBA3DvhaQ5Gk51B9QX5tbLo98wuIPDmQ' },
-              { name: 'Kara', foyers: '8,500', sat: '95%', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDv1wBPQrjtz8EcZv2W258Hw1-9UTZlu39Ii4qR77qaVUz3OUotNCSI-EyHVsNqL95_mDPhSW0IydcBPjaHiQX2wdG4AQ9GgOADr1bCMjNp-HKf3YvdIVb7HVZz5-indX5lTax1yRRiFrsAbtTEZ9ekp2UrYb5B_bgZOdTlxgC4qe3wfe3Tfds-jyoGa-voMRUD50z881AHn_UTqcCLQSZWL7-m8QQKhpcnTfMbYlVNHoRIb71gZlm_dUL6KtX2X2A3ckpjs0WK6g' },
-              { name: 'Centrale', foyers: '15,200', sat: '99%', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDc1a_0xgt73sdfOOWkcyh1x7sTF32FHD79RbOVD2RtW8T1VXo5-8mJFT7GrBMzS8tBUJknN5T4lLHX0eeY9wlY8P65H8DwDYyohGqNauyW34dJanRb0odID2_nqxnVtq6X59Pizyg00rSGyTRQezGXZ0aXPwYB4ly2CzaZ45HbwPuqoXarGWNVaFE8tIao6Fz5BHfh3017joog0X3BA2MDrkgYtW8kmRl-c-dBUyy1P2sdBl8YVhH8ieA1wZNm_ahHZq5YEd_XVA' },
-              { name: 'Plateaux', foyers: '22,100', sat: '97%', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCM0nqMkmGW-ECsEdawUiddP6MnbjeHumZhRAtuI5g914xpEKfO-MMDttrg-YY-bJpSSnbAevBq2uyLoU5yVSjK6mWV5B7Nlk1-e7v_IYIxDx3jtrx680EoOIQYtCEkmbKbTzoaezZZe4Z8gNRAsuYEMOQj8cqQB_yXZkOcizxQLbn-TNBivCFLU5jEYHq48Vm4Z3MsXD1Vke29xoC_MtYI_4FC52NxISNCPy6t4oQdd10BuFWH-Raz7GrX-0d8ZJ_ZAf3QsGs_ow' },
-              { name: 'Maritime', foyers: '30,400', sat: '96%', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDTQ_u9GzayIAHhA4ExzptqU2cWViujmoEsclMTjStpL4G4sYDl5xWRi-KQSt4Q9ZUktZsauX4KWgQmfdichHDGQBpR8isXnqrJqJo4xRnDi65kHRKbkDHiQotYV5rvmX70Dp3U5hofDM3IpctRdH-HYqGWdGJen1w9wXcwg9UzD_6XSKdBJAYwTxZD6knC82JYGcuVasm2dmlwJFIngn6MN_alzi2iDzekuxaHgVK77xsWyGjApq0rBudxCfA62oK0YuE5XqNXBw' }
-            ].map((region) => (
-              <div key={region.name} className="group relative aspect-[3/4] overflow-hidden rounded-xl cursor-pointer">
-                <Image 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                  alt={region.name} 
-                  src={region.img} 
-                  fill
-                  sizes="(max-width: 768px) 100vw, 20vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div className="absolute bottom-0 left-0 p-6 w-full">
-                  <h4 className="font-headline-sm text-white mb-2">{region.name}</h4>
-                  <div className="flex justify-between items-center text-xs text-white/80 font-label-caps">
-                    <span>{region.foyers} Foyers</span>
-                    <span>{region.sat} Satisfaction</span>
+          {regions.length > 0 ? (
+            <div className={`grid gap-4 ${regions.length === 1 ? 'grid-cols-1 max-w-sm mx-auto' : regions.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto' : regions.length === 3 ? 'grid-cols-1 md:grid-cols-3' : regions.length === 4 ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-1 md:grid-cols-5'}`}>
+              {regions.map((region) => (
+                <div key={region.id} className="group relative aspect-[3/4] overflow-hidden rounded-xl cursor-pointer">
+                  {region.img_url ? (
+                    <Image
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      alt={region.name}
+                      src={region.img_url}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 20vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-white/10 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-white/40 text-6xl">{region.icon || 'public'}</span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                  <div className="absolute bottom-0 left-0 p-6 w-full">
+                    <h4 className="font-headline-sm text-white mb-2">{region.name}</h4>
+                    <div className="flex justify-between items-center text-xs text-white/80 font-label-caps">
+                      <span>{region.distributed ? Number(region.distributed).toLocaleString('fr-FR') : '0'} Foyers</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 text-white/60">
+              <span className="material-symbols-outlined text-6xl mb-4 block">public</span>
+              <p className="font-body-lg">Aucune région enregistrée pour le moment.</p>
+              <p className="text-sm mt-2">Ajoutez des régions depuis le back-office pour les afficher ici.</p>
+            </div>
+          )}
         </div>
       </section>
 
