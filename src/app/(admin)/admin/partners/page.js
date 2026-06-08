@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { compressImage } from '@/utils/imageCompression';
 
 export default function AdminPartners() {
   const [partners, setPartners] = useState([]);
@@ -29,7 +30,8 @@ export default function AdminPartners() {
     formDataObj.append('name', formData.name);
     formDataObj.append('order', formData.order.toString());
     if (formData.file) {
-      formDataObj.append('file', formData.file);
+      const compressedFile = await compressImage(formData.file);
+      formDataObj.append('file', compressedFile);
     }
     if (formData.logo_url) {
       formDataObj.append('logo_url', formData.logo_url);

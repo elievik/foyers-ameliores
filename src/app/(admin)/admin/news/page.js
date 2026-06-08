@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { compressImage } from '@/utils/imageCompression';
 
 export default function AdminNews() {
   const router = useRouter();
@@ -97,7 +98,8 @@ export default function AdminNews() {
       }
     });
     if (newsForm.file) {
-      formData.append('file', newsForm.file);
+      const compressedFile = await compressImage(newsForm.file);
+      formData.append('file', compressedFile);
     }
 
     try {
@@ -146,7 +148,8 @@ export default function AdminNews() {
       }
     });
     if (reportForm.file) {
-      formData.append('file', reportForm.file);
+      const compressedFile = await compressImage(reportForm.file);
+      formData.append('file', compressedFile);
     }
 
     try {

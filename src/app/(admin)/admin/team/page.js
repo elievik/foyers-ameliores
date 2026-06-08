@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { compressImage } from '@/utils/imageCompression';
 
 export default function AdminTeamPage() {
   const [team, setTeam] = useState([]);
@@ -33,7 +34,8 @@ export default function AdminTeamPage() {
     formDataObj.append('icon', formData.icon);
     formDataObj.append('order', formData.order.toString());
     if (formData.file) {
-      formDataObj.append('file', formData.file);
+      const compressedFile = await compressImage(formData.file);
+      formDataObj.append('file', compressedFile);
     }
     if (formData.img_url) {
       formDataObj.append('img_url', formData.img_url);

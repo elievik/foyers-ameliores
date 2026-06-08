@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { compressImage } from '@/utils/imageCompression';
 
 export default function AdminReports() {
   const [reports, setReports] = useState([]);
@@ -28,7 +29,10 @@ export default function AdminReports() {
     const formDataObj = new FormData();
     formDataObj.append('title', formData.title);
     formDataObj.append('description', formData.description);
-    if (formData.file) formDataObj.append('file', formData.file);
+    if (formData.file) {
+      const compressedFile = await compressImage(formData.file);
+      formDataObj.append('file', compressedFile);
+    }
     if (formData.file_url) formDataObj.append('file_url', formData.file_url);
 
     await fetch('/api/reports/', {

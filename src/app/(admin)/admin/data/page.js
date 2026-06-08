@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { compressImage } from '@/utils/imageCompression';
 
 export default function AdminData() {
   const [regions, setRegions] = useState([]);
@@ -104,7 +105,8 @@ export default function AdminData() {
     formDataObj.append('cite', regionFormData.cite);
     formDataObj.append('order', regionFormData.order.toString());
     if (regionFormData.file) {
-      formDataObj.append('file', regionFormData.file);
+      const compressedFile = await compressImage(regionFormData.file);
+      formDataObj.append('file', compressedFile);
     }
     if (regionFormData.img_url) {
       formDataObj.append('img_url', regionFormData.img_url);
@@ -150,7 +152,8 @@ export default function AdminData() {
       formDataObj.append('region', reportFormData.region);
     }
     if (reportFormData.file) {
-      formDataObj.append('file', reportFormData.file);
+      const compressedFile = await compressImage(reportFormData.file);
+      formDataObj.append('file', compressedFile);
     }
 
     try {
@@ -192,10 +195,10 @@ export default function AdminData() {
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
     setIsUploadingMedia(true);
+    const compressedFile = await compressImage(file);
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', compressedFile);
     
     try {
       const res = await fetch('/api/media/upload', {
@@ -206,11 +209,11 @@ export default function AdminData() {
         fetchMedia();
       } else {
         const errorData = await res.json();
-        alert(errorData.detail || 'Erreur lors de l\\'upload');
+        alert(errorData.detail || 'Erreur lors de l\'upload');
       }
     } catch (error) {
       console.error(error);
-      alert('Erreur lors de l\\'upload');
+      alert('Erreur lors de l\'upload');
     } finally {
       setIsUploadingMedia(false);
       e.target.value = ''; // Reset input

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { compressImage } from '@/utils/imageCompression';
 
 export default function AdminBannersPage() {
   const [heroImages, setHeroImages] = useState([]);
@@ -46,7 +47,10 @@ export default function AdminBannersPage() {
     if (formData.title) formDataObj.append('title', formData.title);
     if (formData.alt_text) formDataObj.append('alt_text', formData.alt_text);
     if (formData.image_url) formDataObj.append('image_url', formData.image_url);
-    if (formData.file) formDataObj.append('file', formData.file);
+    if (formData.file) {
+      const compressedFile = await compressImage(formData.file);
+      formDataObj.append('file', compressedFile);
+    }
 
     const url = editingHero 
       ? `${API_URL}/api/hero-images/${editingHero.id}` 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { compressImage } from '@/utils/imageCompression';
 
 export default function AdminTestimonialsPage() {
   const [testimonials, setTestimonials] = useState([]);
@@ -33,7 +34,8 @@ export default function AdminTestimonialsPage() {
     formDataObj.append('text', formData.text);
     formDataObj.append('order', formData.order.toString());
     if (formData.file) {
-      formDataObj.append('file', formData.file);
+      const compressedFile = await compressImage(formData.file);
+      formDataObj.append('file', compressedFile);
     }
     if (formData.avatar_url) {
       formDataObj.append('avatar_url', formData.avatar_url);

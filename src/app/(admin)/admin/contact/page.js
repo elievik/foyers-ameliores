@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { compressImage } from '@/utils/imageCompression';
 
 export default function AdminContactPage() {
   const [contactInfo, setContactInfo] = useState(null);
@@ -67,7 +68,10 @@ export default function AdminContactPage() {
     if (officeFormData.address) formDataObj.append('address', officeFormData.address);
     if (officeFormData.order !== undefined) formDataObj.append('order', officeFormData.order.toString());
     if (officeFormData.img_url) formDataObj.append('img_url', officeFormData.img_url);
-    if (officeFormData.file) formDataObj.append('file', officeFormData.file);
+    if (officeFormData.file) {
+      const compressedFile = await compressImage(officeFormData.file);
+      formDataObj.append('file', compressedFile);
+    }
 
     const url = editingOffice
       ? `/api/contact/regional-offices/${editingOffice.id}`
