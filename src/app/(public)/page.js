@@ -1,96 +1,62 @@
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import ResellerModal from '@/components/ResellerModal';
 
+// Fetch data server-side — no waterfall, no useEffect delay
+async function getHeroImage() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/hero-images/home`, {
+      next: { revalidate: 3600 }, // re-fetch at most every hour
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
 
-export default function Home() {
-  const [showResellerModal, setShowResellerModal] = useState(false);
-  const [formData, setFormData] = useState({
-    nom: '',
-    prenoms: '',
-    telephone: '',
-    ville: '',
-    region: '',
-    autre: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [testimonials, setTestimonials] = useState([]);
-  const [heroImage, setHeroImage] = useState(null);
-  const [regions, setRegions] = useState([]);
+async function getRegions() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/regions/`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.filter((r) => !r.is_hidden);
+  } catch {
+    return [];
+  }
+}
 
-  const fetchTestimonials = async () => {
-    try {
-      const res = await fetch('/api/testimonials/');
-      if (res.ok) {
-        setTestimonials(await res.json());
-      }
-    } catch (e) {
-      console.error('Error fetching testimonials:', e);
-    }
-  };
+async function getTestimonials() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/testimonials/`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
 
-  const fetchHeroImage = async () => {
-    try {
-      const res = await fetch('/api/hero-images/home');
-      if (res.ok) {
-        setHeroImage(await res.json());
-      }
-    } catch (e) {
-      console.error('Error fetching hero image:', e);
-    }
-  };
+export default async function Home() {
+  // All data is fetched in parallel on the server — the page HTML arrives
+  // already containing the image URL, so the browser starts loading it immediately.
+  const [heroImage, regions, testimonials] = await Promise.all([
+    getHeroImage(),
+    getRegions(),
+    getTestimonials(),
+  ]);
 
-  const fetchRegions = async () => {
-    try {
-      const res = await fetch('/api/regions/');
-      if (res.ok) {
-        const data = await res.json();
-        // Only show visible regions (is_hidden === 0)
-        setRegions(data.filter(r => !r.is_hidden));
-      }
-    } catch (e) {
-      console.error('Error fetching regions:', e);
-    }
-  };
-
-  useEffect(() => {
-    fetchTestimonials();
-    fetchHeroImage();
-    fetchRegions();
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const response = await fetch('/api/resellers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        setSuccess(true);
-        setFormData({ nom: '', prenoms: '', telephone: '', ville: '', region: '', autre: '' });
-      }
-    } catch (error) {
-      console.error('Error submitting request:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
   return (
     <>
       {/* Hero Section */}
       <section className="relative min-h-[870px] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           {heroImage?.image_url ? (
-            <Image 
-              className="w-full h-full object-cover" 
+            <Image
+              className="w-full h-full object-cover"
               alt={heroImage.alt_text || "Bannière"}
               src={heroImage.image_url}
               fill
@@ -114,12 +80,16 @@ export default function Home() {
               Protégez votre santé et préservez nos forêts avec les technologies de cuisson améliorées les plus performantes d'Afrique de l'Ouest.
             </p>
             <div className="flex flex-wrap gap-4">
-              <button className="bg-primary text-on-primary px-8 py-4 rounded-lg font-button text-button shadow-organic hover:brightness-110 transition-all active:scale-95">
-                Découvrir nos modèles
-              </button>
-              <button className="bg-white/10 backdrop-blur-md border-2 border-primary text-primary px-8 py-4 rounded-lg font-button text-button hover:bg-primary/5 transition-all active:scale-95">
-                Notre Vision
-              </button>
+              <Link href="/catalog">
+                <button className="bg-primary text-on-primary px-8 py-4 rounded-lg font-button text-button shadow-organic hover:brightness-110 transition-all active:scale-95">
+                  Découvrir nos modèles
+                </button>
+              </Link>
+              <Link href="/about">
+                <button className="bg-white/10 backdrop-blur-md border-2 border-primary text-primary px-8 py-4 rounded-lg font-button text-button hover:bg-primary/5 transition-all active:scale-95">
+                  Notre Vision
+                </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -166,10 +136,10 @@ export default function Home() {
             {/* Himalayen Model */}
             <div className="group relative overflow-hidden rounded-2xl shadow-organic bg-surface border border-outline-variant/30">
               <div className="aspect-[16/10] overflow-hidden relative">
-                <Image 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                  alt="Modèle de foyer Himalayen" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUze5e26joP2hHn4jg02-IKUuQ59kEYoONxyGzvK3OfEkRUcWBt9Wnnyc4t6sUC0EeTdHa2uUuytaSKb-FT0xeVmbcmBE-779WI5IUSmI4zGD-Fjk1_UfsZOH1mVdBy9Wde-r3spaD79GRxl5mXpAQ9drNOHKj3IlyoMbZ3LH22FecQUAYr47jSh3ZLPjOk1mVkA2fVUbRyWmSLnnmLzACFizwrr1-L4vZ6QsUuk47BzTeVR-_otUCvXiz73c02mAFAr5oJPzzgA" 
+                <Image
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  alt="Modèle de foyer Himalayen"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUze5e26joP2hHn4jg02-IKUuQ59kEYoONxyGzvK3OfEkRUcWBt9Wnnyc4t6sUC0EeTdHa2uUuytaSKb-FT0xeVmbcmBE-779WI5IUSmI4zGD-Fjk1_UfsZOH1mVdBy9Wde-r3spaD79GRxl5mXpAQ9drNOHKj3IlyoMbZ3LH22FecQUAYr47jSh3ZLPjOk1mVkA2fVUbRyWmSLnnmLzACFizwrr1-L4vZ6QsUuk47BzTeVR-_otUCvXiz73c02mAFAr5oJPzzgA"
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
@@ -199,10 +169,10 @@ export default function Home() {
             {/* Asuto Model */}
             <div className="group relative overflow-hidden rounded-2xl shadow-organic bg-surface border border-outline-variant/30">
               <div className="aspect-[16/10] overflow-hidden relative">
-                <Image 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                  alt="Modèle de foyer Asuto" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbx5WNP5KPSyH1-lkdMIV1yRznbPPyq_ws8ElMXO8pxuG90adfGrSZLKdJXRybIdTd5INylpvZl0HqvnZz1orhsiBwgOWv5gPkN1Ez73CS9edG6cHIozqKmmefF5DLQ4AM6cEu59wrtU7apNcoX1t8e5yBcFR8pmP5N8Ro55zK-DIjKXiwRKCO9h5N6wuayXA55fvRK1fVdQqadD89BTdml_swkaiBCuGtDoGWeTr19Nf9FhueNUgVJh4v3scxkGbIPjBrOfoMDw" 
+                <Image
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  alt="Modèle de foyer Asuto"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbx5WNP5KPSyH1-lkdMIV1yRznbPPyq_ws8ElMXO8pxuG90adfGrSZLKdJXRybIdTd5INylpvZl0HqvnZz1orhsiBwgOWv5gPkN1Ez73CS9edG6cHIozqKmmefF5DLQ4AM6cEu59wrtU7apNcoX1t8e5yBcFR8pmP5N8Ro55zK-DIjKXiwRKCO9h5N6wuayXA55fvRK1fVdQqadD89BTdml_swkaiBCuGtDoGWeTr19Nf9FhueNUgVJh4v3scxkGbIPjBrOfoMDw"
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
@@ -279,7 +249,11 @@ export default function Home() {
       {/* Testimonials */}
       <section className="py-24 bg-surface-bright">
         <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
-          <h2 className="font-headline-md text-headline-md text-primary text-center mb-16 italic">{testimonials.length > 0 ? `"${testimonials[0].text.substring(0, 50)}..."` : '"Un changement de vie pour ma famille."'} </h2>
+          <h2 className="font-headline-md text-headline-md text-primary text-center mb-16 italic">
+            {testimonials.length > 0
+              ? `"${testimonials[0].text.substring(0, 50)}..."`
+              : '"Un changement de vie pour ma famille."'}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {testimonials.length > 0 ? (
               testimonials.map((testimonial) => (
@@ -298,7 +272,7 @@ export default function Home() {
                     </div>
                   </div>
                   <p className="font-body-md text-on-surface-variant leading-relaxed">
-                    "{testimonial.text}"
+                    &ldquo;{testimonial.text}&rdquo;
                   </p>
                 </div>
               ))
@@ -319,7 +293,7 @@ export default function Home() {
                     </div>
                   </div>
                   <p className="font-body-md text-on-surface-variant leading-relaxed">
-                    "Depuis que nous utilisons le modèle Himalayen, je dépense moitié moins en bois. Ma cuisine est propre, et mes enfants ne toussent plus à cause de la fumée."
+                    &ldquo;Depuis que nous utilisons le modèle Himalayen, je dépense moitié moins en bois. Ma cuisine est propre, et mes enfants ne toussent plus à cause de la fumée.&rdquo;
                   </p>
                 </div>
                 <div className="glass-card p-10 rounded-3xl border border-outline-variant shadow-sm">
@@ -337,7 +311,7 @@ export default function Home() {
                     </div>
                   </div>
                   <p className="font-body-md text-on-surface-variant leading-relaxed">
-                    "L'Asuto est d'une robustesse incroyable. Nous cuisinons pour toute la famille avec très peu de charbon."
+                    &ldquo;L'Asuto est d'une robustesse incroyable. Nous cuisinons pour toute la famille avec très peu de charbon.&rdquo;
                   </p>
                 </div>
               </>
@@ -357,81 +331,9 @@ export default function Home() {
               <Link href="/catalog">
                 <button className="bg-secondary text-on-primary px-10 py-5 rounded-xl font-button text-button shadow-organic hover:scale-105 transition-all">Commandez Maintenant</button>
               </Link>
-              <button onClick={() => setShowResellerModal(true)} className="bg-primary-container text-on-primary px-10 py-5 rounded-xl font-button text-button border border-on-primary/20 hover:bg-on-primary-fixed-variant transition-all">Devenir Revendeur</button>
+              {/* ResellerModal is the only client component on this page */}
+              <ResellerModal />
             </div>
-
-            {/* Reseller Modal */}
-            {showResellerModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                <div className="bg-surface rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
-                  <div className="p-8">
-                    <div className="flex justify-between items-center mb-6">
-                      <h2 className="font-headline-md text-headline-md text-primary">Devenez Revendeur</h2>
-                      <button onClick={() => { setShowResellerModal(false); setSuccess(false); }} className="text-on-surface-variant hover:text-primary">
-                        <span className="material-symbols-outlined text-3xl">close</span>
-                      </button>
-                    </div>
-
-                    {success ? (
-                      <div className="text-center py-8">
-                        <div className="text-green-600 text-6xl mb-4">
-                          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                        </div>
-                        <h3 className="font-headline-sm text-primary mb-2">Demande envoyée !</h3>
-                        <p className="text-on-surface-variant mb-6">Nous vous recontacterons très prochainement.</p>
-                        <button onClick={() => { setShowResellerModal(false); setSuccess(false); }} className="bg-primary text-on-primary px-8 py-3 rounded-lg font-button">
-                          Fermer
-                        </button>
-                      </div>
-                    ) : (
-                      <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs block mb-2">Nom</label>
-                            <input required type="text" className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Votre nom" value={formData.nom} onChange={(e) => setFormData({...formData, nom: e.target.value})} />
-                          </div>
-                          <div>
-                            <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs block mb-2">Prénoms</label>
-                            <input required type="text" className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Vos prénoms" value={formData.prenoms} onChange={(e) => setFormData({...formData, prenoms: e.target.value})} />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs block mb-2">Numéro de téléphone</label>
-                          <input required type="tel" className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="+228 90 00 00 00" value={formData.telephone} onChange={(e) => setFormData({...formData, telephone: e.target.value})} />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs block mb-2">Ville</label>
-                            <input required type="text" className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" placeholder="Votre ville" value={formData.ville} onChange={(e) => setFormData({...formData, ville: e.target.value})} />
-                          </div>
-                          <div>
-                            <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs block mb-2">Région</label>
-                            <select required className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" value={formData.region} onChange={(e) => setFormData({...formData, region: e.target.value})}>
-                              <option value="">Sélectionner</option>
-                              <option value="Savanes">Savanes</option>
-                              <option value="Kara">Kara</option>
-                              <option value="Centrale">Centrale</option>
-                              <option value="Plateaux">Plateaux</option>
-                              <option value="Maritime">Maritime</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs block mb-2">Autre information</label>
-                          <textarea className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all h-24" placeholder="Information supplémentaire..." value={formData.autre} onChange={(e) => setFormData({...formData, autre: e.target.value})} />
-                        </div>
-                        <div className="flex gap-4 pt-4">
-                          <button type="button" onClick={() => setShowResellerModal(false)} className="flex-1 bg-surface-container text-on-surface py-3 rounded-lg font-button hover:bg-surface-container-low transition-all">Annuler</button>
-                          <button type="submit" disabled={loading} className="flex-1 bg-primary text-on-primary py-3 rounded-lg font-button hover:brightness-110 transition-all disabled:opacity-50">
-                            {loading ? 'Envoi en cours...' : 'Envoyer la demande'}
-                          </button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </section>
