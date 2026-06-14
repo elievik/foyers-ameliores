@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import ResellerModal from '@/components/ResellerModal';
+import HeroBanner from '@/components/HeroBanner';
 
 // The backend URL used server-side must always be absolute.
 // On Vercel, NEXT_PUBLIC_API_URL is set to https://foyers-ameliores.onrender.com
@@ -10,17 +11,8 @@ const BACKEND_URL =
   'http://localhost:8000';
 
 // Fetch data server-side — no waterfall, no useEffect delay
-async function getHeroImage() {
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/hero-images/home`, {
-      next: { revalidate: 3600 }, // re-fetch at most every hour
-    });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
+// Note: heroImage is intentionally fetched client-side (see HeroBanner.js)
+// to avoid Render cold-start failures during Vercel's build/SSR phase.
 
 async function getRegions() {
   try {
@@ -48,59 +40,17 @@ async function getTestimonials() {
 }
 
 export default async function Home() {
-  // All data is fetched in parallel on the server — the page HTML arrives
-  // already containing the image URL, so the browser starts loading it immediately.
-  const [heroImage, regions, testimonials] = await Promise.all([
-    getHeroImage(),
+  // Regions and testimonials are fetched server-side (stable data, not affected by Render cold-start).
+  // The hero image is fetched client-side via HeroBanner to always use the /api/ proxy.
+  const [regions, testimonials] = await Promise.all([
     getRegions(),
     getTestimonials(),
   ]);
 
   return (
     <>
-      {/* Hero Section */}
-      <section className="relative min-h-[870px] flex items-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          {heroImage?.image_url ? (
-            <Image
-              className="w-full h-full object-cover"
-              alt={heroImage.alt_text || "Bannière"}
-              src={heroImage.image_url}
-              fill
-              sizes="100vw"
-              priority
-            />
-          ) : (
-            <div className="w-full h-full bg-surface-container flex items-center justify-center">
-              <span className="material-symbols-outlined text-outline text-8xl">image</span>
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/60 to-transparent"></div>
-        </div>
-        <div className="relative z-10 w-full px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
-          <div className="max-w-2xl">
-            <span className="inline-block px-4 py-1 bg-primary-container text-on-primary-container rounded-full text-label-caps font-label-caps mb-6">IMPACT NATIONAL 2026-2032</span>
-            <h1 className="font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-6">
-              Une cuisson propre pour un Togo durable
-            </h1>
-            <p className="font-body-lg text-body-lg text-on-surface-variant mb-10 leading-relaxed">
-              Protégez votre santé et préservez nos forêts avec les technologies de cuisson améliorées les plus performantes d'Afrique de l'Ouest.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/catalog">
-                <button className="bg-primary text-on-primary px-8 py-4 rounded-lg font-button text-button shadow-organic hover:brightness-110 transition-all active:scale-95">
-                  Découvrir nos modèles
-                </button>
-              </Link>
-              <Link href="/about">
-                <button className="bg-white/10 backdrop-blur-md border-2 border-primary text-primary px-8 py-4 rounded-lg font-button text-button hover:bg-primary/5 transition-all active:scale-95">
-                  Notre Vision
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Hero Section — client component to reliably load the banner via the /api/ proxy */}
+      <HeroBanner />
 
       {/* Impact Stats */}
       <section className="py-20 bg-surface-container-low">
