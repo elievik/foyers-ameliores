@@ -2,10 +2,17 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ResellerModal from '@/components/ResellerModal';
 
+// The backend URL used server-side must always be absolute.
+// On Vercel, NEXT_PUBLIC_API_URL is set to https://foyers-ameliores.onrender.com
+// Locally it falls back to localhost:8000 so the dev server also works.
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:8000';
+
 // Fetch data server-side — no waterfall, no useEffect delay
 async function getHeroImage() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/hero-images/home`, {
+    const res = await fetch(`${BACKEND_URL}/api/hero-images/home`, {
       next: { revalidate: 3600 }, // re-fetch at most every hour
     });
     if (!res.ok) return null;
@@ -17,7 +24,7 @@ async function getHeroImage() {
 
 async function getRegions() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/regions/`, {
+    const res = await fetch(`${BACKEND_URL}/api/regions/`, {
       next: { revalidate: 3600 },
     });
     if (!res.ok) return [];
@@ -30,7 +37,7 @@ async function getRegions() {
 
 async function getTestimonials() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/testimonials/`, {
+    const res = await fetch(`${BACKEND_URL}/api/testimonials/`, {
       next: { revalidate: 3600 },
     });
     if (!res.ok) return [];
