@@ -18,8 +18,11 @@ export default function Catalog() {
   useEffect(() => {
     fetch('/api/product-images/')
       .then(res => res.json())
-      .then(data => setProductImages(data))
-      .catch(err => console.error('Error fetching product images:', err));
+      .then(data => setProductImages(Array.isArray(data) ? data : []))
+      .catch(err => {
+        console.error('Error fetching product images:', err);
+        setProductImages([]);
+      });
       
     fetch('/api/contact/info')
       .then(res => res.json())
@@ -30,10 +33,16 @@ export default function Catalog() {
 
     fetch('/api/regions/')
       .then(res => res.json())
-      .then(data => setRegions(data))
-      .catch(err => console.error('Error fetching regions:', err));
+      .then(data => setRegions(Array.isArray(data) ? data : []))
+      .catch(err => {
+        console.error('Error fetching regions:', err);
+        setRegions([]);
+      });
   }, []);
 
+  const safeProductImages = Array.isArray(productImages) ? productImages : [];
+  const safeRegions = Array.isArray(regions) ? regions : [];
+  
   const products = [
     {
       name: 'Foyer Himalayen',
@@ -46,7 +55,7 @@ export default function Catalog() {
         { icon: 'health_and_safety', text: 'Réduction drastique des gaz nocifs' },
         { icon: 'savings', text: 'Rentabilisé en moins de 3 mois' }
       ],
-      images: (productImages || []).filter(i => i.product_name === 'Foyer Himalayen'),
+      images: safeProductImages.filter(i => i.product_name === 'Foyer Himalayen'),
       defaultImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlOE1GvrVzky5IRcHpA3wspX782N5f8A94qVjHk55igzf9FIQAZ_AdfAhXHj3F_aAd5hZsJd_qUvVZhURDuu1jX07DUoqOLQEd4Phl5G2ylI9FvyKZ-hBK7cqdWJ-7kiXN7Jx5Oevx07gjf6ZTGI_lvPSrcawKgtusZiMyBZ0TVwCF7J8MmDYLj357oxdkQj5aLbiUETnmieu_8fNcIwSd8IeHfNJPjca95s8bYGxoRhtT6rGIxbWVj1tvtVayklUHZZZ5R15sKQ'
     },
     {
@@ -60,7 +69,7 @@ export default function Catalog() {
         { icon: 'directions_walk', text: 'Facilement transportable' },
         { icon: 'timer', text: 'Cuisson 2x plus rapide' }
       ],
-      images: (productImages || []).filter(i => i.product_name === 'Foyer Asuto'),
+      images: safeProductImages.filter(i => i.product_name === 'Foyer Asuto'),
       defaultImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDyJ8-82WrKvXEb6xSjvuLdBPKEQDOCTsMhzJQZ7WZGKe9vaNk9yd7QnBNCdza60D4JICYb72dC1RyHJeldjGMk9-h1xEGujsxNxigonoSLygwOWVDw5NMj2DK-CsLoGjBxrAQbk_SbYzEYcd-S7yHxlcZAP1lvGGc2QLKZvY8pQc1LJbPHt8tWutuAFxmtqlJdL4DxvTyHid6YJPt8nAHuppz7_sKcQoHW_4Rq1Dj8pjebu2VgFRZXZ2CQ3yi5Mil4udVSenSM1g'
     }
   ];
@@ -119,12 +128,12 @@ export default function Catalog() {
     
     try {
       const quantite = parseInt(formData.quantite) || 1;
-      const total = quantite * 2500;
+      const total = quantite * 3000;
       
       const asutoData = {
         ...formData,
         quantite: quantite,
-        prix_unitaire: 2500,
+        prix_unitaire: 3000,
         date_vente: formData.date_vente || new Date().toISOString().split('T')[0]
       };
 
@@ -260,7 +269,7 @@ export default function Catalog() {
                   ['Efficacité', 'Haute (Économie 60%)', 'Excellente (Économie 50%)'],
                   ['Matériaux', 'Argile réfractaire massive', 'Céramique isolée et Inox'],
                   ['Poids', 'Fixe (Lourd)', 'Portable (Léger)'],
-                  ['Prix', 'Gratuit', '2,500 CFA']
+                  ['Prix', 'Gratuit', '3000 CFA']
                 ].map((row, idx) => (
                   <tr key={idx}>
                     <td className="p-6 font-bold text-primary bg-surface-container-low">{row[0]}</td>
@@ -377,7 +386,7 @@ export default function Catalog() {
                     onChange={handleInputChange}
                     className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all">
                     <option value="">Sélectionner</option>
-                    {regions.filter(r => r.is_hidden !== 1).map((r) => (
+                    {safeRegions.filter(r => r.is_hidden !== 1).map((r) => (
                       <option key={r.id} value={r.name}>{r.name}</option>
                     ))}
                   </select>
@@ -421,7 +430,7 @@ export default function Catalog() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-headline-md text-headline-md text-primary">Commande - Foyer Asuto (2,500f)</h3>
+              <h3 className="font-headline-md text-headline-md text-primary">Commande - Foyer Asuto (3000f)</h3>
               <button onClick={() => setShowAsutoForm(false)} className="p-2 hover:bg-surface-container rounded-lg transition-colors">
                 <span className="material-symbols-outlined">close</span>
               </button>
@@ -510,7 +519,7 @@ export default function Catalog() {
               <div className="bg-secondary/10 p-4 rounded-xl border border-secondary/20">
                 <p className="font-label-caps text-label-caps text-secondary uppercase text-xs mb-1">Total à payer</p>
                 <p className="text-3xl font-bold text-secondary">
-                  {(parseInt(formData.quantite) || 1) * 2500} CFA
+                  {(parseInt(formData.quantite) || 1) * 3000} CFA
                 </p>
               </div>
               <div className="flex gap-4 pt-4">
