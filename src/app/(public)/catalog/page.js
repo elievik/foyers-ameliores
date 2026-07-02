@@ -60,7 +60,7 @@ export default function Catalog() {
     },
     {
       name: 'Foyer Asuto',
-      price: '2,500 CFA',
+      price: '3000 CFA',
       type: 'Charbon de Bois',
       typeColor: 'bg-secondary-container text-on-secondary-container',
       description: 'L\'innovation portable pour les citadins. Conçu pour le charbon, il allie légèreté et performance thermique exceptionnelle.',
