@@ -88,6 +88,7 @@ export default function AdminOrders() {
       ...himalayenList.map(h => ({
         id: `#${h.id}`,
         client: `${h.nom} ${h.prenoms}`,
+        phone: h.telephone,
         city: h.ville_commune,
         model: 'Himalayen',
         qty: 1,
@@ -97,6 +98,7 @@ export default function AdminOrders() {
       ...asutoList.map(a => ({
         id: `#${a.id}`,
         client: `${a.nom} ${a.prenoms}`,
+        phone: a.telephone,
         city: a.ville,
         model: 'Asuto',
         qty: a.quantite,
@@ -105,8 +107,8 @@ export default function AdminOrders() {
       }))
     ];
     
-    const csvContent = `ID,Client,Ville,Modèle,Quantité,Status
-${allOrders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.status}`).join('\n')}
+    const csvContent = `ID,Client,Téléphone,Ville,Modèle,Quantité,Status
+${allOrders.map(o => `${o.id},${o.client},${o.phone},${o.city},${o.model},${o.qty},${o.status}`).join('\n')}
 `;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -123,6 +125,7 @@ ${allOrders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.stat
     ...himalayenList.map(h => ({
       id: `#${h.id}`,
       client: `${h.nom} ${h.prenoms}`,
+      phone: h.telephone,
       city: h.ville_commune,
       model: 'Himalayen',
       qty: 1,
@@ -132,6 +135,7 @@ ${allOrders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.stat
     ...asutoList.map(a => ({
       id: `#${a.id}`,
       client: `${a.nom} ${a.prenoms}`,
+      phone: a.telephone,
       city: a.ville,
       model: 'Asuto',
       qty: a.quantite,
@@ -203,6 +207,7 @@ ${allOrders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.stat
           <thead>
             <tr className="bg-surface-container-low/50">
               <th className="px-8 py-5 font-label-caps text-[10px] text-on-surface-variant uppercase">Client</th>
+              <th className="px-6 py-5 font-label-caps text-[10px] text-on-surface-variant uppercase">Téléphone</th>
               <th className="px-6 py-5 font-label-caps text-[10px] text-on-surface-variant uppercase">Modèle</th>
               <th className="px-6 py-5 font-label-caps text-[10px] text-on-surface-variant uppercase text-center">Quantité</th>
               <th className="px-6 py-5 font-label-caps text-[10px] text-on-surface-variant uppercase">Statut</th>
@@ -217,6 +222,9 @@ ${allOrders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.stat
                   <p className="text-xs text-on-surface-variant">{order.city}</p>
                 </td>
                 <td className="px-6 py-5">
+                  <p className="font-medium text-on-surface">{order.phone}</p>
+                </td>
+                <td className="px-6 py-5">
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${order.model === 'Himalayen' ? 'bg-secondary-container/20 text-secondary' : 'bg-primary/10 text-primary'}`}>
                     {order.model}
                   </span>
@@ -229,9 +237,14 @@ ${allOrders.map(o => `${o.id},${o.client},${o.city},${o.model},${o.qty},${o.stat
                   </div>
                 </td>
                 <td className="px-8 py-5 text-right">
-                  <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#25D366] text-white rounded-full text-[10px] font-bold shadow-sm hover:brightness-110 transition-all">
+                  <a
+                    href={`https://wa.me/${order.phone.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#25D366] text-white rounded-full text-[10px] font-bold shadow-sm hover:brightness-110 transition-all"
+                  >
                     WhatsApp
-                  </button>
+                  </a>
                 </td>
               </tr>
             ))}

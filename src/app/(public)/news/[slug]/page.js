@@ -21,7 +21,7 @@ export default function ArticleDetail({ params }) {
           const data = await articleRes.json();
           setArticle(data);
           
-          const allNewsRes = await fetch('/api/news');
+          const allNewsRes = await fetch('/api/news/');
           if (allNewsRes.ok) {
             const allNews = await allNewsRes.json();
             const related = allNews.filter(item => item.id !== data.id && item.status === 'Publié').slice(0, 3);

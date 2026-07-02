@@ -37,10 +37,11 @@ class NewsArticle(NewsArticleBase):
 class ReportBase(BaseModel):
     title: str
     description: str
+    file_url: Optional[str] = None
     region: Optional[str] = None
 
 class ReportCreate(ReportBase):
-    file_url: str
+    pass
 
 class Report(ReportBase):
     id: int

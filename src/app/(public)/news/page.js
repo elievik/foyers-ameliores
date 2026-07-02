@@ -14,8 +14,8 @@ export default function News() {
     const fetchData = async () => {
       try {
         const [newsRes, reportsRes] = await Promise.all([
-          fetch('/api/news'),
-          fetch('/api/reports')
+          fetch('/api/news/'),
+          fetch('/api/reports/')
         ]);
         if (newsRes.ok) {
           const data = await newsRes.json();

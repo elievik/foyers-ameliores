@@ -40,8 +40,8 @@ export default function AdminNews() {
     const fetchData = async () => {
       try {
         const [newsRes, reportsRes] = await Promise.all([
-          fetch('/api/news'),
-          fetch('/api/reports')
+          fetch('/api/news/'),
+          fetch('/api/reports/')
         ]);
         if (newsRes.ok) {
           const data = await newsRes.json();
@@ -105,7 +105,7 @@ export default function AdminNews() {
     try {
       const url = editingArticle 
         ? `/api/news/${editingArticle.id}`
-        : '/api/news';
+        : '/api/news/';
       const method = editingArticle ? 'PATCH' : 'POST';
       
       const res = await fetch(url, {
@@ -153,7 +153,7 @@ export default function AdminNews() {
     }
 
     try {
-      const res = await fetch('/api/reports', {
+      const res = await fetch('/api/reports/', {
         method: 'POST',
         body: formData,
       });
