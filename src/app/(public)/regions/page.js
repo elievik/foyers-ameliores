@@ -37,7 +37,8 @@ export default function Regions() {
     fetchHeroImage();
   }, []);
 
-  const filteredRegions = (regions || []).filter(region => 
+  const safeRegions = Array.isArray(regions) ? regions : [];
+  const filteredRegions = safeRegions.filter(region => 
     region.is_hidden !== 1 && region.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -164,7 +165,7 @@ export default function Regions() {
             <div>
               <p className="font-label-caps text-label-caps text-on-surface-variant uppercase">Impact National</p>
               <h4 className="font-headline-sm text-headline-sm text-primary">
-                {regions.reduce((total, region) => {
+                {safeRegions.reduce((total, region) => {
                   const num = parseInt(region.distributed);
                   return total + (isNaN(num) ? 0 : num);
                 }, 0)}{' '}
