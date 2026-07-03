@@ -40,9 +40,10 @@ export default function AdminData() {
     try {
       const res = await fetch('/api/regions/');
       const data = await res.json();
-      setRegions(data);
+      setRegions(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching regions:', error);
+      setRegions([]);
     }
   };
 
@@ -50,11 +51,15 @@ export default function AdminData() {
     try {
       const res = await fetch('/api/media/');
       const data = await res.json();
-      setPhotos(data);
+      setPhotos(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching media:', error);
+      setPhotos([]);
     }
   };
+
+  const safeRegions = Array.isArray(regions) ? regions : [];
+  const safePhotos = Array.isArray(photos) ? photos : [];
 
   useEffect(() => {
     fetchRegions();
@@ -261,7 +266,7 @@ export default function AdminData() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-        {regions.map((region) => (
+        {safeRegions.map((region) => (
           <div key={region.id} className={`group relative overflow-hidden rounded-3xl h-80 bg-surface-container-low border ${region.is_hidden ? 'border-error/50 opacity-75' : 'border-outline-variant/20'} shadow-sm hover:shadow-organic transition-all`}>
             {region.img_url ? (
               <Image className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-60" alt={region.name} src={region.img_url} fill />
@@ -324,7 +329,7 @@ export default function AdminData() {
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {photos.map((photo) => (
+          {safePhotos.map((photo) => (
             <div key={photo.name} className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-outline-variant/20">
               <Image className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Field Photo" src={photo.url} fill sizes="(max-width: 768px) 50vw, 16vw" />
               <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
@@ -485,7 +490,7 @@ export default function AdminData() {
                   onChange={(e) => setReportFormData({ ...reportFormData, region: e.target.value })}
                 >
                   <option value="">Sélectionner une région</option>
-                  {regions.map((r) => (
+                  {safeRegions.map((r) => (
                     <option key={r.id} value={r.name}>{r.name}</option>
                   ))}
                 </select>
