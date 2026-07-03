@@ -10,7 +10,7 @@ import uuid
 # Créer les tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Foyers Améliorés Togo API", redirect_slashes=False)
+app = FastAPI(title="Foyers Améliorés Togo API", redirect_slashes=True)
 
 # Serve static files
 app.mount("/static", StaticFiles(directory="static"), name="static")

@@ -17,8 +17,10 @@ export default function AdminReports() {
   const fetchReports = async () => {
     const res = await fetch('/api/reports/');
     const data = await res.json();
-    setReports(data);
+    setReports(Array.isArray(data) ? data : []);
   };
+  
+  const safeReports = Array.isArray(reports) ? reports : [];
 
   useEffect(() => {
     fetchReports();
@@ -75,7 +77,7 @@ export default function AdminReports() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {reports.map((report) => (
+        {safeReports.map((report) => (
           <div key={report.id} className="glass-card p-6 rounded-2xl border border-outline-variant shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <span className="material-symbols-outlined text-4xl text-primary">description</span>
