@@ -17,8 +17,10 @@ export default function AdminProductImages() {
   const fetchImages = async () => {
     const res = await fetch('/api/product-images/');
     const data = await res.json();
-    setImages(data);
+    setImages(Array.isArray(data) ? data : []);
   };
+
+  const safeImages = Array.isArray(images) ? images : [];
 
   useEffect(() => {
     fetchImages();
@@ -76,8 +78,8 @@ export default function AdminProductImages() {
     }
   };
 
-  const himalayenImages = images.filter(i => i.product_name === 'Foyer Himalayen');
-  const asutoImages = images.filter(i => i.product_name === 'Foyer Asuto');
+  const himalayenImages = safeImages.filter(i => i.product_name === 'Foyer Himalayen');
+  const asutoImages = safeImages.filter(i => i.product_name === 'Foyer Asuto');
 
   return (
     <div>

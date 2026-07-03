@@ -33,11 +33,17 @@ export default function AdminContactPage() {
         fetch('/api/contact/regional-offices')
       ]);
       if (infoRes.ok) setContactInfo(await infoRes.json());
-      if (officesRes.ok) setRegionalOffices(await officesRes.json());
+      if (officesRes.ok) {
+        const data = await officesRes.json();
+        setRegionalOffices(Array.isArray(data) ? data : []);
+      }
     } catch (err) {
       console.error('Error fetching contact data:', err);
+      setRegionalOffices([]);
     }
   };
+  
+  const safeRegionalOffices = Array.isArray(regionalOffices) ? regionalOffices : [];
 
   useEffect(() => {
     fetchContactData();
@@ -254,7 +260,7 @@ export default function AdminContactPage() {
       <section>
         <h3 className="font-headline-md text-headline-md text-primary mb-6">Bureaux Régionaux</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {regionalOffices.map((office) => (
+          {safeRegionalOffices.map((office) => (
             <div key={office.id} className="glass-card p-6 rounded-xl shadow-organic border border-outline-variant/30">
               <div className="flex items-start justify-between mb-4">
                 <div className="space-y-1">

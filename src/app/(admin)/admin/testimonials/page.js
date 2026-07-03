@@ -19,8 +19,10 @@ export default function AdminTestimonialsPage() {
   const fetchTestimonials = async () => {
     const res = await fetch('/api/testimonials/');
     const data = await res.json();
-    setTestimonials(data);
+    setTestimonials(Array.isArray(data) ? data : []);
   };
+
+  const safeTestimonials = Array.isArray(testimonials) ? testimonials : [];
 
   useEffect(() => {
     fetchTestimonials();
@@ -112,7 +114,7 @@ export default function AdminTestimonialsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {testimonials.map((testimonial) => (
+        {safeTestimonials.map((testimonial) => (
           <div key={testimonial.id} className="glass-card p-8 rounded-3xl border border-outline-variant shadow-sm">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 rounded-full bg-primary-fixed overflow-hidden relative border border-primary/20 shadow-sm">

@@ -22,12 +22,15 @@ export default function AdminBannersPage() {
       const res = await fetch(`${API_URL}/api/hero-images/`);
       if (res.ok) {
         const data = await res.json();
-        setHeroImages(data);
+        setHeroImages(Array.isArray(data) ? data : []);
       }
     } catch (e) {
       console.error("Fetch error:", e);
+      setHeroImages([]);
     }
   };
+  
+  const safeHeroImages = Array.isArray(heroImages) ? heroImages : [];
 
   useEffect(() => {
     fetchHeroImages();
@@ -147,7 +150,7 @@ export default function AdminBannersPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {heroImages.map((hero) => (
+        {safeHeroImages.map((hero) => (
           <div key={hero.id} className="glass-card p-6 rounded-2xl border border-outline-variant shadow-sm">
             <div className="h-40 overflow-hidden rounded-xl mb-4 relative bg-surface-container flex items-center justify-center">
               {hero.image_url ? (

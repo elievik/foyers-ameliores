@@ -17,8 +17,10 @@ export default function AdminPartners() {
   const fetchPartners = async () => {
     const res = await fetch('/api/partners/');
     const data = await res.json();
-    setPartners(data);
+    setPartners(Array.isArray(data) ? data : []);
   };
+
+  const safePartners = Array.isArray(partners) ? partners : [];
 
   useEffect(() => {
     fetchPartners();
@@ -102,7 +104,7 @@ export default function AdminPartners() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {partners.map((partner) => (
+        {safePartners.map((partner) => (
           <div key={partner.id} className="bg-white rounded-2xl shadow-sm border border-outline-variant/20 overflow-hidden p-6 flex items-center gap-4">
             <div className="w-24 h-24 flex items-center justify-center">
               {partner.logo_url ? (

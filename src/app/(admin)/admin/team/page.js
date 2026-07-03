@@ -19,8 +19,10 @@ export default function AdminTeamPage() {
   const fetchTeam = async () => {
     const res = await fetch('/api/team/');
     const data = await res.json();
-    setTeam(data);
+    setTeam(Array.isArray(data) ? data : []);
   };
+
+  const safeTeam = Array.isArray(team) ? team : [];
 
   useEffect(() => {
     fetchTeam();
@@ -112,7 +114,7 @@ export default function AdminTeamPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {team.map((member) => (
+        {safeTeam.map((member) => (
           <div
             key={member.id}
             className="bg-white rounded-2xl shadow-sm border border-outline-variant/20 p-6 flex flex-col items-center text-center"

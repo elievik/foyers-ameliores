@@ -27,12 +27,14 @@ export default function AdminResellers() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const res = await fetch('/api/resellers');
+        const res = await fetch('/api/resellers/');
         if (res.ok) {
-          setRequests(await res.json());
+          const data = await res.json();
+          setRequests(Array.isArray(data) ? data : []);
         }
       } catch (error) {
         console.error('Erreur chargement:', error);
+        setRequests([]);
       }
     };
     fetchRequests();
@@ -47,13 +49,16 @@ export default function AdminResellers() {
       });
       if (res.ok) {
         // Recharger la liste
-        const resFresh = await fetch('/api/resellers');
-        setRequests(await resFresh.json());
+        const resFresh = await fetch('/api/resellers/');
+        const data = await resFresh.json();
+        setRequests(Array.isArray(data) ? data : []);
       }
     } catch (error) {
       console.error('Erreur:', error);
     }
   };
+
+  const safeRequests = Array.isArray(requests) ? requests : [];
 
   const handleDeleteRequest = async (id) => {
     if (confirm('Supprimer cette demande ?')) {
@@ -62,7 +67,7 @@ export default function AdminResellers() {
           method: 'DELETE',
         });
         if (res.ok) {
-          setRequests(requests.filter(r => r.id !== id));
+          setRequests(safeRequests.filter(r => r.id !== id));
         }
       } catch (error) {
         console.error('Erreur:', error);
@@ -73,7 +78,7 @@ export default function AdminResellers() {
   const handleAddReseller = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/resellers', {
+      const res = await fetch('/api/resellers/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -82,8 +87,9 @@ export default function AdminResellers() {
         setShowForm(false);
         setFormData({ nom: '', prenoms: '', telephone: '', ville: '', region: '', autre: '' });
         // Recharger la liste
-        const resFresh = await fetch('/api/resellers');
-        setRequests(await resFresh.json());
+        const resFresh = await fetch('/api/resellers/');
+        const data = await resFresh.json();
+        setRequests(Array.isArray(data) ? data : []);
       }
     } catch (error) {
       console.error('Erreur:', error);
@@ -130,7 +136,7 @@ export default function AdminResellers() {
             </tr>
           </thead>
           <tbody className="divide-y divide-outline-variant/10">
-            {requests.map((request) => (
+            {safeRequests.map((request) => (
               <tr key={request.id} className="hover:bg-surface-container-low/30 transition-colors">
                 <td className="px-8 py-5">
                   <p className="font-bold text-on-surface">{request.prenoms} {request.nom}</p>
