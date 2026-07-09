@@ -236,9 +236,11 @@ export default function About() {
                 </div>
               ))
             ) : (
-              ['GIZ', 'UNDP', 'ECOWAS', 'BOAD', 'ATRE'].map((partner) => (
-                <span key={partner} className="text-headline-sm font-bold text-outline">{partner}</span>
-              ))
+              <div className="text-center py-12 text-on-surface-variant">
+                <span className="material-symbols-outlined text-6xl mb-4 block">business</span>
+                <p className="font-body-lg">Aucun partenaire enregistré pour le moment.</p>
+                <p className="text-sm mt-2">Ajoutez des partenaires depuis le back-office pour les afficher ici.</p>
+              </div>
             )}
           </div>
         </div>

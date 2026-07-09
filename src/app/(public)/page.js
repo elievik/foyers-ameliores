@@ -129,7 +129,7 @@ export default async function Home() {
           <h2 className="font-headline-md text-headline-md text-primary text-center mb-16 italic">
             {testimonials.length > 0
               ? `"${testimonials[0].text.substring(0, 50)}..."`
-              : '"Un changement de vie pour ma famille."'}
+              : 'Ajoutez des témoignages depuis le back-office.'}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {testimonials.length > 0 ? (
@@ -137,11 +137,17 @@ export default async function Home() {
                 <div key={testimonial.id} className="glass-card p-10 rounded-3xl border border-outline-variant shadow-sm">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-16 h-16 rounded-full bg-primary-fixed overflow-hidden relative border border-primary/20 shadow-sm">
-                      <img
-                        src={testimonial.avatar_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuARSlszM-dYLNt6m2F8mt77TmwWzZlhUGujfMdcPD_7wF5I1sLPPSqZTZ8wA8paF-_9tmJsrgN8LpByQg5NMWyRnZP3-PDAnHvMWcCb8s-Gdk5Q6kTGHkz71NLYlfgimo2ieu1a9OPuPzIpV0Lmsa9QUnG2dPNj9zEAMWpCFA5i_4TspLQB53BvspYmdxUs4-tOrYIBaZoG-288C0Ng6nOeJaokNGjInnPIYNXslN-kaaM6tvUeHOJQYrTp_1fYK9WTK8G4S13ttw'}
-                        alt={testimonial.name}
-                        className="w-full h-full object-cover"
-                      />
+                      {testimonial.avatar_url ? (
+                        <img
+                          src={testimonial.avatar_url}
+                          alt={testimonial.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-primary/40">
+                          <span className="material-symbols-outlined text-4xl">person</span>
+                        </div>
+                      )}
                     </div>
                     <div>
                       <p className="font-bold text-primary">{testimonial.name}</p>
@@ -154,44 +160,11 @@ export default async function Home() {
                 </div>
               ))
             ) : (
-              <>
-                <div className="glass-card p-10 rounded-3xl border border-outline-variant shadow-sm">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 rounded-full bg-primary-fixed overflow-hidden relative border border-primary/20 shadow-sm">
-                      <img
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuARSlszM-dYLNt6m2F8mt77TmwWzZlhUGujfMdcPD_7wF5I1sLPPSqZTZ8wA8paF-_9tmJsrgN8LpByQg5NMWyRnZP3-PDAnHvMWcCb8s-Gdk5Q6kTGHkz71NLYlfgimo2ieu1a9OPuPzIpV0Lmsa9QUnG2dPNj9zEAMWpCFA5i_4TspLQB53BvspYmdxUs4-tOrYIBaZoG-288C0Ng6nOeJaokNGjInnPIYNXslN-kaaM6tvUeHOJQYrTp_1fYK9WTK8G4S13ttw"
-                        alt="Portrait Afiwa K."
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-bold text-primary">Afiwa K.</p>
-                      <p className="text-[10px] text-on-surface-variant font-label-caps uppercase tracking-wider">Kpalimé, Plateaux</p>
-                    </div>
-                  </div>
-                  <p className="font-body-md text-on-surface-variant leading-relaxed">
-                    &ldquo;Depuis que nous utilisons le modèle Himalayen, je dépense moitié moins en bois. Ma cuisine est propre, et mes enfants ne toussent plus à cause de la fumée.&rdquo;
-                  </p>
-                </div>
-                <div className="glass-card p-10 rounded-3xl border border-outline-variant shadow-sm">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 rounded-full bg-secondary-fixed overflow-hidden relative border border-secondary/20 shadow-sm">
-                      <img
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYelDnVQzT-8sXqOmz9zRkXqQNXETKeUOkhwL3OJ091ZZ2kTOEYEdaN1mqbc1oJyspfHbh8uFed6TrHjHi1alufngJFpCpohUlDwZmhqR36jYTcjb0o_4oRSnWcVNYVBnVuG62R-nKIpGFzkY5Dkwf3w1IMAPztsEm3MACUKI2kDCqlaAsMMLc7ssEbzShgbAorpPcLhFA9hpc7FBfi9U39P9fC3wkjhVE-A920Mrx_k4hLsVvYVOsfcbK1HWrkl62AaVi0vnHzg"
-                        alt="Portrait Koffi M."
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-bold text-primary">Koffi M.</p>
-                      <p className="text-[10px] text-on-surface-variant font-label-caps uppercase tracking-wider">Sokodé, Centrale</p>
-                    </div>
-                  </div>
-                  <p className="font-body-md text-on-surface-variant leading-relaxed">
-                    &ldquo;L'Asuto est d'une robustesse incroyable. Nous cuisinons pour toute la famille avec très peu de charbon.&rdquo;
-                  </p>
-                </div>
-              </>
+              <div className="col-span-full text-center py-16 text-on-surface-variant">
+                <span className="material-symbols-outlined text-6xl mb-4 block">rate_review</span>
+                <p className="font-body-lg">Aucun témoignage enregistré pour le moment.</p>
+                <p className="text-sm mt-2">Ajoutez des témoignages depuis le back-office pour les afficher ici.</p>
+              </div>
             )}
           </div>
         </div>
