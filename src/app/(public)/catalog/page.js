@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
 const getFullUrl = (url) => {
-  if (!url) return '';
+  if (!url) return null;
   return url.startsWith('http') ? url : `${url}`;
 };
 
@@ -17,7 +17,10 @@ export default function Catalog() {
 
   useEffect(() => {
     fetch('/api/product-images/')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
       .then(data => setProductImages(Array.isArray(data) ? data : []))
       .catch(err => {
         console.error('Error fetching product images:', err);
@@ -25,14 +28,20 @@ export default function Catalog() {
       });
       
     fetch('/api/contact/info')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
       .then(data => {
         if (data && data.whatsapp_number) setContactInfo(data);
       })
       .catch(err => console.error('Error fetching contact info:', err));
 
     fetch('/api/regions/')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
       .then(data => setRegions(Array.isArray(data) ? data : []))
       .catch(err => {
         console.error('Error fetching regions:', err);
@@ -55,8 +64,7 @@ export default function Catalog() {
         { icon: 'health_and_safety', text: 'Réduction drastique des gaz nocifs' },
         { icon: 'savings', text: 'Rentabilisé en moins de 3 mois' }
       ],
-      images: safeProductImages.filter(i => i.product_name === 'Foyer Himalayen'),
-      defaultImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlOE1GvrVzky5IRcHpA3wspX782N5f8A94qVjHk55igzf9FIQAZ_AdfAhXHj3F_aAd5hZsJd_qUvVZhURDuu1jX07DUoqOLQEd4Phl5G2ylI9FvyKZ-hBK7cqdWJ-7kiXN7Jx5Oevx07gjf6ZTGI_lvPSrcawKgtusZiMyBZ0TVwCF7J8MmDYLj357oxdkQj5aLbiUETnmieu_8fNcIwSd8IeHfNJPjca95s8bYGxoRhtT6rGIxbWVj1tvtVayklUHZZZ5R15sKQ'
+      images: safeProductImages.filter(i => i.product_name === 'Foyer Himalayen' && i.img_url),
     },
     {
       name: 'Foyer Asuto',
@@ -69,8 +77,7 @@ export default function Catalog() {
         { icon: 'directions_walk', text: 'Facilement transportable' },
         { icon: 'timer', text: 'Cuisson 2x plus rapide' }
       ],
-      images: safeProductImages.filter(i => i.product_name === 'Foyer Asuto'),
-      defaultImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDyJ8-82WrKvXEb6xSjvuLdBPKEQDOCTsMhzJQZ7WZGKe9vaNk9yd7QnBNCdza60D4JICYb72dC1RyHJeldjGMk9-h1xEGujsxNxigonoSLygwOWVDw5NMj2DK-CsLoGjBxrAQbk_SbYzEYcd-S7yHxlcZAP1lvGGc2QLKZvY8pQc1LJbPHt8tWutuAFxmtqlJdL4DxvTyHid6YJPt8nAHuppz7_sKcQoHW_4Rq1Dj8pjebu2VgFRZXZ2CQ3yi5Mil4udVSenSM1g'
+      images: safeProductImages.filter(i => i.product_name === 'Foyer Asuto' && i.img_url),
     }
   ];
 
@@ -540,7 +547,7 @@ export default function Catalog() {
 
 function ProductCarousel({ product }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const images = product.images.length > 0 ? product.images : [{ img_url: product.defaultImg }];
+  const images = product.images.length > 0 ? product.images : [];
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
@@ -550,18 +557,31 @@ function ProductCarousel({ product }) {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
+  // If no images, show placeholder
+  if (images.length === 0) {
+    return (
+      <div className="h-80 bg-surface-container flex items-center justify-center">
+        <span className="material-symbols-outlined text-outline text-6xl">image</span>
+      </div>
+    );
+  }
+
   return (
     <div className="h-80 relative overflow-hidden">
       <div className="flex transition-transform duration-500 h-full" style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
-        {images.map((image, idx) => (
-        <div key={idx} className="min-w-full h-full relative">
-          <img 
-            alt="" 
-            src={getFullUrl(image.img_url)} 
-            className="w-full h-full object-cover" 
-          />
-        </div>
-      ))}
+        {images.map((image, idx) => {
+          const src = getFullUrl(image.img_url);
+          if (!src) return null;
+          return (
+            <div key={idx} className="min-w-full h-full relative">
+              <img 
+                alt="" 
+                src={src} 
+                className="w-full h-full object-cover" 
+              />
+            </div>
+          );
+        })}
       </div>
 
       {images.length > 1 && (

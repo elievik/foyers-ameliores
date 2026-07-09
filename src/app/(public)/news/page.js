@@ -43,7 +43,7 @@ export default function News() {
   };
 
   const getFullUrl = (url) => {
-    if (!url) return '';
+    if (!url) return null;
     return url.startsWith('http') ? url : `${url}`;
   };
 
@@ -71,17 +71,23 @@ export default function News() {
         <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto -mt-20 relative z-20 mb-16">
           <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-organic flex flex-col md:flex-row min-h-[400px] border border-outline-variant/30">
             <div className="md:w-1/2 relative overflow-hidden group min-h-[300px]">
-              {featuredArticle.image_url ? (
-                <img 
-                  src={getFullUrl(featuredArticle.image_url)} 
-                  alt={featuredArticle.title} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              ) : (
-                <div className="w-full h-full bg-surface-container flex items-center justify-center">
-                  <span className="material-symbols-outlined text-8xl text-primary/20">article</span>
-                </div>
-              )}
+              {(() => {
+                const src = getFullUrl(featuredArticle.image_url);
+                if (src) {
+                  return (
+                    <img 
+                      src={src} 
+                      alt={featuredArticle.title} 
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                  );
+                }
+                return (
+                  <div className="w-full h-full bg-surface-container flex items-center justify-center">
+                    <span className="material-symbols-outlined text-8xl text-primary/20">article</span>
+                  </div>
+                );
+              })()}
               <div className="absolute top-4 left-4 bg-primary text-on-primary px-4 py-1 rounded-full font-label-caps text-label-caps">
                 À la une
               </div>
@@ -116,17 +122,23 @@ export default function News() {
           {publishedArticles.map((item) => (
             <div key={item.id} className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-organic flex flex-col group h-full border border-outline-variant/30 transition-all hover:-translate-y-1">
               <div className="h-56 overflow-hidden relative bg-surface-container flex items-center justify-center">
-                {item.image_url ? (
-                  <img 
-                    src={getFullUrl(item.image_url)} 
-                    alt={item.title} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                ) : (
+                {(() => {
+                const src = getFullUrl(item.image_url);
+                if (src) {
+                  return (
+                    <img 
+                      src={src} 
+                      alt={item.title} 
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                  );
+                }
+                return (
                   <div className="w-full h-full bg-surface-container flex items-center justify-center">
                     <span className="material-symbols-outlined text-6xl text-primary/20">article</span>
                   </div>
-                )}
+                );
+              })()}
               </div>
               <div className="p-6 flex flex-col flex-grow">
                 <div className="flex items-center justify-between mb-3">

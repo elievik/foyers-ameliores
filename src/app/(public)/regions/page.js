@@ -23,6 +23,7 @@ export default function Regions() {
   const fetchRegions = async () => {
     try {
       const res = await fetch('/api/regions/');
+      if (!res.ok) throw new Error('Failed to fetch regions');
       const data = await res.json();
       setRegions(Array.isArray(data) ? data : []);
     } catch (error) {

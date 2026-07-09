@@ -1,7 +1,7 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import ResellerModal from '@/components/ResellerModal';
 import HeroBanner from '@/components/HeroBanner';
+import ProductModels from '@/components/ProductModels';
 
 // The backend URL used server-side must always be absolute.
 // On Vercel, NEXT_PUBLIC_API_URL is set to https://foyers-ameliores.onrender.com
@@ -76,88 +76,7 @@ export default async function Home() {
       </section>
 
       {/* Product Models */}
-      <section className="py-24">
-        <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-            <div className="max-w-xl">
-              <h2 className="font-headline-md text-headline-md text-primary mb-4">L'excellence technologique locale</h2>
-              <p className="font-body-md text-on-surface-variant">Conçus spécifiquement pour les foyers togolais, nos modèles allient durabilité et performance calorifique optimale.</p>
-            </div>
-            <Link href="/catalog">
-              <button className="flex items-center gap-2 text-primary font-button group">
-                Voir tout le catalogue <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
-              </button>
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Himalayen Model */}
-            <div className="group relative overflow-hidden rounded-2xl shadow-organic bg-surface border border-outline-variant/30">
-              <div className="aspect-[16/10] overflow-hidden relative">
-                <Image
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  alt="Modèle de foyer Himalayen"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUze5e26joP2hHn4jg02-IKUuQ59kEYoONxyGzvK3OfEkRUcWBt9Wnnyc4t6sUC0EeTdHa2uUuytaSKb-FT0xeVmbcmBE-779WI5IUSmI4zGD-Fjk1_UfsZOH1mVdBy9Wde-r3spaD79GRxl5mXpAQ9drNOHKj3IlyoMbZ3LH22FecQUAYr47jSh3ZLPjOk1mVkA2fVUbRyWmSLnnmLzACFizwrr1-L4vZ6QsUuk47BzTeVR-_otUCvXiz73c02mAFAr5oJPzzgA"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              </div>
-              <div className="p-8">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-headline-sm text-headline-sm text-primary">Himalayen</h3>
-                    <p className="text-secondary font-label-caps uppercase text-xs font-bold tracking-widest">Efficacité Premium</p>
-                  </div>
-                  <span className="bg-primary-container text-on-primary-container px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Top Vente</span>
-                </div>
-                <p className="font-body-md text-on-surface-variant mb-6">Conçu pour la cuisine au bois en milieu rural. Robuste, stable et incroyablement économe.</p>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center gap-2 text-primary font-semibold">
-                    <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Utilisation multi-combustible
-                  </li>
-                  <li className="flex items-center gap-2 text-primary font-semibold">
-                    <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Zéro émission de fumée visible
-                  </li>
-                </ul>
-                <Link href="/catalog">
-                  <button className="w-full bg-primary text-on-primary py-4 rounded-lg font-button text-button hover:brightness-110 transition-all duration-300 shadow-sm">Détails du Modèle</button>
-                </Link>
-              </div>
-            </div>
-            {/* Asuto Model */}
-            <div className="group relative overflow-hidden rounded-2xl shadow-organic bg-surface border border-outline-variant/30">
-              <div className="aspect-[16/10] overflow-hidden relative">
-                <Image
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  alt="Modèle de foyer Asuto"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbx5WNP5KPSyH1-lkdMIV1yRznbPPyq_ws8ElMXO8pxuG90adfGrSZLKdJXRybIdTd5INylpvZl0HqvnZz1orhsiBwgOWv5gPkN1Ez73CS9edG6cHIozqKmmefF5DLQ4AM6cEu59wrtU7apNcoX1t8e5yBcFR8pmP5N8Ro55zK-DIjKXiwRKCO9h5N6wuayXA55fvRK1fVdQqadD89BTdml_swkaiBCuGtDoGWeTr19Nf9FhueNUgVJh4v3scxkGbIPjBrOfoMDw"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              </div>
-              <div className="p-8">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-headline-sm text-headline-sm text-primary">Asuto</h3>
-                    <p className="text-secondary font-label-caps uppercase text-xs font-bold tracking-widest">Champion Urbain</p>
-                  </div>
-                </div>
-                <p className="font-body-md text-on-surface-variant mb-6">Le choix idéal pour les familles urbaines. Optimisation maximale de la combustion pour le charbon de bois.</p>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center gap-2 text-primary font-semibold">
-                    <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Haute résistance thermique
-                  </li>
-                  <li className="flex items-center gap-2 text-primary font-semibold">
-                    <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Jusqu'à 50% de charbon économisé
-                  </li>
-                </ul>
-                <Link href="/catalog">
-                  <button className="w-full bg-primary text-on-primary py-4 rounded-lg font-button text-button hover:brightness-110 transition-all duration-300 shadow-sm">Détails du Modèle</button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <ProductModels />
 
       {/* Regions Section */}
       <section className="py-24 bg-tertiary text-on-tertiary relative overflow-hidden">

@@ -9,7 +9,7 @@ export default function ArticleDetail({ params }) {
   const [loading, setLoading] = useState(true);
 
   const getFullUrl = (url) => {
-    if (!url) return '';
+    if (!url) return null;
     return url.startsWith('http') ? url : `${url}`;
   };
 
@@ -66,15 +66,21 @@ export default function ArticleDetail({ params }) {
       </nav>
 
       {/* Featured Image */}
-      {article.image_url && (
-        <div className="mb-12 rounded-2xl overflow-hidden shadow-lg">
-          <img 
-            src={getFullUrl(article.image_url)} 
-            alt={article.title} 
-            className="w-full h-auto object-cover max-h-[500px]"
-          />
-        </div>
-      )}
+      {(() => {
+        const src = getFullUrl(article.image_url);
+        if (src) {
+          return (
+            <div className="mb-12 rounded-2xl overflow-hidden shadow-lg">
+              <img 
+                src={src} 
+                alt={article.title} 
+                className="w-full h-auto object-cover max-h-[500px]"
+              />
+            </div>
+          );
+        }
+        return null;
+      })()}
 
       {/* Article Header */}
       <header className="mb-12">
@@ -153,17 +159,23 @@ export default function ArticleDetail({ params }) {
               <Link key={item.id} href={`/news/${item.slug}`} className="group">
                 <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-organic flex flex-col h-full border border-outline-variant/30 transition-all hover:-translate-y-1">
                   <div className="h-48 overflow-hidden relative bg-surface-container flex items-center justify-center">
-                    {item.image_url ? (
-                      <img 
-                        src={getFullUrl(item.image_url)} 
-                        alt={item.title} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-surface-container flex items-center justify-center">
-                        <span className="material-symbols-outlined text-5xl text-primary/20">article</span>
-                      </div>
-                    )}
+                    {(() => {
+                      const src = getFullUrl(item.image_url);
+                      if (src) {
+                        return (
+                          <img 
+                            src={src} 
+                            alt={item.title} 
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
+                        );
+                      }
+                      return (
+                        <div className="w-full h-full bg-surface-container flex items-center justify-center">
+                          <span className="material-symbols-outlined text-5xl text-primary/20">article</span>
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="p-6">
                     <span className="font-label-caps text-label-caps text-secondary uppercase block mb-3">{item.region}</span>
