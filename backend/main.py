@@ -3,12 +3,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from database import engine, Base, get_db
 from routers import news, orders, reports, resellers, team, product_images, testimonials, regions, partners, hero_images, contact, media
+from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
 import os
 import uuid
 
 # Créer les tables
 Base.metadata.create_all(bind=engine)
+
+# create_all() ne modifie jamais les tables existantes : on ajoute ici les
+# colonnes qui ont été ajoutées au modèle après la création de la table en prod.
+inspector = inspect(engine)
+if "reports" in inspector.get_table_names():
+    existing_columns = {col["name"] for col in inspector.get_columns("reports")}
+    if "region" not in existing_columns:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE reports ADD COLUMN region VARCHAR"))
 
 app = FastAPI(title="Foyers Améliorés Togo API", redirect_slashes=True)
 
