@@ -12,6 +12,9 @@ const nextConfig = {
   turbopack: {
     root: __dirname,
   },
+  experimental: {
+    turbopackFileSystemCacheForDev: false,
+  },
   async rewrites() {
     return [
       {

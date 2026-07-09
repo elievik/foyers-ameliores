@@ -35,8 +35,8 @@ class NewsArticle(NewsArticleBase):
 
 # Rapports
 class ReportBase(BaseModel):
-    title: str
-    description: str
+    title: Optional[str] = None
+    description: Optional[str] = None
     file_url: Optional[str] = None
     region: Optional[str] = None
 
