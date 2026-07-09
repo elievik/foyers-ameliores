@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { compressImage } from '@/utils/imageCompression';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function AdminProductImages() {
   const [images, setImages] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,7 +17,7 @@ export default function AdminProductImages() {
   });
 
   const fetchImages = async () => {
-    const res = await fetch('/api/product-images/');
+    const res = await fetch(`${BACKEND_URL}/api/product-images/`);
     const data = await res.json();
     setImages(Array.isArray(data) ? data : []);
   };
@@ -40,8 +42,8 @@ export default function AdminProductImages() {
     }
 
     const url = editingImage
-      ? `/api/product-images/${editingImage.id}`
-      : '/api/product-images/';
+      ? `${BACKEND_URL}/api/product-images/${editingImage.id}`
+      : `${BACKEND_URL}/api/product-images/`;
     const method = editingImage ? 'PATCH' : 'POST';
 
     await fetch(url, {
@@ -73,7 +75,7 @@ export default function AdminProductImages() {
 
   const handleDelete = async (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette image?')) {
-      await fetch(`/api/product-images/${id}`, { method: 'DELETE' });
+      await fetch(`${BACKEND_URL}/api/product-images/${id}`, { method: 'DELETE' });
       fetchImages();
     }
   };

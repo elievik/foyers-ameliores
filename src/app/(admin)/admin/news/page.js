@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { compressImage } from '@/utils/imageCompression';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function AdminNews() {
   const router = useRouter();
   const [showNewsForm, setShowNewsForm] = useState(false);
@@ -40,8 +42,8 @@ export default function AdminNews() {
     const fetchData = async () => {
       try {
         const [newsRes, reportsRes] = await Promise.all([
-          fetch('/api/news/'),
-          fetch('/api/reports/')
+          fetch(`${BACKEND_URL}/api/news/`),
+          fetch(`${BACKEND_URL}/api/reports/`)
         ]);
         if (newsRes.ok) {
           const data = await newsRes.json();
@@ -61,7 +63,7 @@ export default function AdminNews() {
   const handleDeleteArticle = async (id) => {
     if (confirm('Voulez-vous vraiment supprimer cet article ?')) {
       try {
-        const res = await fetch(`/api/news/${id}`, {
+        const res = await fetch(`${BACKEND_URL}/api/news/${id}`, {
           method: 'DELETE',
         });
         if (res.ok) {
@@ -103,9 +105,9 @@ export default function AdminNews() {
     }
 
     try {
-      const url = editingArticle 
-        ? `/api/news/${editingArticle.id}`
-        : '/api/news/';
+      const url = editingArticle
+        ? `${BACKEND_URL}/api/news/${editingArticle.id}`
+        : `${BACKEND_URL}/api/news/`;
       const method = editingArticle ? 'PATCH' : 'POST';
       
       const res = await fetch(url, {
@@ -153,7 +155,7 @@ export default function AdminNews() {
     }
 
     try {
-      const res = await fetch('/api/reports/', {
+      const res = await fetch(`${BACKEND_URL}/api/reports/`, {
         method: 'POST',
         body: formData,
       });
@@ -177,7 +179,7 @@ export default function AdminNews() {
   const handleDeleteReport = async (id) => {
     if (confirm('Voulez-vous vraiment supprimer ce rapport ?')) {
       try {
-        const res = await fetch(`/api/reports/${id}`, {
+        const res = await fetch(`${BACKEND_URL}/api/reports/${id}`, {
           method: 'DELETE',
         });
         if (res.ok) {

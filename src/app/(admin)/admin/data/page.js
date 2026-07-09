@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { compressImage } from '@/utils/imageCompression';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function AdminData() {
   const [regions, setRegions] = useState([]);
   
@@ -38,7 +40,7 @@ export default function AdminData() {
 
   const fetchRegions = async () => {
     try {
-      const res = await fetch('/api/regions/');
+      const res = await fetch(`${BACKEND_URL}/api/regions/`);
       const data = await res.json();
       setRegions(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -49,7 +51,7 @@ export default function AdminData() {
 
   const fetchMedia = async () => {
     try {
-      const res = await fetch('/api/media/');
+      const res = await fetch(`${BACKEND_URL}/api/media/`);
       const data = await res.json();
       setPhotos(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -72,7 +74,7 @@ export default function AdminData() {
     formDataObj.append('is_hidden', newIsHidden.toString());
     
     try {
-      await fetch(`/api/regions/${region.id}`, {
+      await fetch(`${BACKEND_URL}/api/regions/${region.id}`, {
         method: 'PATCH',
         body: formDataObj,
       });
@@ -118,8 +120,8 @@ export default function AdminData() {
     }
 
     const url = editingRegion
-      ? `/api/regions/${editingRegion.id}`
-      : '/api/regions/';
+      ? `${BACKEND_URL}/api/regions/${editingRegion.id}`
+      : `${BACKEND_URL}/api/regions/`;
     const method = editingRegion ? 'PATCH' : 'POST';
 
     try {
@@ -169,7 +171,7 @@ export default function AdminData() {
     }
 
     try {
-      await fetch('/api/reports/', {
+      await fetch(`${BACKEND_URL}/api/reports/`, {
         method: 'POST',
         body: formDataObj,
       });
@@ -192,7 +194,7 @@ export default function AdminData() {
   const deletePhoto = async (filename) => {
     if (!confirm('Voulez-vous vraiment supprimer cette photo ?')) return;
     try {
-      const res = await fetch(`/api/media/${filename}`, { method: 'DELETE' });
+      const res = await fetch(`${BACKEND_URL}/api/media/${filename}`, { method: 'DELETE' });
       if (res.ok) {
         fetchMedia();
       } else {
@@ -213,7 +215,7 @@ export default function AdminData() {
     formData.append('file', compressedFile);
     
     try {
-      const res = await fetch('/api/media/upload', {
+      const res = await fetch(`${BACKEND_URL}/api/media/upload`, {
         method: 'POST',
         body: formData
       });

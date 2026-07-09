@@ -4,13 +4,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function HeroBanner() {
   const [heroImage, setHeroImage] = useState(null);
 
   useEffect(() => {
     // Uses the /api/ proxy rewrite (Vercel → Render), same as all other pages.
     // This guarantees the banner always loads even if Render was sleeping at build time.
-    fetch('/api/hero-images/home')
+    fetch(`${BACKEND_URL}/api/hero-images/home`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setHeroImage(data))
       .catch(() => {});

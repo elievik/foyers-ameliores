@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [stats, setStats] = useState({
@@ -24,7 +26,7 @@ export default function AdminDashboard() {
     // Fetch stats from backend
     const fetchStats = async () => {
       try {
-        const res = await fetch('/api/stats');
+        const res = await fetch(`${BACKEND_URL}/api/stats`);
         if (res.ok) {
           const data = await res.json();
           setStats(data);

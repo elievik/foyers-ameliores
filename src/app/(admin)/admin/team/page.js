@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { compressImage } from '@/utils/imageCompression';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function AdminTeamPage() {
   const [team, setTeam] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,7 +19,7 @@ export default function AdminTeamPage() {
   });
 
   const fetchTeam = async () => {
-    const res = await fetch('/api/team/');
+    const res = await fetch(`${BACKEND_URL}/api/team/`);
     const data = await res.json();
     setTeam(Array.isArray(data) ? data : []);
   };
@@ -44,8 +46,8 @@ export default function AdminTeamPage() {
     }
 
     const url = editingMember
-      ? `/api/team/${editingMember.id}`
-      : '/api/team/';
+      ? `${BACKEND_URL}/api/team/${editingMember.id}`
+      : `${BACKEND_URL}/api/team/`;
     const method = editingMember ? 'PATCH' : 'POST';
 
     await fetch(url, {
@@ -81,7 +83,7 @@ export default function AdminTeamPage() {
 
   const handleDelete = async (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce membre?')) {
-      await fetch(`/api/team/${id}`, { method: 'DELETE' });
+      await fetch(`${BACKEND_URL}/api/team/${id}`, { method: 'DELETE' });
       fetchTeam();
     }
   };

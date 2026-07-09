@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function Contact() {
   const [formData, setFormData] = useState({
     nom: '',
@@ -44,8 +46,8 @@ export default function Contact() {
   const fetchContactData = async () => {
     try {
       const [infoRes, officesRes] = await Promise.all([
-        fetch('/api/contact/info'),
-        fetch('/api/contact/regional-offices')
+        fetch(`${BACKEND_URL}/api/contact/info`),
+        fetch(`${BACKEND_URL}/api/contact/regional-offices`)
       ]);
       if (infoRes.ok) setContactInfo(await infoRes.json());
       if (officesRes.ok) setRegionalOffices(await officesRes.json());

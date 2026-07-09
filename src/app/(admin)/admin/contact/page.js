@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { compressImage } from '@/utils/imageCompression';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function AdminContactPage() {
   const [contactInfo, setContactInfo] = useState(null);
   const [regionalOffices, setRegionalOffices] = useState([]);
@@ -29,8 +31,8 @@ export default function AdminContactPage() {
   const fetchContactData = async () => {
     try {
       const [infoRes, officesRes] = await Promise.all([
-        fetch('/api/contact/info'),
-        fetch('/api/contact/regional-offices')
+        fetch(`${BACKEND_URL}/api/contact/info`),
+        fetch(`${BACKEND_URL}/api/contact/regional-offices`)
       ]);
       if (infoRes.ok) setContactInfo(await infoRes.json());
       if (officesRes.ok) {
@@ -56,7 +58,7 @@ export default function AdminContactPage() {
     if (contactFormData.email) formDataObj.append('email', contactFormData.email);
     if (contactFormData.whatsapp_number) formDataObj.append('whatsapp_number', contactFormData.whatsapp_number);
 
-    await fetch('/api/contact/info', {
+    await fetch(`${BACKEND_URL}/api/contact/info`, {
       method: 'PUT',
       body: formDataObj
     });
@@ -80,8 +82,8 @@ export default function AdminContactPage() {
     }
 
     const url = editingOffice
-      ? `/api/contact/regional-offices/${editingOffice.id}`
-      : '/api/contact/regional-offices';
+      ? `${BACKEND_URL}/api/contact/regional-offices/${editingOffice.id}`
+      : `${BACKEND_URL}/api/contact/regional-offices`;
     const method = editingOffice ? 'PATCH' : 'POST';
 
     await fetch(url, {
@@ -119,7 +121,7 @@ export default function AdminContactPage() {
 
   const handleDeleteOffice = async (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce bureau régional ?')) {
-      await fetch(`/api/contact/regional-offices/${id}`, { method: 'DELETE' });
+      await fetch(`${BACKEND_URL}/api/contact/regional-offices/${id}`, { method: 'DELETE' });
       fetchContactData();
     }
   };

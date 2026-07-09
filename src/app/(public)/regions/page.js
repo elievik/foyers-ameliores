@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function Regions() {
   const [searchQuery, setSearchQuery] = useState('');
   const [regions, setRegions] = useState([]);
@@ -11,7 +13,7 @@ export default function Regions() {
 
   const fetchHeroImage = async () => {
     try {
-      const res = await fetch('/api/hero-images/regions');
+      const res = await fetch(`${BACKEND_URL}/api/hero-images/regions`);
       if (res.ok) {
         setHeroImage(await res.json());
       }
@@ -22,7 +24,7 @@ export default function Regions() {
 
   const fetchRegions = async () => {
     try {
-      const res = await fetch('/api/regions/');
+      const res = await fetch(`${BACKEND_URL}/api/regions/`);
       if (!res.ok) throw new Error('Failed to fetch regions');
       const data = await res.json();
       setRegions(Array.isArray(data) ? data : []);

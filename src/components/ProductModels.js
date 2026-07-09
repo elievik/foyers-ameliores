@@ -3,6 +3,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 const getFullUrl = (url) => {
   if (!url) return null;
   return url.startsWith('http') ? url : `${url}`;
@@ -12,7 +14,7 @@ export default function ProductModels() {
   const [productImages, setProductImages] = useState([]);
 
   useEffect(() => {
-    fetch('/api/product-images/')
+    fetch(`${BACKEND_URL}/api/product-images/`)
       .then(res => {
         if (!res.ok) throw new Error('Network response was not ok');
         return res.json();

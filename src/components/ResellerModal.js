@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function ResellerModal() {
   const [showResellerModal, setShowResellerModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -19,7 +21,7 @@ export default function ResellerModal() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('/api/resellers/', {
+      const response = await fetch(`${BACKEND_URL}/api/resellers/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

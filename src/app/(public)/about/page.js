@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function About() {
   const [teamMembers, setTeamMembers] = useState([]);
   const [partners, setPartners] = useState([]);
@@ -10,7 +12,7 @@ export default function About() {
 
   const fetchTeam = async () => {
     try {
-      const res = await fetch('/api/team/');
+      const res = await fetch(`${BACKEND_URL}/api/team/`);
       if (res.ok) {
         setTeamMembers(await res.json());
       }
@@ -21,7 +23,7 @@ export default function About() {
 
   const fetchPartners = async () => {
     try {
-      const res = await fetch('/api/partners/');
+      const res = await fetch(`${BACKEND_URL}/api/partners/`);
       if (res.ok) {
         setPartners(await res.json());
       }
@@ -32,7 +34,7 @@ export default function About() {
 
   const fetchHeroImage = async () => {
     try {
-      const res = await fetch('/api/hero-images/about');
+      const res = await fetch(`${BACKEND_URL}/api/hero-images/about`);
       if (res.ok) {
         setHeroImage(await res.json());
       }

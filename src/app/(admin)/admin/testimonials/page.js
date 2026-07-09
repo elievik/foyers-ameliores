@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { compressImage } from '@/utils/imageCompression';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function AdminTestimonialsPage() {
   const [testimonials, setTestimonials] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,7 +19,7 @@ export default function AdminTestimonialsPage() {
   });
 
   const fetchTestimonials = async () => {
-    const res = await fetch('/api/testimonials/');
+    const res = await fetch(`${BACKEND_URL}/api/testimonials/`);
     const data = await res.json();
     setTestimonials(Array.isArray(data) ? data : []);
   };
@@ -44,8 +46,8 @@ export default function AdminTestimonialsPage() {
     }
 
     const url = editingTestimonial
-      ? `/api/testimonials/${editingTestimonial.id}`
-      : '/api/testimonials/';
+      ? `${BACKEND_URL}/api/testimonials/${editingTestimonial.id}`
+      : `${BACKEND_URL}/api/testimonials/`;
     const method = editingTestimonial ? 'PATCH' : 'POST';
 
     await fetch(url, {
@@ -81,7 +83,7 @@ export default function AdminTestimonialsPage() {
 
   const handleDelete = async (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce témoignage?')) {
-      await fetch(`/api/testimonials/${id}`, { method: 'DELETE' });
+      await fetch(`${BACKEND_URL}/api/testimonials/${id}`, { method: 'DELETE' });
       fetchTestimonials();
     }
   };

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { compressImage } from '@/utils/imageCompression';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function AdminPartners() {
   const [partners, setPartners] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,7 +17,7 @@ export default function AdminPartners() {
   });
 
   const fetchPartners = async () => {
-    const res = await fetch('/api/partners/');
+    const res = await fetch(`${BACKEND_URL}/api/partners/`);
     const data = await res.json();
     setPartners(Array.isArray(data) ? data : []);
   };
@@ -40,8 +42,8 @@ export default function AdminPartners() {
     }
 
     const url = editingPartner
-      ? `/api/partners/${editingPartner.id}`
-      : '/api/partners/';
+      ? `${BACKEND_URL}/api/partners/${editingPartner.id}`
+      : `${BACKEND_URL}/api/partners/`;
     const method = editingPartner ? 'PATCH' : 'POST';
 
     await fetch(url, {
@@ -73,7 +75,7 @@ export default function AdminPartners() {
 
   const handleDelete = async (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce partenaire?')) {
-      await fetch(`/api/partners/${id}`, { method: 'DELETE' });
+      await fetch(`${BACKEND_URL}/api/partners/${id}`, { method: 'DELETE' });
       fetchPartners();
     }
   };

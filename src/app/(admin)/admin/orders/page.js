@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function AdminOrders() {
   const router = useRouter();
   const [showHimalayenForm, setShowHimalayenForm] = useState(false);
@@ -24,8 +26,8 @@ export default function AdminOrders() {
     const fetchData = async () => {
       try {
         const [himalayenRes, asutoRes] = await Promise.all([
-          fetch('/api/orders/himalayen'),
-          fetch('/api/orders/asuto')
+          fetch(`${BACKEND_URL}/api/orders/himalayen`),
+          fetch(`${BACKEND_URL}/api/orders/asuto`)
         ]);
         setHimalayenList(await himalayenRes.json());
         setAsutoList(await asutoRes.json());
@@ -39,7 +41,7 @@ export default function AdminOrders() {
   const handleHimalayenSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/orders/himalayen', {
+      const response = await fetch(`${BACKEND_URL}/api/orders/himalayen`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(himalayenForm),
@@ -49,7 +51,7 @@ export default function AdminOrders() {
         setShowHimalayenForm(false);
         setHimalayenForm({});
         // Recharger la liste
-        const res = await fetch('/api/orders/himalayen');
+        const res = await fetch(`${BACKEND_URL}/api/orders/himalayen`);
         setHimalayenList(await res.json());
       }
     } catch (error) {
@@ -64,7 +66,7 @@ export default function AdminOrders() {
         ...asutoForm,
         prix_unitaire: 2500
       };
-      const response = await fetch('/api/orders/asuto', {
+      const response = await fetch(`${BACKEND_URL}/api/orders/asuto`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(asutoData),
@@ -74,7 +76,7 @@ export default function AdminOrders() {
         setShowAsutoForm(false);
         setAsutoForm({});
         // Recharger la liste
-        const res = await fetch('/api/orders/asuto');
+        const res = await fetch(`${BACKEND_URL}/api/orders/asuto`);
         setAsutoList(await res.json());
       }
     } catch (error) {

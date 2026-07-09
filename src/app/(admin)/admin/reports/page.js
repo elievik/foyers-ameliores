@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { compressImage } from '@/utils/imageCompression';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function AdminReports() {
   const [reports, setReports] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,7 +17,7 @@ export default function AdminReports() {
   });
 
   const fetchReports = async () => {
-    const res = await fetch('/api/reports/');
+    const res = await fetch(`${BACKEND_URL}/api/reports/`);
     const data = await res.json();
     setReports(Array.isArray(data) ? data : []);
   };
@@ -37,10 +39,10 @@ export default function AdminReports() {
     }
     if (formData.file_url) formDataObj.append('file_url', formData.file_url);
 
-    await fetch('/api/reports/', {
-      method: 'POST',
-      body: formDataObj
-    });
+    await fetch(`${BACKEND_URL}/api/reports/`, {
+        method: 'POST',
+        body: formDataObj
+      });
 
     setIsModalOpen(false);
     setEditingReport(null);
@@ -50,7 +52,7 @@ export default function AdminReports() {
 
   const handleDelete = async (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce rapport ?')) {
-      await fetch(`/api/reports/${id}`, { method: 'DELETE' });
+      await fetch(`${BACKEND_URL}/api/reports/${id}`, { method: 'DELETE' });
       fetchReports();
     }
   };

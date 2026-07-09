@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function ArticleDetail({ params }) {
   const [article, setArticle] = useState(null);
   const [relatedArticles, setRelatedArticles] = useState([]);
@@ -16,12 +18,12 @@ export default function ArticleDetail({ params }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const articleRes = await fetch(`/api/news/slug/${params.slug}`);
+        const articleRes = await fetch(`${BACKEND_URL}/api/news/slug/${params.slug}`);
         if (articleRes.ok) {
           const data = await articleRes.json();
           setArticle(data);
           
-          const allNewsRes = await fetch('/api/news/');
+          const allNewsRes = await fetch(`${BACKEND_URL}/api/news/`);
           if (allNewsRes.ok) {
             const allNews = await allNewsRes.json();
             const related = allNews.filter(item => item.id !== data.id && item.status === 'Publié').slice(0, 3);

@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function AdminResellers() {
   const router = useRouter();
   const [requests, setRequests] = useState([]);
@@ -27,7 +29,7 @@ export default function AdminResellers() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const res = await fetch('/api/resellers/');
+        const res = await fetch(`${BACKEND_URL}/api/resellers/`);
         if (res.ok) {
           const data = await res.json();
           setRequests(Array.isArray(data) ? data : []);
@@ -42,14 +44,14 @@ export default function AdminResellers() {
 
   const handleUpdateStatus = async (id, status) => {
     try {
-      const res = await fetch(`/api/resellers/${id}`, {
+      const res = await fetch(`${BACKEND_URL}/api/resellers/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
       if (res.ok) {
         // Recharger la liste
-        const resFresh = await fetch('/api/resellers/');
+        const resFresh = await fetch(`${BACKEND_URL}/api/resellers/`);
         const data = await resFresh.json();
         setRequests(Array.isArray(data) ? data : []);
       }
@@ -63,7 +65,7 @@ export default function AdminResellers() {
   const handleDeleteRequest = async (id) => {
     if (confirm('Supprimer cette demande ?')) {
       try {
-        const res = await fetch(`/api/resellers/${id}`, {
+        const res = await fetch(`${BACKEND_URL}/api/resellers/${id}`, {
           method: 'DELETE',
         });
         if (res.ok) {
@@ -78,7 +80,7 @@ export default function AdminResellers() {
   const handleAddReseller = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/resellers/', {
+      const res = await fetch(`${BACKEND_URL}/api/resellers/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -87,7 +89,7 @@ export default function AdminResellers() {
         setShowForm(false);
         setFormData({ nom: '', prenoms: '', telephone: '', ville: '', region: '', autre: '' });
         // Recharger la liste
-        const resFresh = await fetch('/api/resellers/');
+        const resFresh = await fetch(`${BACKEND_URL}/api/resellers/`);
         const data = await resFresh.json();
         setRequests(Array.isArray(data) ? data : []);
       }

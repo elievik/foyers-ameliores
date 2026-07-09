@@ -2,6 +2,8 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 const getFullUrl = (url) => {
   if (!url) return null;
   return url.startsWith('http') ? url : `${url}`;
@@ -16,34 +18,34 @@ export default function Catalog() {
   const [contactInfo, setContactInfo] = useState({ whatsapp_number: '+22890000000' });
 
   useEffect(() => {
-    fetch('/api/product-images/')
-      .then(res => {
+    fetch(`${BACKEND_URL}/api/product-images/`)
+      .then((res) => {
         if (!res.ok) throw new Error('Network response was not ok');
         return res.json();
       })
-      .then(data => setProductImages(Array.isArray(data) ? data : []))
-      .catch(err => {
+      .then((data) => setProductImages(Array.isArray(data) ? data : []))
+      .catch((err) => {
         console.error('Error fetching product images:', err);
         setProductImages([]);
       });
       
-    fetch('/api/contact/info')
-      .then(res => {
+    fetch(`${BACKEND_URL}/api/contact/info`)
+      .then((res) => {
         if (!res.ok) throw new Error('Network response was not ok');
         return res.json();
       })
-      .then(data => {
+      .then((data) => {
         if (data && data.whatsapp_number) setContactInfo(data);
       })
-      .catch(err => console.error('Error fetching contact info:', err));
+      .catch((err) => console.error('Error fetching contact info:', err));
 
-    fetch('/api/regions/')
-      .then(res => {
+    fetch(`${BACKEND_URL}/api/regions/`)
+      .then((res) => {
         if (!res.ok) throw new Error('Network response was not ok');
         return res.json();
       })
-      .then(data => setRegions(Array.isArray(data) ? data : []))
-      .catch(err => {
+      .then((data) => setRegions(Array.isArray(data) ? data : []))
+      .catch((err) => {
         console.error('Error fetching regions:', err);
         setRegions([]);
       });
@@ -97,7 +99,7 @@ export default function Catalog() {
       };
 
       // 1. Envoyer les données au backend
-      const response = await fetch('/api/orders/himalayen', {
+      const response = await fetch(`${BACKEND_URL}/api/orders/himalayen`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(himalayenData),
@@ -145,7 +147,7 @@ export default function Catalog() {
       };
 
       // 1. Envoyer les données au backend
-      const response = await fetch('/api/orders/asuto', {
+      const response = await fetch(`${BACKEND_URL}/api/orders/asuto`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(asutoData),

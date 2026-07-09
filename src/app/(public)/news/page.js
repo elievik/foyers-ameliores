@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function News() {
   const [email, setEmail] = useState('');
   const router = useRouter();
@@ -14,8 +16,8 @@ export default function News() {
     const fetchData = async () => {
       try {
         const [newsRes, reportsRes] = await Promise.all([
-          fetch('/api/news/'),
-          fetch('/api/reports/')
+          fetch(`${BACKEND_URL}/api/news/`),
+          fetch(`${BACKEND_URL}/api/reports/`)
         ]);
         if (newsRes.ok) {
           const data = await newsRes.json();
