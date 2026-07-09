@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import ResellerModal from '@/components/ResellerModal';
 import HeroBanner from '@/components/HeroBanner';
 import ProductModels from '@/components/ProductModels';
