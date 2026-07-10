@@ -28,6 +28,10 @@ const nextConfig = {
     ];
   },
   images: {
+    // Le proxy d'optimisation d'images de Next.js a un timeout court, et le
+    // stockage Supabase répond parfois en 5-12s, ce qui fait échouer
+    // l'affichage. On sert les images directement depuis leur origine.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",

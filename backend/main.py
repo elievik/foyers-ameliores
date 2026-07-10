@@ -8,17 +8,28 @@ from sqlalchemy.orm import Session
 import os
 import uuid
 
-# Créer les tables
+# Créer les tables manquantes (create_all ne touche jamais aux tables existantes)
 Base.metadata.create_all(bind=engine)
 
-# create_all() ne modifie jamais les tables existantes : on ajoute ici les
-# colonnes qui ont été ajoutées au modèle après la création de la table en prod.
-inspector = inspect(engine)
-if "reports" in inspector.get_table_names():
-    existing_columns = {col["name"] for col in inspector.get_columns("reports")}
-    if "region" not in existing_columns:
-        with engine.begin() as conn:
-            conn.execute(text("ALTER TABLE reports ADD COLUMN region VARCHAR"))
+# Ajoute automatiquement les colonnes manquantes sur les tables déjà existantes,
+# pour qu'une évolution du modèle ne casse plus jamais les routes en prod.
+# Uniquement additif : aucune colonne ni ligne n'est jamais supprimée ici.
+def sync_missing_columns():
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            if table.name not in existing_tables:
+                continue
+            existing_columns = {col["name"] for col in inspector.get_columns(table.name)}
+            for column in table.columns:
+                if column.name in existing_columns:
+                    continue
+                ddl_type = column.type.compile(dialect=engine.dialect)
+                conn.execute(text(f'ALTER TABLE "{table.name}" ADD COLUMN "{column.name}" {ddl_type}'))
+                print(f"Migration: colonne '{column.name}' ajoutée à la table '{table.name}'")
+
+sync_missing_columns()
 
 app = FastAPI(title="Foyers Améliorés Togo API", redirect_slashes=True)
 
