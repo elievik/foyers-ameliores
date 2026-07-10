@@ -5,11 +5,9 @@ import HeroBanner from '@/components/HeroBanner';
 import ProductModels from '@/components/ProductModels';
 
 // The backend URL used server-side must always be absolute.
-// On Vercel, NEXT_PUBLIC_API_URL is set to https://foyers-ameliores.onrender.com
-// Locally it falls back to localhost:8000 so the dev server also works.
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:8000';
+  'https://foyers-ameliores.onrender.com';
 
 // Fetch data server-side — no waterfall, no useEffect delay
 // Note: heroImage is intentionally fetched client-side (see HeroBanner.js)
