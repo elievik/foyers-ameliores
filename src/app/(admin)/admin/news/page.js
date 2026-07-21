@@ -9,6 +9,12 @@ export default function AdminNews() {
   const router = useRouter();
   const [showNewsForm, setShowNewsForm] = useState(false);
   const [showReportForm, setShowReportForm] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
   const [newsForm, setNewsForm] = useState({
     title: '',
     content: '',
@@ -121,7 +127,7 @@ export default function AdminNews() {
         } else {
           setNewsList([...newsList, newArticle]);
         }
-        alert('Article enregistré avec succès !');
+        showToast('Article enregistré avec succès !');
         setShowNewsForm(false);
         setEditingArticle(null);
         setNewsForm({
@@ -216,22 +222,39 @@ export default function AdminNews() {
   const handleCopyLink = async (item) => {
     try {
       const articleUrl = buildArticleUrl(item);
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(articleUrl);
-        alert('Lien copié avec succès !');
+
+      // On mobile/supported browsers: use navigator.share which carries the image
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        const imageFile = await getShareableImageFile(item);
+        const sharePayload = {
+          title: item.title,
+          text: item.title,
+          url: articleUrl,
+        };
+        if (imageFile && navigator.canShare?.({ files: [imageFile], title: item.title, url: articleUrl })) {
+          sharePayload.files = [imageFile];
+        }
+        await navigator.share(sharePayload);
         return;
       }
 
-      const tempInput = document.createElement('input');
-      tempInput.value = articleUrl;
-      document.body.appendChild(tempInput);
-      tempInput.select();
-      document.execCommand('copy');
-      document.body.removeChild(tempInput);
-      alert('Lien copié avec succès !');
+      // Fallback: copy link to clipboard
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(articleUrl);
+      } else {
+        const tempInput = document.createElement('input');
+        tempInput.value = articleUrl;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+      }
+      showToast('Lien copié avec succès !');
     } catch (error) {
-      console.error('Erreur copie du lien:', error);
-      alert('Impossible de copier le lien.');
+      if (error?.name !== 'AbortError') {
+        console.error('Erreur copie du lien:', error);
+        showToast('Impossible de copier le lien.', 'error');
+      }
     }
   };
 
@@ -258,19 +281,32 @@ export default function AdminNews() {
 
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(articleUrl);
-        alert('Lien copié avec succès (partage non disponible sur ce navigateur) !');
+        showToast('Lien copié (partage non disponible sur ce navigateur).');
         return;
       }
 
       throw new Error('Clipboard unavailable');
     } catch (error) {
-      console.error('Erreur partage:', error);
-      alert('Impossible de partager l\'article.');
+      if (error?.name !== 'AbortError') {
+        console.error('Erreur partage:', error);
+        showToast('Impossible de partager l\'article.', 'error');
+      }
     }
   };
 
   return (
     <>
+      {/* Toast notification */}
+      {toast && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl text-white font-button text-sm transition-all animate-bounce-in ${
+          toast.type === 'error' ? 'bg-error' : 'bg-green-600'
+        }`}>
+          <span className="material-symbols-outlined text-xl">
+            {toast.type === 'error' ? 'error' : 'check_circle'}
+          </span>
+          {toast.message}
+        </div>
+      )}
       <div className="flex justify-between items-end mb-10">
         <div>
           <span className="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Gestion du contenu</span>
