@@ -17,14 +17,14 @@ export async function generateMetadata({ params }) {
   const slug = resolvedParams.slug;
   let article = null;
   try {
-    let res = await fetch(`${BACKEND_URL}/api/news/slug/${encodeURIComponent(slug)}`, { next: { revalidate: 60 } });
-    
-    // Fallback to ID
-    if (!res.ok && !isNaN(slug)) {
+    let res;
+    if (!isNaN(slug) && slug.trim() !== '') {
       res = await fetch(`${BACKEND_URL}/api/news/id/${slug}`, { next: { revalidate: 60 } });
+    } else {
+      res = await fetch(`${BACKEND_URL}/api/news/slug/${encodeURIComponent(slug)}`, { next: { revalidate: 60 } });
     }
 
-    if (res.ok) {
+    if (res && res.ok) {
       article = await res.json();
     }
   } catch (error) {
@@ -64,14 +64,17 @@ export default async function ArticleDetail({ params }) {
   let relatedArticles = [];
 
   try {
-    let articleRes = await fetch(`${BACKEND_URL}/api/news/slug/${encodeURIComponent(slug)}`, { cache: 'no-store' });
-    
-    // Fallback to ID
-    if (!articleRes.ok && !isNaN(slug)) {
+    let articleRes;
+    // If slug is a numeric ID, fetch by ID directly (fast path)
+    if (!isNaN(slug) && slug.trim() !== '') {
       articleRes = await fetch(`${BACKEND_URL}/api/news/id/${slug}`, { cache: 'no-store' });
+    } else {
+      // Try slug lookup
+      articleRes = await fetch(`${BACKEND_URL}/api/news/slug/${encodeURIComponent(slug)}`, { cache: 'no-store' });
+      // If slug lookup fails, maybe the slug decoding by Next.js caused issues — skip further fallback
     }
 
-    if (articleRes.ok) {
+    if (articleRes && articleRes.ok) {
       article = await articleRes.json();
       
       const allNewsRes = await fetch(`${BACKEND_URL}/api/news/`, { cache: 'no-store' });
@@ -183,7 +186,7 @@ export default async function ArticleDetail({ params }) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {relatedArticles.map((item) => (
-              <Link key={item.id} href={`/news/${encodeURIComponent(item.slug || item.id)}`} className="group">
+              <Link key={item.id} href={`/news/${item.id}`} className="group">
                 <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-organic flex flex-col h-full border border-outline-variant/30 transition-all hover:-translate-y-1">
                   <div className="h-48 overflow-hidden relative bg-surface-container flex items-center justify-center">
                     {(() => {
