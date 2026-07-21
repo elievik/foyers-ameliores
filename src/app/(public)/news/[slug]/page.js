@@ -5,7 +5,11 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://foyers-ameliores
 
 const getFullUrl = (url) => {
   if (!url) return null;
-  return url.startsWith('http') ? url : `${url}`;
+  let cleanUrl = url.startsWith('http') ? url : `${BACKEND_URL}${url}`;
+  if (cleanUrl.endsWith('?')) {
+    cleanUrl = cleanUrl.slice(0, -1);
+  }
+  return cleanUrl;
 };
 
 export async function generateMetadata({ params }) {
@@ -179,7 +183,7 @@ export default async function ArticleDetail({ params }) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {relatedArticles.map((item) => (
-              <Link key={item.id} href={`/news/${item.slug || item.id}`} className="group">
+              <Link key={item.id} href={`/news/${encodeURIComponent(item.slug || item.id)}`} className="group">
                 <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-organic flex flex-col h-full border border-outline-variant/30 transition-all hover:-translate-y-1">
                   <div className="h-48 overflow-hidden relative bg-surface-container flex items-center justify-center">
                     {(() => {

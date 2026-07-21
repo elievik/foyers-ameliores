@@ -107,7 +107,7 @@ export default function News() {
                 {featuredArticle.content}
               </p>
               <div>
-                <Link href={`/news/${featuredArticle.slug || featuredArticle.id}`} className="inline-flex items-center gap-2 text-primary font-button group transition-all hover:translate-x-1">
+                <Link href={`/news/${encodeURIComponent(featuredArticle.slug || featuredArticle.id)}`} className="inline-flex items-center gap-2 text-primary font-button group transition-all hover:translate-x-1">
                   Lire l'article complet
                   <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </Link>
@@ -154,7 +154,7 @@ export default function News() {
                   {item.content}
                 </p>
                 <div className="mt-auto">
-                  <Link href={`/news/${item.slug || item.id}`} className="text-primary font-button flex items-center gap-1 hover:gap-2 transition-all">
+                  <Link href={`/news/${encodeURIComponent(item.slug || item.id)}`} className="text-primary font-button flex items-center gap-1 hover:gap-2 transition-all">
                     Lire la suite <span className="material-symbols-outlined text-[18px]">chevron_right</span>
                   </Link>
                 </div>

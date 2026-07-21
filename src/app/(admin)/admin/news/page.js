@@ -191,7 +191,7 @@ export default function AdminNews() {
     }
   };
 
-  const buildArticleUrl = (item) => `${window.location.origin}/news/${item.slug}`;
+  const buildArticleUrl = (item) => `${window.location.origin}/news/${encodeURIComponent(item.slug || item.id)}`;
 
   const getShareableImageFile = async (item) => {
     if (!item?.image_url) return null;
