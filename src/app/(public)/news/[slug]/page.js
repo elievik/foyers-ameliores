@@ -9,13 +9,15 @@ const getFullUrl = (url) => {
 };
 
 export async function generateMetadata({ params }) {
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
   let article = null;
   try {
-    let res = await fetch(`${BACKEND_URL}/api/news/slug/${encodeURIComponent(params.slug)}`, { next: { revalidate: 60 } });
+    let res = await fetch(`${BACKEND_URL}/api/news/slug/${encodeURIComponent(slug)}`, { next: { revalidate: 60 } });
     
     // Fallback to ID
-    if (!res.ok && !isNaN(params.slug)) {
-      res = await fetch(`${BACKEND_URL}/api/news/id/${params.slug}`, { next: { revalidate: 60 } });
+    if (!res.ok && !isNaN(slug)) {
+      res = await fetch(`${BACKEND_URL}/api/news/id/${slug}`, { next: { revalidate: 60 } });
     }
 
     if (res.ok) {
@@ -52,15 +54,17 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function ArticleDetail({ params }) {
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
   let article = null;
   let relatedArticles = [];
 
   try {
-    let articleRes = await fetch(`${BACKEND_URL}/api/news/slug/${encodeURIComponent(params.slug)}`, { cache: 'no-store' });
+    let articleRes = await fetch(`${BACKEND_URL}/api/news/slug/${encodeURIComponent(slug)}`, { cache: 'no-store' });
     
     // Fallback to ID
-    if (!articleRes.ok && !isNaN(params.slug)) {
-      articleRes = await fetch(`${BACKEND_URL}/api/news/id/${params.slug}`, { cache: 'no-store' });
+    if (!articleRes.ok && !isNaN(slug)) {
+      articleRes = await fetch(`${BACKEND_URL}/api/news/id/${slug}`, { cache: 'no-store' });
     }
 
     if (articleRes.ok) {
