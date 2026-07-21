@@ -1,50 +1,79 @@
-'use client';
-
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import ShareButtons from './ShareButtons';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://foyers-ameliores.onrender.com';
 
-export default function ArticleDetail({ params }) {
-  const [article, setArticle] = useState(null);
-  const [relatedArticles, setRelatedArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
+const getFullUrl = (url) => {
+  if (!url) return null;
+  return url.startsWith('http') ? url : `${url}`;
+};
 
-  const getFullUrl = (url) => {
-    if (!url) return null;
-    return url.startsWith('http') ? url : `${url}`;
-  };
+export async function generateMetadata({ params }) {
+  let article = null;
+  try {
+    let res = await fetch(`${BACKEND_URL}/api/news/slug/${encodeURIComponent(params.slug)}`, { next: { revalidate: 60 } });
+    
+    // Fallback to ID
+    if (!res.ok && !isNaN(params.slug)) {
+      res = await fetch(`${BACKEND_URL}/api/news/id/${params.slug}`, { next: { revalidate: 60 } });
+    }
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const articleRes = await fetch(`${BACKEND_URL}/api/news/slug/${params.slug}`);
-        if (articleRes.ok) {
-          const data = await articleRes.json();
-          setArticle(data);
-          
-          const allNewsRes = await fetch(`${BACKEND_URL}/api/news/`);
-          if (allNewsRes.ok) {
-            const allNews = await allNewsRes.json();
-            const related = allNews.filter(item => item.id !== data.id && item.status === 'Publié').slice(0, 3);
-            setRelatedArticles(related);
-          }
-        }
-      } catch (error) {
-        console.error('Erreur chargement de l\'article:', error);
-      } finally {
-        setLoading(false);
-      }
+    if (res.ok) {
+      article = await res.json();
+    }
+  } catch (error) {
+    console.error('Erreur generateMetadata:', error);
+  }
+
+  if (!article) {
+    return {
+      title: 'Article non trouvé',
     };
-    fetchData();
-  }, [params.slug]);
+  }
 
-  if (loading) {
-    return (
-      <main className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12 text-center">
-        <p className="text-on-surface-variant">Chargement...</p>
-      </main>
-    );
+  const imageUrl = getFullUrl(article.image_url);
+
+  return {
+    title: article.title,
+    description: article.content ? article.content.substring(0, 160) + '...' : '',
+    openGraph: {
+      title: article.title,
+      description: article.content ? article.content.substring(0, 160) + '...' : '',
+      images: imageUrl ? [{ url: imageUrl }] : [],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.content ? article.content.substring(0, 160) + '...' : '',
+      images: imageUrl ? [imageUrl] : [],
+    },
+  };
+}
+
+export default async function ArticleDetail({ params }) {
+  let article = null;
+  let relatedArticles = [];
+
+  try {
+    let articleRes = await fetch(`${BACKEND_URL}/api/news/slug/${encodeURIComponent(params.slug)}`, { cache: 'no-store' });
+    
+    // Fallback to ID
+    if (!articleRes.ok && !isNaN(params.slug)) {
+      articleRes = await fetch(`${BACKEND_URL}/api/news/id/${params.slug}`, { cache: 'no-store' });
+    }
+
+    if (articleRes.ok) {
+      article = await articleRes.json();
+      
+      const allNewsRes = await fetch(`${BACKEND_URL}/api/news/`, { cache: 'no-store' });
+      if (allNewsRes.ok) {
+        const allNews = await allNewsRes.json();
+        relatedArticles = allNews.filter(item => item.id !== article.id && item.status === 'Publié').slice(0, 3);
+      }
+    }
+  } catch (error) {
+    console.error('Erreur chargement de l\'article:', error);
   }
 
   if (!article) {
@@ -109,19 +138,7 @@ export default function ArticleDetail({ params }) {
         <article className="lg:col-span-8 font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
           <div className="whitespace-pre-line">{article.content}</div>
           
-          {/* Sharing Buttons */}
-          <div className="mt-12 pt-8 border-t border-outline-variant flex items-center gap-4">
-            <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Partager :</span>
-            <button className="w-10 h-10 rounded-full flex items-center justify-center bg-[#25D366] text-white hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined text-xl">chat</span>
-            </button>
-            <button className="w-10 h-10 rounded-full flex items-center justify-center bg-[#1877F2] text-white hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined text-xl">share</span>
-            </button>
-            <button className="w-10 h-10 rounded-full flex items-center justify-center bg-black text-white hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined text-xl">close</span>
-            </button>
-          </div>
+          <ShareButtons title={article.title} />
         </article>
 
         {/* Sidebar */}
@@ -158,7 +175,7 @@ export default function ArticleDetail({ params }) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {relatedArticles.map((item) => (
-              <Link key={item.id} href={`/news/${item.slug}`} className="group">
+              <Link key={item.id} href={`/news/${item.slug || item.id}`} className="group">
                 <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-organic flex flex-col h-full border border-outline-variant/30 transition-all hover:-translate-y-1">
                   <div className="h-48 overflow-hidden relative bg-surface-container flex items-center justify-center">
                     {(() => {
