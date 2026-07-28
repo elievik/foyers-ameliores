@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import ShareButtons from './ShareButtons';
+import FormattedText from '@/components/FormattedText';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://foyers-ameliores.onrender.com';
 
@@ -147,7 +148,7 @@ export default async function ArticleDetail({ params }) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         {/* Main Content */}
         <article className="lg:col-span-8 font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
-          <div className="whitespace-pre-line">{article.content}</div>
+          <FormattedText content={article.content} className="mb-8" />
           
           <ShareButtons title={article.title} />
         </article>

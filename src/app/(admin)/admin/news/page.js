@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { compressImage } from '@/utils/imageCompression';
+import RichTextEditor from '@/components/RichTextEditor';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://foyers-ameliores.onrender.com';
 
@@ -515,13 +516,11 @@ export default function AdminNews() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Contenu</label>
-                <textarea 
-                  required 
-                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all h-40" 
-                  placeholder="Contenu de l'article..."
+                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Contenu de l'article</label>
+                <RichTextEditor 
                   value={newsForm.content}
-                  onChange={(e) => setNewsForm({...newsForm, content: e.target.value})}
+                  onChange={(content) => setNewsForm({...newsForm, content})}
+                  placeholder="Rédigez le contenu de votre article ici (utilisez la barre d'outils pour mettre en gras, insérer des liens texte, etc.)..."
                 />
               </div>
               <div className="space-y-2">
