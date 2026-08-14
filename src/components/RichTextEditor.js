@@ -107,18 +107,42 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
   };
 
   const handleSingleImageFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     setIsUploadingImage(true);
     try {
-      const compressed = await compressImage(file);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setImageUrl(event.target.result);
+      if (files.length === 1) {
+        const compressed = await compressImage(files[0]);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setImageUrl(event.target.result);
+          setIsUploadingImage(false);
+        };
+        reader.readAsDataURL(compressed);
+      } else {
+        // Envoi multiple (3 à 5 images ou plus)
+        const selectedFiles = files.slice(0, 5); // Limite à 5 images max
+        const markdownImages = [];
+
+        for (const file of selectedFiles) {
+          const compressed = await compressImage(file);
+          const dataUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => resolve(ev.target.result);
+            reader.readAsDataURL(compressed);
+          });
+          const altName = file.name.replace(/\.[^/.]+$/, "");
+          markdownImages.push(`![${altName}](${dataUrl})`);
+        }
+
+        const formattedMarkdown = `\n\n${markdownImages.join('\n\n')}\n\n`;
+        insertTextAtCursor(formattedMarkdown);
         setIsUploadingImage(false);
-      };
-      reader.readAsDataURL(compressed);
+        setShowImageModal(false);
+        setImageUrl('');
+        setImageAlt('');
+      }
     } catch (err) {
       console.error("Erreur compression d'image:", err);
       setIsUploadingImage(false);
@@ -477,16 +501,17 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
             <div className="space-y-4">
               <div>
                 <label className="block text-xs uppercase font-label-caps text-on-surface-variant mb-1">
-                  Téléverser une image (fichier local)
+                  Téléverser des images (1 à 5 images)
                 </label>
                 <input
                   type="file"
+                  multiple
                   accept="image/*"
                   onChange={handleSingleImageFileUpload}
                   className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2 text-xs focus:ring-2 focus:ring-primary focus:outline-none"
                 />
                 {isUploadingImage && (
-                  <p className="text-xs text-primary mt-1 animate-pulse">Compression de l'image en cours...</p>
+                  <p className="text-xs text-primary mt-1 animate-pulse">Compression et traitement des images en cours...</p>
                 )}
               </div>
 
