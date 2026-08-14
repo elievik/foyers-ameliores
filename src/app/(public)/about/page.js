@@ -108,7 +108,7 @@ export default function About() {
                 <span className="material-symbols-outlined text-primary text-4xl">eco</span>
               </div>
               <h3 className="text-headline-sm font-headline-sm text-primary mb-4">Durabilité</h3>
-              <p className="text-on-surface-variant">Chaque foyer est conçu pour durer, utilisant des matériaux locaux comme l'argile réfractaire pour minimiser l'empreinte carbone dès la production.</p>
+              <p className="text-on-surface-variant">Chaque foyer est conçu pour durer dans le temps, utilisant des matériaux locaux comme l'argile réfractaire pour minimiser l'empreinte carbone dès la production.</p>
             </div>
             <div className="bg-primary text-on-primary p-10 rounded-2xl shadow-organic hover:-translate-y-2 transition-transform duration-300">
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-6">
@@ -122,7 +122,7 @@ export default function About() {
                 <span className="material-symbols-outlined text-secondary text-4xl">groups</span>
               </div>
               <h3 className="text-headline-sm font-headline-sm text-primary mb-4">Impact Social</h3>
-              <p className="text-on-surface-variant">Nous formons des artisans locaux, créant des emplois durables et améliorant directement la santé respiratoire des femmes et des enfants.</p>
+              <p className="text-on-surface-variant">Nous formons des artisans locaux, créant des emplois durables et améliorant directement la santé des femmes et des enfants.</p>
             </div>
           </div>
         </div>

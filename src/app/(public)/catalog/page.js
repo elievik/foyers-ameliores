@@ -73,7 +73,7 @@ export default function Catalog() {
       price: '3000 CFA',
       type: 'Charbon de Bois',
       typeColor: 'bg-secondary-container text-on-secondary-container',
-      description: 'L\'innovation portable pour les citadins. Conçu pour le charbon, il allie légèreté et performance thermique exceptionnelle.',
+      description: 'L\'innovation portable pour les ménages. Conçu pour le charbon, il allie légèreté et performance thermique exceptionnelle.',
       features: [
         { icon: 'eco', text: 'Économise 50% de charbon' },
         { icon: 'directions_walk', text: 'Facilement transportable' },
@@ -260,7 +260,7 @@ export default function Catalog() {
         <div className="max-w-container-max mx-auto">
           <div className="flex flex-col items-center mb-16">
             <span className="text-label-caps font-label-caps text-secondary uppercase tracking-widest mb-2">Guide d'Achat</span>
-            <h2 className="text-headline-md font-headline-md text-primary text-center">Quel foyer est fait pour vous ?</h2>
+            <h2 className="text-headline-md font-headline-md text-primary text-center">Foyer Asuto ou Foyer Himalayen choisissez votre solutions pour une cuissons propre</h2>
           </div>
           <div className="overflow-x-auto rounded-xl shadow-organic">
             <table className="w-full text-left bg-white border-collapse">
@@ -274,7 +274,7 @@ export default function Catalog() {
               <tbody className="divide-y divide-outline-variant">
                 {[
                   ['Combustible', 'Bois (Bûches, débris)', 'Charbon de bois'],
-                  ['Utilisation idéale', 'Zones rurales / Familles', 'Zones urbaines / Restauration'],
+                  ['Utilisation idéale', 'Zones rurales / Familles', 'Zones urbaines / Rurales/ Restauration'],
                   ['Efficacité', 'Haute (Économie 60%)', 'Excellente (Économie 50%)'],
                   ['Matériaux', 'Argile réfractaire massive', 'Céramique isolée et Inox'],
                   ['Poids', 'Fixe (Lourd)', 'Portable (Léger)'],
@@ -299,7 +299,7 @@ export default function Catalog() {
             { label: 'Foyers Installés', value: '45k+' },
             { label: 'Moins de Fumée', value: '80%' },
             { label: 'CO2 Économisé / An', value: '2.5t' },
-            { label: 'Régions Couvertes', value: '15' }
+            { label: 'Régions Couvertes', value: '5' }
           ].map((stat) => (
             <div key={stat.label} className="flex flex-col gap-2">
               <span className="font-display-lg text-display-lg text-secondary">{stat.value}</span>
@@ -606,7 +606,7 @@ function ProductCarousel({ product }) {
         </>
       )}
 
-      <div className={`absolute top-4 left-4 ${product.typeColor} px-3 py-1 rounded text-label-caps font-label-caps uppercase`}>{product.type}</div>
+      <div className={`absolute top-4 left-4 ${product.typeColor} px-3 py-1 rounded text-label-caps font-label-caps uppercase text-white`}>{product.type}</div>
     </div>
   );
 }

@@ -78,7 +78,7 @@ export default function Regions() {
             <div className="lg:col-span-7">
           <h1 className="font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-6">Notre Impact au Togo</h1>
           <p className="text-body-lg text-on-surface-variant mb-8 max-w-2xl">
-            Des savanes du Nord aux plaines côtières, notre réseau d'agents locaux et nos technologies durables transforment la façon dont le Togo cuisine. Explorez nos données régionales et les histoires de nos communautés.
+            Au Togo, notre réseau d'agents locaux et nos technologies durables transforment la cuissons  quotidiens des Ménages. Explorez nos données régionales et les histoires de nos communautés.
           </p>
           {/* Search Bar */}
           <div className="relative mb-8">
