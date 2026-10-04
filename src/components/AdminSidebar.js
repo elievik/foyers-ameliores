@@ -49,6 +49,7 @@ export default function AdminSidebar() {
     { name: 'Suivi Régional', icon: 'map', href: '/admin/data', adminOnly: true },
     { name: 'Commandes', icon: 'shopping_cart', href: '/admin/orders' },
     { name: 'Revendeurs', icon: 'group_add', href: '/admin/resellers', adminOnly: true },
+    { name: 'Agents', icon: 'badge', href: '/admin/agents', adminOnly: true },
     { name: 'Paramètres', icon: 'settings', href: '/admin/settings' },
   ];
 

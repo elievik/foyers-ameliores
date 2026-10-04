@@ -102,6 +102,8 @@ export default function AdminResellers() {
     switch(status) {
       case 'Validé':
         return <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">Validé</span>;
+      case 'Contacté':
+        return <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">Contacté</span>;
       case 'Refusé':
         return <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">Refusé</span>;
       default:
@@ -156,10 +158,13 @@ export default function AdminResellers() {
                   {getStatusBadge(request.status)}
                 </td>
                 <td className="px-8 py-5 text-right">
-                  {request.status === 'En attente' ? (
-                    <div className="flex justify-end gap-2">
-                      <button onClick={() => handleUpdateStatus(request.id, 'Validé')} className="px-4 py-2 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase hover:brightness-110 transition-all">Valider</button>
-                      <button onClick={() => handleUpdateStatus(request.id, 'Refusé')} className="px-4 py-2 bg-red-100 text-red-700 rounded-full text-[10px] font-bold uppercase hover:brightness-110 transition-all">Refuser</button>
+                  {(request.status === 'En attente' || request.status === 'Contacté') ? (
+                    <div className="flex justify-end gap-1">
+                      {request.status === 'En attente' && (
+                        <button onClick={() => handleUpdateStatus(request.id, 'Contacté')} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-[10px] font-bold uppercase hover:brightness-110 transition-all" title="Marquer comme contacté">Contacter</button>
+                      )}
+                      <button onClick={() => handleUpdateStatus(request.id, 'Validé')} className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase hover:brightness-110 transition-all">Valider</button>
+                      <button onClick={() => handleUpdateStatus(request.id, 'Refusé')} className="px-3 py-1.5 bg-red-100 text-red-700 rounded-full text-[10px] font-bold uppercase hover:brightness-110 transition-all">Refuser</button>
                     </div>
                   ) : (
                     <button onClick={() => handleDeleteRequest(request.id)} className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors">

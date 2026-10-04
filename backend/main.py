@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from database import engine, Base, get_db
-from routers import news, orders, reports, resellers, team, product_images, testimonials, regions, partners, hero_images, contact, media
+from database import engine, Base, get_db, SessionLocal
+from routers import news, orders, reports, resellers, team, product_images, testimonials, regions, partners, hero_images, contact, media, stock, auth
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
 import os
@@ -31,6 +31,31 @@ def sync_missing_columns():
 
 sync_missing_columns()
 
+def create_default_admin():
+    from models import User
+    from routers.auth import get_password_hash
+    with engine.begin() as conn:
+        pass # Not using conn directly because we want ORM
+    
+    db = SessionLocal()
+    try:
+        admin = db.query(User).filter(User.email == "foyer@gmail.com").first()
+        if not admin:
+            hashed_password = get_password_hash("admin123")
+            new_admin = User(
+                email="foyer@gmail.com",
+                hashed_password=hashed_password,
+                role="admin",
+                prenom="Admin",
+                nom="Global"
+            )
+            db.add(new_admin)
+            db.commit()
+    finally:
+        db.close()
+
+create_default_admin()
+
 app = FastAPI(title="Foyers Améliorés Togo API", redirect_slashes=True)
 
 # Serve static files
@@ -58,6 +83,8 @@ app.include_router(partners.router, prefix="/api/partners", tags=["Partenaires"]
 app.include_router(hero_images.router, prefix="/api/hero-images", tags=["Hero Images"])
 app.include_router(contact.router, prefix="/api/contact", tags=["Contact"])
 app.include_router(media.router, prefix="/api/media", tags=["Médiathèque"])
+app.include_router(stock.router, prefix="/api/stock", tags=["Stock"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentification"])
 
 @app.get("/")
 def read_root():
@@ -65,22 +92,22 @@ def read_root():
 
 @app.get("/api/stats")
 def get_dashboard_stats(region: str = None, db: Session = Depends(get_db)):
-    from models import HimalayenInscription, AsutoSale, NewsArticle
+    from models import HimalayenInscription, AsutoSale, NewsArticle, RegionStock, AgentReport
     
     h_query = db.query(HimalayenInscription)
     a_query = db.query(AsutoSale)
+    s_query = db.query(RegionStock)
+    r_query = db.query(AgentReport)
     
     if region:
         h_query = h_query.filter(HimalayenInscription.region == region)
-        # Assuming AsutoSale uses 'ville' or similar, we might need to map region or just filter if AsutoSale has region
-        # For simplicity, if AsutoSale doesn't have region, we might just not filter it or filter by ville if we know it.
-        # But wait, looking at models, AsutoSale only has 'ville'. Let's just filter Himalayen for now, or both if possible.
-        # Actually, let's just filter Asuto by ville roughly assuming ville == region for the sake of demo, or ignore it.
-        # Let's filter AsutoSale by ville = region to be safe, or just leave it. Let's filter by ville.
         a_query = a_query.filter(AsutoSale.ville == region)
+        s_query = s_query.filter(RegionStock.region == region)
+        r_query = r_query.filter(AgentReport.region == region)
     
     himalayen_count = h_query.count()
     asuto_count = a_query.count()
+    stocks = s_query.all()
     total_sales = asuto_count * 2500  # Since each Asuto is 2500f
     news_count = db.query(NewsArticle).count()
     total_orders = himalayen_count + asuto_count
@@ -91,6 +118,7 @@ def get_dashboard_stats(region: str = None, db: Session = Depends(get_db)):
     # Get recent activity
     recent_himalayen = h_query.order_by(HimalayenInscription.id.desc()).limit(10).all()
     recent_asuto = a_query.order_by(AsutoSale.id.desc()).limit(10).all()
+    recent_reports = r_query.order_by(AgentReport.id.desc()).limit(10).all()
     
     recent_activity = []
     
@@ -109,6 +137,14 @@ def get_dashboard_stats(region: str = None, db: Session = Depends(get_db)):
             "date": a.date_vente.isoformat() if a.date_vente else "Maintenant",
             "status": "Confirmé"
         })
+        
+    for r in recent_reports:
+        recent_activity.append({
+            "region": r.region or "Togo",
+            "action": f"Nouveau rapport: {r.title}",
+            "date": r.created_at.isoformat() if r.created_at else "Maintenant",
+            "status": r.status
+        })
     
     # Sort by date (newest first)
     recent_activity.sort(key=lambda x: x["date"], reverse=True)
@@ -120,5 +156,7 @@ def get_dashboard_stats(region: str = None, db: Session = Depends(get_db)):
         "total_sales": total_sales,
         "co2_saved": co2_saved,
         "news_count": news_count,
-        "recent_activity": recent_activity[:5]
+        "reports_count": r_query.count(),
+        "recent_activity": recent_activity[:15],
+        "stocks": [{"region": s.region, "stock_asuto": s.stock_asuto} for s in stocks]
     }

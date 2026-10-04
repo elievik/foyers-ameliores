@@ -22,6 +22,9 @@ class Report(Base):
     description = Column(Text)
     file_url = Column(String)
     region = Column(String, nullable=True)
+    status = Column(String, default="Brouillon")  # Brouillon, Envoyé
+    agent_name = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class HimalayenInscription(Base):
     __tablename__ = "himalayen_inscriptions"
@@ -35,6 +38,10 @@ class HimalayenInscription(Base):
     region = Column(String)
     prefecture = Column(String)
     date_inscription = Column(Date)
+    agent_name = Column(String, nullable=True)          # Nom de l'agent qui a saisi
+    statut = Column(String, default="En attente")       # En attente, Vérifié, Annulé
+    numero_serie = Column(String, nullable=True)        # Numéro de série du foyer
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class AsutoSale(Base):
     __tablename__ = "asuto_sales"
@@ -47,6 +54,16 @@ class AsutoSale(Base):
     date_vente = Column(Date)
     quantite = Column(Integer)
     prix_unitaire = Column(Integer, default=2500)
+    agent_name = Column(String, nullable=True)          # Nom de l'agent qui a saisi
+    statut = Column(String, default="En attente")       # En attente, Vérifié, Annulé
+    numero_serie = Column(String, nullable=True)        # Numéro de série du foyer
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class RegionStock(Base):
+    __tablename__ = "region_stocks"
+    id = Column(Integer, primary_key=True, index=True)
+    region = Column(String, unique=True, index=True)
+    stock_asuto = Column(Integer, default=0)
 
 class ResellerRequest(Base):
     __tablename__ = "reseller_requests"
@@ -68,6 +85,18 @@ class TeamMember(Base):
     icon = Column(String, default="person")
     img_url = Column(String)
     order = Column(Integer, default=0)
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    role = Column(String, default="agent") # admin or agent
+    region = Column(String, nullable=True) # e.g. Maritime, Plateaux
+    prenom = Column(String, nullable=True)
+    nom = Column(String, nullable=True)
+    is_active = Column(Integer, default=1) # 1 = active, 0 = disabled
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 class ProductImage(Base):

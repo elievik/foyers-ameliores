@@ -8,6 +8,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const router = useRouter();
   const bgImageRef = useRef(null);
 
@@ -25,60 +26,59 @@ export default function LoginPage() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Get stored credentials or use defaults
-    const storedEmail = localStorage.getItem('adminEmail') || 'foyer@gmail.com';
-    const storedPassword = localStorage.getItem('adminPassword') || 'admin123';
-    
-    // Agent credentials mapping
-    const agents = {
-      'maritime@gmail.com': { pass: 'maritime123', region: 'Maritime' },
-      'plateau@gmail.com': { pass: 'plateau123', region: 'Plateaux' },
-      'centrale@gmail.com': { pass: 'centrale123', region: 'Centrale' },
-      'kara@gmail.com': { pass: 'kara123', region: 'Kara' },
-      'savane@gmail.com': { pass: 'savane123', region: 'Savanes' }
-    };
-    
-    // Check credentials
-    if (email === storedEmail && password === storedPassword) {
-      // Set login state
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userRole', 'admin');
-      
-      // Save default admin info if not already there
-      if (!localStorage.getItem('adminProfile')) {
-        localStorage.setItem('adminProfile', JSON.stringify({
-          prenom: 'Admin',
-          nom: 'Global',
-          email: storedEmail
-        }));
-      } else {
-        // Update email in profile if needed
-        const existingProfile = JSON.parse(localStorage.getItem('adminProfile'));
-        if (existingProfile.email !== storedEmail) {
+    try {
+      const formData = new URLSearchParams();
+      formData.append('username', email);
+      formData.append('password', password);
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://foyers-ameliores.onrender.com'}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString()
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const token = data.access_token;
+        localStorage.setItem('token', token);
+
+        // Fetch user profile
+        const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://foyers-ameliores.onrender.com'}/api/auth/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('userRole', userData.role);
+          
+          if (userData.role === 'agent') {
+            localStorage.setItem('agentRegion', userData.region);
+          }
+          
           localStorage.setItem('adminProfile', JSON.stringify({
-            ...existingProfile,
-            email: storedEmail
+            prenom: userData.prenom,
+            nom: userData.nom,
+            email: userData.email,
+            region: userData.region
           }));
+          
+          router.push('/admin');
         }
+      } else {
+        const errorData = await res.json();
+        setErrorMsg(errorData.detail || 'Email ou mot de passe incorrect !');
+        setTimeout(() => setErrorMsg(''), 4000);
       }
-      // Redirect to admin dashboard
-      router.push('/admin');
-    } else if (agents[email] && agents[email].pass === password) {
-      // Login as Agent
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userRole', 'agent');
-      localStorage.setItem('agentRegion', agents[email].region);
-      localStorage.setItem('adminProfile', JSON.stringify({
-        prenom: 'Agent',
-        nom: agents[email].region,
-        email: email
-      }));
-      router.push('/admin');
-    } else {
-      alert('Email ou mot de passe incorrect !');
+    } catch (error) {
+      console.error('Login error:', error);
+      setErrorMsg('Erreur de connexion au serveur.');
+      setTimeout(() => setErrorMsg(''), 4000);
     }
   };
 
@@ -111,6 +111,13 @@ export default function LoginPage() {
             <h2 className="font-headline-md text-headline-md text-on-surface mb-2 text-2xl font-semibold">Connexion Administrateur</h2>
             <p className="font-body-md text-on-surface-variant">Veuillez entrer vos identifiants pour accéder au panel.</p>
           </div>
+
+          {errorMsg && (
+            <div className="mb-6 p-4 bg-error/10 border border-error/20 text-error rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+              <span className="material-symbols-outlined text-xl">error</span>
+              <span className="text-sm font-medium">{errorMsg}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}

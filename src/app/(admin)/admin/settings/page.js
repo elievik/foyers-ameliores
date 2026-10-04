@@ -22,6 +22,7 @@ export default function AdminSettings() {
     stockAlerts: true,
     regionalReports: true
   });
+  const [savedToast, setSavedToast] = useState(false);
 
   // Load saved profile from localStorage when component mounts
   useEffect(() => {
@@ -45,7 +46,9 @@ export default function AdminSettings() {
     }
     // Dispatch custom event to update sidebar
     window.dispatchEvent(new CustomEvent('profileUpdated'));
-    alert('Profil et préférences sauvegardés !');
+    // Show toast instead of alert (alert causes re-renders)
+    setSavedToast(true);
+    setTimeout(() => setSavedToast(false), 3000);
   };
 
   const handleLogout = () => {
@@ -79,6 +82,13 @@ export default function AdminSettings() {
 
   return (
     <>
+      {/* Toast notification */}
+      {savedToast && (
+        <div className="fixed top-6 right-6 z-[100] flex items-center gap-3 px-6 py-4 bg-primary text-white rounded-2xl shadow-2xl animate-in slide-in-from-top-2 duration-300">
+          <span className="material-symbols-outlined">check_circle</span>
+          <span className="font-medium">Profil et préférences sauvegardés !</span>
+        </div>
+      )}
       <div className="flex justify-between items-end mb-10">
         <div>
           <span className="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Configuration Système</span>

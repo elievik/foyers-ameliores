@@ -12,9 +12,12 @@ export default function AdminDashboard() {
     co2_saved: 0,
     himalayen_count: 0,
     asuto_count: 0,
-    recent_activity: []
+    recent_activity: [],
+    stocks: []
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [showStockModal, setShowStockModal] = useState(false);
+  const [stockForm, setStockForm] = useState({ region: '', stock_asuto: '' });
 
   const [userName, setUserName] = useState('');
   const [userRole, setUserRole] = useState('admin');
@@ -33,34 +36,35 @@ export default function AdminDashboard() {
     const profileStr = localStorage.getItem('adminProfile');
     if (profileStr) {
       const profile = JSON.parse(profileStr);
-      setUserName(profile.prenom || 'Koffi');
+      setUserName(profile.prenom || 'Admin');
     } else {
-      setUserName('Koffi');
+      setUserName('Admin');
     }
     setUserRole(role);
     setAgentRegion(region);
 
-    // Fetch stats from backend
-    const fetchStats = async () => {
-      try {
-        let url = `${BACKEND_URL}/api/stats`;
-        if (role === 'agent' && region) {
-          url += `?region=${encodeURIComponent(region)}`;
-        }
-        const res = await fetch(url);
-        if (res.ok) {
-          const data = await res.json();
-          setStats(data);
-        }
-      } catch (error) {
-        console.error('Erreur chargement des stats:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStats();
+    fetchStats(role, region);
   }, [router]);
+
+  const fetchStats = async (roleOverride, regionOverride) => {
+    const role = roleOverride || userRole;
+    const region = regionOverride || agentRegion;
+    try {
+      let url = `${BACKEND_URL}/api/stats`;
+      if (role === 'agent' && region) {
+        url += `?region=${encodeURIComponent(region)}`;
+      }
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.warn('Backend injoignable, chargement des stats annulé:', error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleDownloadReport = () => {
     // Exemple de rapport CSV
@@ -74,6 +78,30 @@ export default function AdminDashboard() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleUpdateStock = async (e) => {
+    e.preventDefault();
+    if (!stockForm.region || stockForm.stock_asuto === '') return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/stock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          region: stockForm.region,
+          stock_asuto: parseInt(stockForm.stock_asuto)
+        })
+      });
+      if (res.ok) {
+        alert("Stock mis à jour avec succès !");
+        setShowStockModal(false);
+        setStockForm({ region: '', stock_asuto: '' });
+        fetchStats(); // Update without reload
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de la mise à jour du stock.");
+    }
   };
 
   return (
@@ -194,13 +222,63 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="bg-surface-container-low rounded-3xl p-8 border border-outline-variant/20">
-            <h3 className="font-headline-sm text-headline-sm text-primary mb-6">Alertes Stock</h3>
+            <h3 className="font-headline-sm text-headline-sm text-primary mb-6 flex justify-between items-center">
+              Alertes Stock
+              <button onClick={() => setShowStockModal(true)} className="text-primary text-xs font-bold hover:underline bg-primary/10 px-3 py-1 rounded-full">Mettre à jour</button>
+            </h3>
             <div className="space-y-4">
-              <p className="text-sm text-on-surface-variant text-center py-4">Aucune alerte stock pour le moment</p>
+              {stats.stocks && stats.stocks.length > 0 ? (
+                stats.stocks.map((s, idx) => (
+                  <div key={idx} className="flex justify-between items-center border-b border-outline-variant/10 pb-2">
+                    <span className="font-bold text-sm text-on-surface">{s.region}</span>
+                    <span className={`text-sm font-bold px-2 py-1 rounded ${s.stock_asuto < 10 ? 'bg-error/10 text-error' : 'bg-green-100 text-green-700'}`}>
+                      {s.stock_asuto} restants
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-on-surface-variant text-center py-4">Aucune donnée de stock</p>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* ─── Modal d'Ajout de Stock ─────────────────────────────────────────────── */}
+      {showStockModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl">
+            <h3 className="font-headline-md text-headline-md text-primary mb-6">Mettre à jour le stock</h3>
+            <form onSubmit={handleUpdateStock} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-on-surface-variant uppercase">Région</label>
+                {userRole === 'agent' ? (
+                  <div className="w-full bg-surface-container rounded-xl p-3 text-sm font-bold text-primary">{agentRegion}</div>
+                ) : (
+                  <select required className="w-full bg-surface-container-low rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                    onChange={(e) => setStockForm({ ...stockForm, region: e.target.value })}>
+                    <option value="">Sélectionner</option>
+                    {['Savanes','Kara','Centrale','Plateaux','Maritime'].map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-on-surface-variant uppercase">Nouveau Stock Asuto</label>
+                <input required type="number" min="0" className="w-full bg-surface-container-low rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" placeholder="Ex: 50"
+                  onChange={(e) => setStockForm({ ...stockForm, stock_asuto: e.target.value })} />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button type="button" onClick={() => setShowStockModal(false)}
+                  className="flex-1 bg-surface-container text-on-surface py-3 rounded-xl font-button hover:bg-surface-container-high transition-colors">Annuler</button>
+                <button type="submit" onClick={() => {
+                  if (userRole === 'agent') { setStockForm(prev => ({...prev, region: agentRegion})) }
+                }}
+                  className="flex-1 bg-primary text-white py-3 rounded-xl font-button hover:brightness-110 transition-all">Enregistrer</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

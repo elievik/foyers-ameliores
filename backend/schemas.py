@@ -39,12 +39,15 @@ class ReportBase(BaseModel):
     description: Optional[str] = None
     file_url: Optional[str] = None
     region: Optional[str] = None
+    status: Optional[str] = "Brouillon"  # Brouillon, Envoyé
+    agent_name: Optional[str] = None
 
 class ReportCreate(ReportBase):
     pass
 
 class Report(ReportBase):
     id: int
+    created_at: Optional[datetime] = None
     class Config:
         orm_mode = True
 
@@ -58,13 +61,21 @@ class HimalayenInscriptionBase(BaseModel):
     adresse_village: str
     region: str
     prefecture: str
+    agent_name: Optional[str] = None
+    statut: Optional[str] = "En attente"
+    numero_serie: Optional[str] = None
 
 class HimalayenInscriptionCreate(HimalayenInscriptionBase):
     date_inscription: date
 
+class HimalayenInscriptionUpdate(BaseModel):
+    statut: Optional[str] = None
+    numero_serie: Optional[str] = None
+
 class HimalayenInscription(HimalayenInscriptionBase):
     id: int
     date_inscription: date
+    created_at: Optional[datetime] = None
     class Config:
         orm_mode = True
 
@@ -76,14 +87,68 @@ class AsutoSaleBase(BaseModel):
     telephone: str
     ville: str
     quantite: int
+    agent_name: Optional[str] = None
+    statut: Optional[str] = "En attente"
+    numero_serie: Optional[str] = None
 
 class AsutoSaleCreate(AsutoSaleBase):
     date_vente: date
+
+class AsutoSaleUpdate(BaseModel):
+    statut: Optional[str] = None
+    numero_serie: Optional[str] = None
 
 class AsutoSale(AsutoSaleBase):
     id: int
     date_vente: date
     prix_unitaire: int
+    created_at: Optional[datetime] = None
+    class Config:
+        orm_mode = True
+
+# Stocks
+class UserBase(BaseModel):
+    email: str
+    role: Optional[str] = "agent"
+    region: Optional[str] = None
+    prenom: Optional[str] = None
+    nom: Optional[str] = None
+    is_active: Optional[int] = 1
+
+class UserCreate(UserBase):
+    password: str
+
+class UserUpdate(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    role: Optional[str] = None
+    region: Optional[str] = None
+    prenom: Optional[str] = None
+    nom: Optional[str] = None
+    is_active: Optional[int] = None
+
+class User(UserBase):
+    id: int
+    created_at: Optional[datetime] = None
+    class Config:
+        orm_mode = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+
+class RegionStockBase(BaseModel):
+    region: str
+    stock_asuto: int
+
+class RegionStockUpdate(BaseModel):
+    stock_asuto: int
+
+class RegionStock(RegionStockBase):
+    id: int
     class Config:
         orm_mode = True
 

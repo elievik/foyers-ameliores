@@ -9,11 +9,14 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://foyers-ameliores
 export default function AdminData() {
   const [regions, setRegions] = useState([]);
   
-  // Modals state
   const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
   const [editingRegion, setEditingRegion] = useState(null);
   
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const [selectedRegionStats, setSelectedRegionStats] = useState(null);
+  const [selectedRegionName, setSelectedRegionName] = useState('');
 
   // Forms state
   const [regionFormData, setRegionFormData] = useState({
@@ -57,6 +60,23 @@ export default function AdminData() {
     } catch (error) {
       console.error('Error fetching media:', error);
       setPhotos([]);
+    }
+  };
+
+  const viewRegionStats = async (regionName) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/stats?region=${encodeURIComponent(regionName)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedRegionStats(data);
+        setSelectedRegionName(regionName);
+        setIsStatsModalOpen(true);
+      } else {
+        alert('Erreur lors de la récupération des statistiques.');
+      }
+    } catch (error) {
+      console.error('Error fetching region stats:', error);
+      alert('Erreur réseau.');
     }
   };
 
@@ -300,6 +320,13 @@ export default function AdminData() {
                     </span>
                   </button>
                   <button 
+                    onClick={() => viewRegionStats(region.name)}
+                    className="p-2 rounded-full bg-secondary/10 text-secondary hover:bg-secondary hover:text-white transition-colors"
+                    title="Voir l'activité (Rapports & Ventes)"
+                  >
+                    <span className="material-symbols-outlined">bar_chart</span>
+                  </button>
+                  <button 
                     onClick={() => handleEditRegion(region)}
                     className="p-2 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors"
                     title="Éditer les informations et l'image"
@@ -533,6 +560,77 @@ export default function AdminData() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal View Region Stats */}
+      {isStatsModalOpen && selectedRegionStats && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="p-8 pb-4 border-b border-outline-variant/20 flex justify-between items-center">
+              <div>
+                <h3 className="font-headline-md text-headline-md text-primary">Activité: {selectedRegionName}</h3>
+                <p className="text-sm text-on-surface-variant">Vue d'ensemble des ventes, rapports et stocks.</p>
+              </div>
+              <button onClick={() => setIsStatsModalOpen(false)} className="p-2 bg-surface-container hover:bg-surface-container-high rounded-full transition-colors">
+                <span className="material-symbols-outlined text-on-surface-variant">close</span>
+              </button>
+            </div>
+            <div className="p-8 overflow-y-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/20 text-center">
+                  <span className="material-symbols-outlined text-secondary mb-1">shopping_bag</span>
+                  <p className="text-2xl font-bold text-primary">{selectedRegionStats.total_orders}</p>
+                  <p className="text-[10px] font-label-caps uppercase text-on-surface-variant">Total Ventes</p>
+                </div>
+                <div className="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/20 text-center">
+                  <span className="material-symbols-outlined text-secondary mb-1">inventory_2</span>
+                  <p className="text-2xl font-bold text-primary">
+                    {selectedRegionStats.stocks.length > 0 ? selectedRegionStats.stocks[0].stock_asuto : 0}
+                  </p>
+                  <p className="text-[10px] font-label-caps uppercase text-on-surface-variant">Stock Asuto</p>
+                </div>
+                <div className="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/20 text-center">
+                  <span className="material-symbols-outlined text-secondary mb-1">description</span>
+                  <p className="text-2xl font-bold text-primary">{selectedRegionStats.reports_count}</p>
+                  <p className="text-[10px] font-label-caps uppercase text-on-surface-variant">Rapports</p>
+                </div>
+                <div className="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/20 text-center">
+                  <span className="material-symbols-outlined text-secondary mb-1">eco</span>
+                  <p className="text-2xl font-bold text-primary">{selectedRegionStats.co2_saved}t</p>
+                  <p className="text-[10px] font-label-caps uppercase text-on-surface-variant">CO2 Sauvé</p>
+                </div>
+              </div>
+
+              <h4 className="font-title-lg text-title-lg text-primary mb-4">Activités Récentes</h4>
+              {selectedRegionStats.recent_activity.length > 0 ? (
+                <div className="space-y-3">
+                  {selectedRegionStats.recent_activity.map((activity, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/20">
+                      <div className="flex items-center gap-3">
+                        <span className={`material-symbols-outlined p-2 rounded-lg ${
+                          activity.action.includes('rapport') ? 'bg-secondary/10 text-secondary' : 
+                          activity.action.includes('vente') ? 'bg-primary/10 text-primary' : 'bg-tertiary/10 text-tertiary'
+                        }`}>
+                          {activity.action.includes('rapport') ? 'description' : 
+                           activity.action.includes('vente') ? 'point_of_sale' : 'person_add'}
+                        </span>
+                        <div>
+                          <p className="font-medium text-sm text-on-surface">{activity.action}</p>
+                          <p className="text-xs text-on-surface-variant">{new Date(activity.date).toLocaleString()}</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] px-2 py-1 bg-surface-container rounded-lg text-on-surface font-bold uppercase tracking-wider">
+                        {activity.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-on-surface-variant italic">Aucune activité récente pour cette région.</p>
+              )}
+            </div>
           </div>
         </div>
       )}

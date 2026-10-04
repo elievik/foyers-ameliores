@@ -169,7 +169,7 @@ export default function AdminNews() {
       if (res.ok) {
         const newReport = await res.json();
         setReportsList([...reportsList, newReport]);
-        alert('Rapport enregistré avec succès !');
+        showToast('Rapport enregistré avec succès !');
         setShowReportForm(false);
         setReportForm({
           title: '',
@@ -177,9 +177,12 @@ export default function AdminNews() {
           file_url: '',
           file: null
         });
+      } else {
+        showToast('Erreur lors de l\'enregistrement.', 'error');
       }
     } catch (error) {
       console.error('Erreur enregistrement rapport:', error);
+      showToast('Impossible de contacter le serveur.', 'error');
     }
   };
 
@@ -444,9 +447,15 @@ export default function AdminNews() {
             <form onSubmit={handleNewsSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Titre</label>
+                  <div className="flex justify-between items-center">
+                    <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Titre</label>
+                    <span className={`text-[10px] font-bold ${newsForm.title.length > 90 ? 'text-error' : newsForm.title.length > 70 ? 'text-secondary' : 'text-on-surface-variant'}`}>
+                      {newsForm.title.length}/100
+                    </span>
+                  </div>
                   <input 
-                    required 
+                    required
+                    maxLength={100}
                     className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
                     placeholder="Titre de l'article"
                     value={newsForm.title}
@@ -558,57 +567,108 @@ export default function AdminNews() {
       {/* Formulaire Nouveau Rapport */}
       {showReportForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-headline-md text-headline-md text-primary">Créer un Nouveau Rapport</h3>
+          <div className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-2">
+              <div>
+                <h3 className="font-headline-md text-headline-md text-primary">Nouveau Rapport</h3>
+                <p className="text-xs text-on-surface-variant mt-0.5">Créez un rapport d'impact ou un document officiel.</p>
+              </div>
               <button onClick={() => setShowReportForm(false)} className="p-2 hover:bg-surface-container rounded-lg transition-colors">
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            <form onSubmit={handleReportSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Titre du Rapport</label>
+
+            <div className="h-px bg-outline-variant/20 my-5" />
+
+            <form onSubmit={handleReportSubmit} className="space-y-5">
+              {/* Titre */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Titre du Rapport *</label>
+                  <span className={`text-[10px] font-bold transition-colors ${
+                    reportForm.title.length > 90 ? 'text-error' :
+                    reportForm.title.length > 70 ? 'text-secondary' :
+                    'text-on-surface-variant'
+                  }`}>{reportForm.title.length}/100</span>
+                </div>
                 <input 
-                  required 
-                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all" 
-                  placeholder="Rapport d'impact..."
+                  required
+                  maxLength={100}
+                  className="w-full bg-surface-container-low border-none rounded-xl p-3 focus:ring-2 focus:ring-primary/30 transition-all outline-none text-sm" 
+                  placeholder="Ex: Rapport d'impact Q3 2026 - Région Maritime"
                   value={reportForm.title}
                   onChange={(e) => setReportForm({...reportForm, title: e.target.value})}
                 />
               </div>
-              <div className="space-y-2">
-                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Description</label>
+
+              {/* Description */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Description *</label>
+                  <span className={`text-[10px] font-bold transition-colors ${
+                    reportForm.description.length > 450 ? 'text-error' :
+                    reportForm.description.length > 350 ? 'text-secondary' :
+                    'text-on-surface-variant'
+                  }`}>{reportForm.description.length}/500</span>
+                </div>
                 <textarea 
-                  required 
-                  className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all h-40" 
-                  placeholder="Description du rapport..."
+                  required
+                  maxLength={500}
+                  rows={4}
+                  className="w-full bg-surface-container-low border-none rounded-xl p-3 focus:ring-2 focus:ring-primary/30 transition-all outline-none resize-none text-sm leading-relaxed" 
+                  placeholder="Résumez le contenu du rapport (objectifs, résultats, impact...)."
                   value={reportForm.description}
                   onChange={(e) => setReportForm({...reportForm, description: e.target.value})}
                 />
               </div>
-              <div className="space-y-2">
-                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Importer un fichier</label>
-                <input 
-                  type="file" 
-                  accept=".pdf,.doc,.docx"
-                  className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary transition-all" 
-                  onChange={(e) => setReportForm({...reportForm, file: e.target.files[0], file_url: ''})}
-                />
+
+              {/* Fichier ou URL */}
+              <div className="rounded-xl border-2 border-dashed border-outline-variant/40 p-5 space-y-4 bg-surface-container-low/50">
+                <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider text-center">Document à joindre</p>
+                <div className="space-y-1.5">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-sm">upload_file</span>
+                    Importer depuis l'ordinateur
+                  </label>
+                  <input 
+                    type="file" 
+                    accept=".pdf,.doc,.docx,.xlsx,.pptx"
+                    className="w-full bg-white border border-outline-variant/30 rounded-xl p-2.5 text-sm cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary file:font-medium file:text-xs hover:file:bg-primary/20 transition-all" 
+                    onChange={(e) => setReportForm({...reportForm, file: e.target.files[0], file_url: ''})}
+                  />
+                  {reportForm.file && (
+                    <p className="text-xs text-green-600 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">check_circle</span>
+                      {reportForm.file.name}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-outline-variant/30" />
+                  <span className="text-xs text-on-surface-variant font-medium">OU</span>
+                  <div className="h-px flex-1 bg-outline-variant/30" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-sm">link</span>
+                    Lien URL vers le fichier
+                  </label>
+                  <input 
+                    type="url"
+                    className="w-full bg-white border border-outline-variant/30 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/30 transition-all outline-none" 
+                    value={reportForm.file_url}
+                    onChange={(e) => setReportForm({...reportForm, file_url: e.target.value, file: null})}
+                    placeholder="https://drive.google.com/..."
+                  />
+                </div>
               </div>
-              <div className="text-center text-sm text-on-surface-variant">OU</div>
-              <div className="space-y-2">
-                <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">URL du fichier</label>
-                <input 
-                  type="url"
-                  className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary transition-all" 
-                  value={reportForm.file_url}
-                  onChange={(e) => setReportForm({...reportForm, file_url: e.target.value, file: null})}
-                  placeholder="https://..."
-                />
-              </div>
-              <div className="flex gap-4 pt-4">
-                <button type="button" onClick={() => setShowReportForm(false)} className="flex-1 bg-surface-container text-on-surface py-3 rounded-xl font-button">Annuler</button>
-                <button type="submit" className="flex-1 bg-primary text-white py-3 rounded-xl font-button hover:brightness-110">Enregistrer</button>
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowReportForm(false)} className="flex-1 bg-surface-container text-on-surface py-3 rounded-xl font-button hover:bg-surface-container-high transition-all">Annuler</button>
+                <button type="submit" className="flex-1 bg-primary text-white py-3 rounded-xl font-button hover:brightness-110 transition-all flex items-center justify-center gap-2">
+                  <span className="material-symbols-outlined text-base">save</span>
+                  Enregistrer le rapport
+                </button>
               </div>
             </form>
           </div>

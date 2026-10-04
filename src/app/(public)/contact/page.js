@@ -52,7 +52,20 @@ export default function Contact() {
       if (infoRes.ok) setContactInfo(await infoRes.json());
       if (officesRes.ok) setRegionalOffices(await officesRes.json());
     } catch (err) {
-      console.error('Error fetching contact data:', err);
+      console.warn('Backend injoignable, utilisation des données de secours pour le contact.');
+      // Fallback data
+      setContactInfo({
+        phone: "+228 90 00 00 00",
+        email: "support@foyers-togo.org",
+        whatsapp_number: "+22890000000"
+      });
+      setRegionalOffices([
+        { id: 1, name: "Bureau Maritime", city: "Lomé", phone: "+228 90 11 22 33", address: "Quartier Administratif", img_url: "" },
+        { id: 2, name: "Bureau Plateaux", city: "Atakpamé", phone: "+228 91 11 22 33", address: "Centre Ville", img_url: "" },
+        { id: 3, name: "Bureau Centrale", city: "Sokodé", phone: "+228 92 11 22 33", address: "Marché Central", img_url: "" },
+        { id: 4, name: "Bureau Kara", city: "Kara", phone: "+228 93 11 22 33", address: "Affaires Sociales", img_url: "" },
+        { id: 5, name: "Bureau Savanes", city: "Dapaong", phone: "+228 94 11 22 33", address: "Route Nationale", img_url: "" }
+      ]);
     }
   };
 

@@ -17,7 +17,22 @@ def get_db():
 
 @router.get("/", response_model=list[schemas.Region])
 def get_regions(db: Session = Depends(get_db)):
-    return db.query(models.Region).order_by(models.Region.order).all()
+    regions = db.query(models.Region).order_by(models.Region.order).all()
+    for r in regions:
+        # Calculate Himalayen (Vérifié)
+        h_count = db.query(models.HimalayenInscription).filter(
+            models.HimalayenInscription.region == r.name, 
+            models.HimalayenInscription.statut == 'Vérifié'
+        ).count()
+        # Calculate Asuto (Vérifié) where ville is matched as region
+        a_sales = db.query(models.AsutoSale).filter(
+            models.AsutoSale.ville == r.name,
+            models.AsutoSale.statut == 'Vérifié'
+        ).all()
+        a_qty = sum(sale.quantite for sale in a_sales) if a_sales else 0
+        total = h_count + a_qty
+        r.distributed = str(total)
+    return regions
 
 @router.post("/", response_model=schemas.Region)
 async def create_region(

@@ -19,9 +19,18 @@ export default function AdminTeamPage() {
   });
 
   const fetchTeam = async () => {
-    const res = await fetch(`${BACKEND_URL}/api/team/`);
-    const data = await res.json();
-    setTeam(Array.isArray(data) ? data : []);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/team/`);
+      if (res.ok) {
+        const data = await res.json();
+        setTeam(Array.isArray(data) ? data : []);
+      } else {
+        setTeam([]);
+      }
+    } catch (err) {
+      console.warn("Backend injoignable, chargement de l'équipe annulé :", err.message);
+      setTeam([]);
+    }
   };
 
   const safeTeam = Array.isArray(team) ? team : [];
