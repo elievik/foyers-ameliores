@@ -37,8 +37,8 @@ export default function LoginPage() {
       'maritime@gmail.com': { pass: 'maritime123', region: 'Maritime' },
       'plateau@gmail.com': { pass: 'plateau123', region: 'Plateaux' },
       'centrale@gmail.com': { pass: 'centrale123', region: 'Centrale' },
-      'kara@gmail.com': { pass: 'kara124', region: 'Kara' },
-      'savane@gmail.com': { pass: 'kara123', region: 'Savanes' }
+      'kara@gmail.com': { pass: 'kara123', region: 'Kara' },
+      'savane@gmail.com': { pass: 'savane123', region: 'Savanes' }
     };
     
     // Check credentials

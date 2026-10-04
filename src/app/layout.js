@@ -20,6 +20,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="fr"
+      data-scroll-behavior="smooth"
       className={`${epilogue.variable} ${workSans.variable} h-full antialiased scroll-smooth`}
     >
       <head>

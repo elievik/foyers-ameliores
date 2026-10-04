@@ -16,17 +16,38 @@ export default function AdminDashboard() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
+  const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('admin');
+  const [agentRegion, setAgentRegion] = useState('');
+
   useEffect(() => {
     // Check if user is logged in
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (!isLoggedIn) {
       router.push('/login');
+      return;
     }
+
+    const role = localStorage.getItem('userRole') || 'admin';
+    const region = localStorage.getItem('agentRegion') || '';
+    const profileStr = localStorage.getItem('adminProfile');
+    if (profileStr) {
+      const profile = JSON.parse(profileStr);
+      setUserName(profile.prenom || 'Koffi');
+    } else {
+      setUserName('Koffi');
+    }
+    setUserRole(role);
+    setAgentRegion(region);
 
     // Fetch stats from backend
     const fetchStats = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/stats`);
+        let url = `${BACKEND_URL}/api/stats`;
+        if (role === 'agent' && region) {
+          url += `?region=${encodeURIComponent(region)}`;
+        }
+        const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
           setStats(data);
@@ -43,12 +64,7 @@ export default function AdminDashboard() {
 
   const handleDownloadReport = () => {
     // Exemple de rapport CSV
-    const csvContent = `Région,Action,Date,Status
-Savanes,Distribution massive,Aujourd'hui 10:45,Terminé
-Plateaux,Réapprovisionnement stock,Aujourd'hui 09:30,En cours
-Maritime,Nouvelle commande #842,Hier 17:20,Confirmé
-Kara,Maintenance système,Hier 14:00,Terminé
-`;
+    const csvContent = `Région,Action,Date,Status\n` + stats.recent_activity.map(a => `${a.region},${a.action},${a.date},${a.status}`).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -64,14 +80,18 @@ Kara,Maintenance système,Hier 14:00,Terminé
     <>
       <div className="flex justify-between items-end mb-10">
         <div>
-          <span className="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Aperçu Général</span>
+          <span className="font-label-caps text-label-caps text-secondary uppercase tracking-widest">
+            {userRole === 'admin' ? 'Aperçu Général' : `Aperçu Régional - ${agentRegion}`}
+          </span>
           <h2 className="font-display-lg text-display-lg mt-2 text-primary">Tableau de Bord</h2>
-          <p className="text-on-surface-variant mt-2 max-w-xl">Bienvenue, Koffi. Voici un résumé des activités nationales pour aujourd'hui.</p>
+          <p className="text-on-surface-variant mt-2 max-w-xl">
+            Bienvenue, {userName}. Voici un résumé des activités {userRole === 'admin' ? 'nationales' : `pour la région ${agentRegion}`} pour aujourd'hui.
+          </p>
         </div>
         <div className="flex gap-4">
           <button onClick={handleDownloadReport} className="flex items-center gap-2 px-6 py-3 bg-surface-container-high rounded-xl text-primary font-button text-button hover:bg-surface-container-highest transition-all shadow-sm active:scale-95">
             <span className="material-symbols-outlined">download</span>
-            Rapport Global
+            Rapport {userRole === 'admin' ? 'Global' : 'Régional'}
           </button>
         </div>
       </div>

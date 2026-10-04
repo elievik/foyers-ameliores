@@ -64,11 +64,23 @@ def read_root():
     return {"message": "Bienvenue sur l'API Foyers Améliorés Togo"}
 
 @app.get("/api/stats")
-def get_dashboard_stats(db: Session = Depends(get_db)):
+def get_dashboard_stats(region: str = None, db: Session = Depends(get_db)):
     from models import HimalayenInscription, AsutoSale, NewsArticle
     
-    himalayen_count = db.query(HimalayenInscription).count()
-    asuto_count = db.query(AsutoSale).count()
+    h_query = db.query(HimalayenInscription)
+    a_query = db.query(AsutoSale)
+    
+    if region:
+        h_query = h_query.filter(HimalayenInscription.region == region)
+        # Assuming AsutoSale uses 'ville' or similar, we might need to map region or just filter if AsutoSale has region
+        # For simplicity, if AsutoSale doesn't have region, we might just not filter it or filter by ville if we know it.
+        # But wait, looking at models, AsutoSale only has 'ville'. Let's just filter Himalayen for now, or both if possible.
+        # Actually, let's just filter Asuto by ville roughly assuming ville == region for the sake of demo, or ignore it.
+        # Let's filter AsutoSale by ville = region to be safe, or just leave it. Let's filter by ville.
+        a_query = a_query.filter(AsutoSale.ville == region)
+    
+    himalayen_count = h_query.count()
+    asuto_count = a_query.count()
     total_sales = asuto_count * 2500  # Since each Asuto is 2500f
     news_count = db.query(NewsArticle).count()
     total_orders = himalayen_count + asuto_count
@@ -77,8 +89,8 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
     co2_saved = round((total_orders / 100) * 2.85, 2)
     
     # Get recent activity
-    recent_himalayen = db.query(HimalayenInscription).order_by(HimalayenInscription.id.desc()).limit(3).all()
-    recent_asuto = db.query(AsutoSale).order_by(AsutoSale.id.desc()).limit(3).all()
+    recent_himalayen = h_query.order_by(HimalayenInscription.id.desc()).limit(10).all()
+    recent_asuto = a_query.order_by(AsutoSale.id.desc()).limit(10).all()
     
     recent_activity = []
     

@@ -13,11 +13,18 @@ export default function AdminOrders() {
   const [himalayenList, setHimalayenList] = useState([]);
   const [asutoList, setAsutoList] = useState([]);
 
+  const [userRole, setUserRole] = useState('admin');
+  const [agentRegion, setAgentRegion] = useState('');
+  const [ordersStatus, setOrdersStatus] = useState({});
+
   // Check login status first
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (!isLoggedIn) {
       router.push('/login');
+    } else {
+      setUserRole(localStorage.getItem('userRole') || 'admin');
+      setAgentRegion(localStorage.getItem('agentRegion') || '');
     }
   }, [router]);
 
@@ -86,28 +93,7 @@ export default function AdminOrders() {
 
   const handleExportOrders = () => {
     // Fusionner les deux listes pour l'export
-    const allOrders = [
-      ...himalayenList.map(h => ({
-        id: `#${h.id}`,
-        client: `${h.nom} ${h.prenoms}`,
-        phone: h.telephone,
-        city: h.ville_commune,
-        model: 'Himalayen',
-        qty: 1,
-        status: 'En cours',
-        color: 'text-green-600'
-      })),
-      ...asutoList.map(a => ({
-        id: `#${a.id}`,
-        client: `${a.nom} ${a.prenoms}`,
-        phone: a.telephone,
-        city: a.ville,
-        model: 'Asuto',
-        qty: a.quantite,
-        status: 'En cours',
-        color: 'text-primary'
-      }))
-    ];
+    const allOrders = orders;
     
     const csvContent = `ID,Client,Téléphone,Ville,Modèle,Quantité,Status
 ${allOrders.map(o => `${o.id},${o.client},${o.phone},${o.city},${o.model},${o.qty},${o.status}`).join('\n')}
@@ -123,26 +109,42 @@ ${allOrders.map(o => `${o.id},${o.client},${o.phone},${o.city},${o.model},${o.qt
     document.body.removeChild(link);
   };
 
+  const toggleOrderStatus = (id) => {
+    if (userRole !== 'admin') return;
+    setOrdersStatus(prev => ({
+      ...prev,
+      [id]: prev[id] === 'Validé' ? 'En cours' : 'Validé'
+    }));
+  };
+
+  const filteredHimalayen = userRole === 'agent' 
+    ? himalayenList.filter(h => h.region === agentRegion || h.region?.toLowerCase() === agentRegion.toLowerCase()) 
+    : himalayenList;
+    
+  const filteredAsuto = userRole === 'agent' 
+    ? asutoList // On peut aussi filtrer Asuto si nécessaire.
+    : asutoList;
+
   const orders = [
-    ...himalayenList.map(h => ({
-      id: `#${h.id}`,
+    ...filteredHimalayen.map(h => ({
+      id: `h_${h.id}`,
       client: `${h.nom} ${h.prenoms}`,
       phone: h.telephone,
       city: h.ville_commune,
       model: 'Himalayen',
       qty: 1,
-      status: 'En cours',
-      color: 'text-green-600'
+      status: ordersStatus[`h_${h.id}`] || 'En cours',
+      color: ordersStatus[`h_${h.id}`] === 'Validé' ? 'text-green-600' : 'text-secondary'
     })),
-    ...asutoList.map(a => ({
-      id: `#${a.id}`,
+    ...filteredAsuto.map(a => ({
+      id: `a_${a.id}`,
       client: `${a.nom} ${a.prenoms}`,
       phone: a.telephone,
       city: a.ville,
       model: 'Asuto',
       qty: a.quantite,
-      status: 'En cours',
-      color: 'text-primary'
+      status: ordersStatus[`a_${a.id}`] || 'En cours',
+      color: ordersStatus[`a_${a.id}`] === 'Validé' ? 'text-green-600' : 'text-primary'
     }))
   ];
 
@@ -173,7 +175,7 @@ ${allOrders.map(o => `${o.id},${o.client},${o.phone},${o.city},${o.model},${o.qt
               <div className="bg-primary/10 p-3 rounded-2xl"><span className="material-symbols-outlined text-primary">inventory_2</span></div>
             </div>
             <div className="mb-4">
-              <span className="text-5xl font-bold text-secondary">{himalayenList.length}</span>
+              <span className="text-5xl font-bold text-secondary">{filteredHimalayen.length}</span>
               <span className="text-on-surface-variant font-body-md ml-2">inscriptions</span>
             </div>
             <button onClick={() => setShowHimalayenForm(true)} className="w-full bg-primary text-white py-3 rounded-xl font-button hover:brightness-110">
@@ -191,7 +193,7 @@ ${allOrders.map(o => `${o.id},${o.client},${o.phone},${o.city},${o.model},${o.qt
               <div className="bg-secondary/10 p-3 rounded-2xl"><span className="material-symbols-outlined text-secondary">shopping_cart</span></div>
             </div>
             <div className="mb-4">
-              <span className="text-5xl font-bold text-primary">{asutoList.length}</span>
+              <span className="text-5xl font-bold text-primary">{filteredAsuto.length}</span>
               <span className="text-on-surface-variant font-body-md ml-2">ventes</span>
             </div>
             <button onClick={() => setShowAsutoForm(true)} className="w-full bg-secondary text-white py-3 rounded-xl font-button hover:brightness-110">
@@ -238,12 +240,23 @@ ${allOrders.map(o => `${o.id},${o.client},${o.phone},${o.city},${o.model},${o.qt
                     {order.status}
                   </div>
                 </td>
-                <td className="px-8 py-5 text-right">
+                <td className="px-8 py-5 text-right flex justify-end gap-2">
+                  {userRole === 'admin' && (
+                    <button
+                      onClick={() => toggleOrderStatus(order.id)}
+                      className={`inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm transition-all ${order.status === 'Validé' ? 'bg-error text-white hover:bg-error/90' : 'bg-primary text-white hover:bg-primary/90'}`}
+                    >
+                      <span className="material-symbols-outlined text-[14px]">
+                        {order.status === 'Validé' ? 'cancel' : 'check_circle'}
+                      </span>
+                      {order.status === 'Validé' ? 'Annuler' : 'Valider'}
+                    </button>
+                  )}
                   <a
                     href={`https://wa.me/${order.phone.replace(/\D/g, '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#25D366] text-white rounded-full text-[10px] font-bold shadow-sm hover:brightness-110 transition-all"
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-[#25D366] text-white rounded-lg text-[10px] font-bold shadow-sm hover:brightness-110 transition-all"
                   >
                     WhatsApp
                   </a>
