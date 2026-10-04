@@ -510,7 +510,7 @@ export default function AdminData() {
       {/* Modal Nouveau Rapport */}
       {isReportModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-3xl p-8 shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl p-8 shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <h3 className="font-headline-md text-headline-md text-primary mb-6">Nouveau Rapport</h3>
             <form onSubmit={handleReportSubmit} className="space-y-4">
               <div>
@@ -541,8 +541,8 @@ export default function AdminData() {
                 <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Description</label>
                 <textarea
                   required
-                  className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
-                  rows={4}
+                  className="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none resize-none"
+                  rows={15}
                   value={reportFormData.description}
                   onChange={(e) => setReportFormData({ ...reportFormData, description: e.target.value })}
                 />
@@ -664,7 +664,7 @@ export default function AdminData() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-on-surface">{r.title}</p>
-                            <p className="text-xs text-on-surface-variant mt-0.5 line-clamp-2">{r.description}</p>
+                            <p className="text-xs text-on-surface-variant mt-0.5 whitespace-pre-wrap">{r.description}</p>
                             <div className="flex items-center gap-3 mt-2">
                               {r.agent_name && (
                                 <span className="flex items-center gap-1 text-[10px] text-on-surface-variant">

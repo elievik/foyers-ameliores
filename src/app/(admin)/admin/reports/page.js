@@ -483,10 +483,10 @@ export default function AdminReports() {
 
       {/* Modal Edit/Create */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-8">
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-start mb-2">
                 <div>
                   <h3 className="font-headline-md text-headline-md text-primary">
                     {editingReport ? 'Modifier le Rapport' : 'Nouveau Rapport'}
@@ -521,13 +521,10 @@ export default function AdminReports() {
                 <div className="space-y-1.5">
                   <div className="flex justify-between">
                     <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Description *</label>
-                    <span className={`text-[10px] font-bold ${formData.description.length > 450 ? 'text-error' : 'text-on-surface-variant'}`}>
-                      {formData.description.length}/500
-                    </span>
                   </div>
-                  <textarea required maxLength={500} rows={4}
-                    className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all resize-none leading-relaxed"
-                    placeholder="Résumez votre activité, vos ventes, et vos observations..."
+                  <textarea required rows={15}
+                    className="w-full bg-surface-container-low border-none rounded-xl p-4 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all resize-none leading-relaxed"
+                    placeholder="Résumez votre activité, vos ventes, et vos observations en détail..."
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
