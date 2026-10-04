@@ -219,15 +219,23 @@ class TestimonialBase(BaseModel):
     text: str
     avatar_url: Optional[str] = None
     order: int = 0
+    status: Optional[str] = "Validé"
+    submitted_by: Optional[str] = None
 
 class TestimonialCreate(TestimonialBase):
     pass
 
-class TestimonialUpdate(TestimonialBase):
-    pass
+class TestimonialUpdate(BaseModel):
+    name: Optional[str] = None
+    location: Optional[str] = None
+    text: Optional[str] = None
+    avatar_url: Optional[str] = None
+    order: Optional[int] = None
+    status: Optional[str] = None
 
 class Testimonial(TestimonialBase):
     id: int
+    created_at: Optional[datetime] = None
     class Config:
         orm_mode = True
 

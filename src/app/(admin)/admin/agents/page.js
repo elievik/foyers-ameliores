@@ -35,7 +35,7 @@ export default function AdminAgents() {
     fetchAgents();
   }, [router]);
 
-  const fetchAgents = async () => {
+  async function fetchAgents() {
     try {
       const res = await fetch(`${BACKEND_URL}/api/auth/users`);
       if (res.ok) {

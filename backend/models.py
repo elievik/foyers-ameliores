@@ -114,6 +114,9 @@ class Testimonial(Base):
     text = Column(String)
     avatar_url = Column(String, nullable=True)
     order = Column(Integer, default=0)
+    status = Column(String, default="Validé")  # En attente, Validé, Refusé
+    submitted_by = Column(String, nullable=True)  # agent email
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class Region(Base):
     __tablename__ = "regions"

@@ -31,30 +31,80 @@ def sync_missing_columns():
 
 sync_missing_columns()
 
-def create_default_admin():
+def create_default_users():
     from models import User
     from routers.auth import get_password_hash
-    with engine.begin() as conn:
-        pass # Not using conn directly because we want ORM
-    
+
+    default_users = [
+        {
+            "email": "foyer@gmail.com",
+            "password": "admin123",
+            "role": "admin",
+            "prenom": "Admin",
+            "nom": "Global",
+            "region": None
+        },
+        {
+            "email": "maritime@gmail.com",
+            "password": "maritime123",
+            "role": "agent",
+            "prenom": "Agent",
+            "nom": "Maritime",
+            "region": "Maritime"
+        },
+        {
+            "email": "plateau@gmail.com",
+            "password": "plateau123",
+            "role": "agent",
+            "prenom": "Agent",
+            "nom": "Plateaux",
+            "region": "Plateaux"
+        },
+        {
+            "email": "centrale@gmail.com",
+            "password": "centrale123",
+            "role": "agent",
+            "prenom": "Agent",
+            "nom": "Centrale",
+            "region": "Centrale"
+        },
+        {
+            "email": "kara@gmail.com",
+            "password": "kara123",
+            "role": "agent",
+            "prenom": "Agent",
+            "nom": "Kara",
+            "region": "Kara"
+        },
+        {
+            "email": "savane@gmail.com",
+            "password": "savane123",
+            "role": "agent",
+            "prenom": "Agent",
+            "nom": "Savanes",
+            "region": "Savanes"
+        },
+    ]
+
     db = SessionLocal()
     try:
-        admin = db.query(User).filter(User.email == "foyer@gmail.com").first()
-        if not admin:
-            hashed_password = get_password_hash("admin123")
-            new_admin = User(
-                email="foyer@gmail.com",
-                hashed_password=hashed_password,
-                role="admin",
-                prenom="Admin",
-                nom="Global"
-            )
-            db.add(new_admin)
-            db.commit()
+        for u in default_users:
+            existing = db.query(User).filter(User.email == u["email"]).first()
+            if not existing:
+                db.add(User(
+                    email=u["email"],
+                    hashed_password=get_password_hash(u["password"]),
+                    role=u["role"],
+                    prenom=u["prenom"],
+                    nom=u["nom"],
+                    region=u["region"]
+                ))
+        db.commit()
+        print("✅ Comptes par défaut vérifiés/créés")
     finally:
         db.close()
 
-create_default_admin()
+create_default_users()
 
 app = FastAPI(title="Foyers Améliorés Togo API", redirect_slashes=True)
 
@@ -108,14 +158,11 @@ def get_dashboard_stats(region: str = None, db: Session = Depends(get_db)):
     himalayen_count = h_query.count()
     asuto_count = a_query.count()
     stocks = s_query.all()
-    total_sales = asuto_count * 2500  # Since each Asuto is 2500f
+    total_sales = asuto_count * 2500
     news_count = db.query(NewsArticle).count()
     total_orders = himalayen_count + asuto_count
-    
-    # Calculate total CO2 saved (example: 2.85 tons per 100 units)
     co2_saved = round((total_orders / 100) * 2.85, 2)
     
-    # Get recent activity
     recent_himalayen = h_query.order_by(HimalayenInscription.id.desc()).limit(10).all()
     recent_asuto = a_query.order_by(AsutoSale.id.desc()).limit(10).all()
     recent_reports = r_query.order_by(AgentReport.id.desc()).limit(10).all()
@@ -146,7 +193,6 @@ def get_dashboard_stats(region: str = None, db: Session = Depends(get_db)):
             "status": r.status
         })
     
-    # Sort by date (newest first)
     recent_activity.sort(key=lambda x: x["date"], reverse=True)
     
     return {
@@ -160,3 +206,77 @@ def get_dashboard_stats(region: str = None, db: Session = Depends(get_db)):
         "recent_activity": recent_activity[:15],
         "stocks": [{"region": s.region, "stock_asuto": s.stock_asuto} for s in stocks]
     }
+
+
+@app.get("/api/region-detail/{region_name}")
+def get_region_detail(region_name: str, db: Session = Depends(get_db)):
+    """Retourne toutes les données soumises par les agents pour une région donnée"""
+    from models import HimalayenInscription, AsutoSale, AgentReport, RegionStock
+
+    himalayen = db.query(HimalayenInscription).filter(
+        HimalayenInscription.region == region_name
+    ).order_by(HimalayenInscription.id.desc()).all()
+
+    asuto = db.query(AsutoSale).filter(
+        AsutoSale.ville == region_name
+    ).order_by(AsutoSale.id.desc()).all()
+
+    reports = db.query(AgentReport).filter(
+        AgentReport.region == region_name
+    ).order_by(AgentReport.id.desc()).all()
+
+    stock = db.query(RegionStock).filter(RegionStock.region == region_name).first()
+
+    return {
+        "region": region_name,
+        "stock_asuto": stock.stock_asuto if stock else 0,
+        "himalayen": [
+            {
+                "id": h.id,
+                "nom": h.nom,
+                "prenoms": h.prenoms,
+                "telephone": h.telephone,
+                "prefecture": h.prefecture,
+                "adresse_village": h.adresse_village,
+                "date_inscription": h.date_inscription.isoformat() if h.date_inscription else None,
+                "statut": h.statut or "En attente",
+                "agent_name": h.agent_name,
+                "numero_serie": h.numero_serie,
+            }
+            for h in himalayen
+        ],
+        "asuto": [
+            {
+                "id": a.id,
+                "nom": a.nom,
+                "prenoms": a.prenoms,
+                "telephone": a.telephone,
+                "quantite": a.quantite,
+                "date_vente": a.date_vente.isoformat() if a.date_vente else None,
+                "statut": a.statut or "En attente",
+                "agent_name": a.agent_name,
+                "numero_serie": a.numero_serie,
+            }
+            for a in asuto
+        ],
+        "reports": [
+            {
+                "id": r.id,
+                "title": r.title,
+                "description": r.description,
+                "status": r.status,
+                "agent_name": r.agent_name,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+                "file_url": r.file_url,
+            }
+            for r in reports
+        ],
+        "summary": {
+            "total_himalayen": len(himalayen),
+            "total_asuto": len(asuto),
+            "total_reports": len(reports),
+            "total_ventes_fcfa": sum(a.quantite * 2500 for a in asuto),
+            "co2_saved": round((len(himalayen) + len(asuto)) / 100 * 2.85, 2),
+        }
+    }
+

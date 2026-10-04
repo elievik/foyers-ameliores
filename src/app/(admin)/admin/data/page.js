@@ -17,6 +17,14 @@ export default function AdminData() {
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const [selectedRegionStats, setSelectedRegionStats] = useState(null);
   const [selectedRegionName, setSelectedRegionName] = useState('');
+  const [statsTab, setStatsTab] = useState('rapports');
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ message: msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // Forms state
   const [regionFormData, setRegionFormData] = useState({
@@ -64,19 +72,20 @@ export default function AdminData() {
   };
 
   const viewRegionStats = async (regionName) => {
+    setLoadingStats(true);
+    setStatsTab('rapports');
+    setSelectedRegionName(regionName);
+    setIsStatsModalOpen(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/stats?region=${encodeURIComponent(regionName)}`);
+      const res = await fetch(`${BACKEND_URL}/api/region-detail/${encodeURIComponent(regionName)}`);
       if (res.ok) {
         const data = await res.json();
         setSelectedRegionStats(data);
-        setSelectedRegionName(regionName);
-        setIsStatsModalOpen(true);
-      } else {
-        alert('Erreur lors de la récupération des statistiques.');
       }
     } catch (error) {
       console.error('Error fetching region stats:', error);
-      alert('Erreur réseau.');
+    } finally {
+      setLoadingStats(false);
     }
   };
 
@@ -92,16 +101,12 @@ export default function AdminData() {
     const newIsHidden = region.is_hidden ? 0 : 1;
     const formDataObj = new FormData();
     formDataObj.append('is_hidden', newIsHidden.toString());
-    
     try {
-      await fetch(`${BACKEND_URL}/api/regions/${region.id}`, {
-        method: 'PATCH',
-        body: formDataObj,
-      });
+      await fetch(`${BACKEND_URL}/api/regions/${region.id}`, { method: 'PATCH', body: formDataObj });
       fetchRegions();
+      showToast(newIsHidden ? 'Région masquée du site' : 'Région visible sur le site');
     } catch (error) {
-      console.error('Error updating region visibility:', error);
-      alert('Erreur lors de la mise à jour de la visibilité.');
+      showToast('Erreur lors de la mise à jour', 'error');
     }
   };
 
@@ -256,6 +261,14 @@ export default function AdminData() {
 
   return (
     <>
+      {toast && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl text-white font-button text-sm transition-all ${
+          toast.type === 'error' ? 'bg-error' : 'bg-green-600'
+        }`}>
+          <span className="material-symbols-outlined text-xl">{toast.type === 'error' ? 'error' : 'check_circle'}</span>
+          {toast.message}
+        </div>
+      )}
       <div className="flex justify-between items-end mb-10">
         <div>
           <span className="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Suivi Géographique</span>
@@ -564,73 +577,198 @@ export default function AdminData() {
         </div>
       )}
 
-      {/* Modal View Region Stats */}
-      {isStatsModalOpen && selectedRegionStats && (
+      {/* Modal Suivi Région — Vue Complète */}
+      {isStatsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
-            <div className="p-8 pb-4 border-b border-outline-variant/20 flex justify-between items-center">
-              <div>
-                <h3 className="font-headline-md text-headline-md text-primary">Activité: {selectedRegionName}</h3>
-                <p className="text-sm text-on-surface-variant">Vue d'ensemble des ventes, rapports et stocks.</p>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            
+            {/* Header */}
+            <div className="p-6 pb-4 border-b border-outline-variant/20 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <span className="material-symbols-outlined">map</span>
+                </div>
+                <div>
+                  <h3 className="font-headline-md text-headline-md text-primary">Région : {selectedRegionName}</h3>
+                  <p className="text-sm text-on-surface-variant">Tout ce que les agents ont soumis pour cette région</p>
+                </div>
               </div>
-              <button onClick={() => setIsStatsModalOpen(false)} className="p-2 bg-surface-container hover:bg-surface-container-high rounded-full transition-colors">
-                <span className="material-symbols-outlined text-on-surface-variant">close</span>
+              <button onClick={() => { setIsStatsModalOpen(false); setSelectedRegionStats(null); }}
+                className="p-2 hover:bg-surface-container rounded-xl transition-colors">
+                <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            <div className="p-8 overflow-y-auto">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/20 text-center">
-                  <span className="material-symbols-outlined text-secondary mb-1">shopping_bag</span>
-                  <p className="text-2xl font-bold text-primary">{selectedRegionStats.total_orders}</p>
-                  <p className="text-[10px] font-label-caps uppercase text-on-surface-variant">Total Ventes</p>
-                </div>
-                <div className="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/20 text-center">
-                  <span className="material-symbols-outlined text-secondary mb-1">inventory_2</span>
-                  <p className="text-2xl font-bold text-primary">
-                    {selectedRegionStats.stocks.length > 0 ? selectedRegionStats.stocks[0].stock_asuto : 0}
-                  </p>
-                  <p className="text-[10px] font-label-caps uppercase text-on-surface-variant">Stock Asuto</p>
-                </div>
-                <div className="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/20 text-center">
-                  <span className="material-symbols-outlined text-secondary mb-1">description</span>
-                  <p className="text-2xl font-bold text-primary">{selectedRegionStats.reports_count}</p>
-                  <p className="text-[10px] font-label-caps uppercase text-on-surface-variant">Rapports</p>
-                </div>
-                <div className="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/20 text-center">
-                  <span className="material-symbols-outlined text-secondary mb-1">eco</span>
-                  <p className="text-2xl font-bold text-primary">{selectedRegionStats.co2_saved}t</p>
-                  <p className="text-[10px] font-label-caps uppercase text-on-surface-variant">CO2 Sauvé</p>
-                </div>
-              </div>
 
-              <h4 className="font-title-lg text-title-lg text-primary mb-4">Activités Récentes</h4>
-              {selectedRegionStats.recent_activity.length > 0 ? (
-                <div className="space-y-3">
-                  {selectedRegionStats.recent_activity.map((activity, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/20">
-                      <div className="flex items-center gap-3">
-                        <span className={`material-symbols-outlined p-2 rounded-lg ${
-                          activity.action.includes('rapport') ? 'bg-secondary/10 text-secondary' : 
-                          activity.action.includes('vente') ? 'bg-primary/10 text-primary' : 'bg-tertiary/10 text-tertiary'
-                        }`}>
-                          {activity.action.includes('rapport') ? 'description' : 
-                           activity.action.includes('vente') ? 'point_of_sale' : 'person_add'}
-                        </span>
-                        <div>
-                          <p className="font-medium text-sm text-on-surface">{activity.action}</p>
-                          <p className="text-xs text-on-surface-variant">{new Date(activity.date).toLocaleString()}</p>
-                        </div>
-                      </div>
-                      <span className="text-[10px] px-2 py-1 bg-surface-container rounded-lg text-on-surface font-bold uppercase tracking-wider">
-                        {activity.status}
-                      </span>
-                    </div>
+            {loadingStats ? (
+              <div className="flex-1 flex items-center justify-center py-20">
+                <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
+              </div>
+            ) : selectedRegionStats ? (
+              <>
+                {/* Résumé chiffré */}
+                <div className="grid grid-cols-4 gap-3 px-6 py-4 border-b border-outline-variant/10">
+                  <div className="bg-primary/5 rounded-2xl p-4 text-center">
+                    <span className="material-symbols-outlined text-primary text-2xl">home_work</span>
+                    <p className="text-2xl font-bold text-primary mt-1">{selectedRegionStats.summary.total_himalayen}</p>
+                    <p className="text-[10px] text-on-surface-variant uppercase font-bold mt-0.5">Inscriptions Himalayen</p>
+                  </div>
+                  <div className="bg-secondary/5 rounded-2xl p-4 text-center">
+                    <span className="material-symbols-outlined text-secondary text-2xl">point_of_sale</span>
+                    <p className="text-2xl font-bold text-secondary mt-1">{selectedRegionStats.summary.total_asuto}</p>
+                    <p className="text-[10px] text-on-surface-variant uppercase font-bold mt-0.5">Ventes Asuto</p>
+                  </div>
+                  <div className="bg-surface-container-low rounded-2xl p-4 text-center">
+                    <span className="material-symbols-outlined text-on-surface-variant text-2xl">description</span>
+                    <p className="text-2xl font-bold text-on-surface mt-1">{selectedRegionStats.summary.total_reports}</p>
+                    <p className="text-[10px] text-on-surface-variant uppercase font-bold mt-0.5">Rapports</p>
+                  </div>
+                  <div className="bg-green-50 rounded-2xl p-4 text-center">
+                    <span className="material-symbols-outlined text-green-600 text-2xl">payments</span>
+                    <p className="text-2xl font-bold text-green-700 mt-1">{selectedRegionStats.summary.total_ventes_fcfa.toLocaleString()}</p>
+                    <p className="text-[10px] text-on-surface-variant uppercase font-bold mt-0.5">FCFA Générés</p>
+                  </div>
+                </div>
+
+                {/* Onglets */}
+                <div className="flex gap-1 px-6 pt-4 pb-0">
+                  {[
+                    { key: 'rapports', label: 'Rapports', count: selectedRegionStats.summary.total_reports, icon: 'description' },
+                    { key: 'himalayen', label: 'Himalayen', count: selectedRegionStats.summary.total_himalayen, icon: 'home_work' },
+                    { key: 'asuto', label: 'Asuto', count: selectedRegionStats.summary.total_asuto, icon: 'point_of_sale' },
+                  ].map(tab => (
+                    <button key={tab.key} onClick={() => setStatsTab(tab.key)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                        statsTab === tab.key ? 'bg-primary text-white shadow' : 'text-on-surface-variant hover:bg-surface-container'
+                      }`}>
+                      <span className="material-symbols-outlined text-base">{tab.icon}</span>
+                      {tab.label}
+                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
+                        statsTab === tab.key ? 'bg-white/20 text-white' : 'bg-surface-container text-on-surface-variant'
+                      }`}>{tab.count}</span>
+                    </button>
                   ))}
                 </div>
-              ) : (
-                <p className="text-on-surface-variant italic">Aucune activité récente pour cette région.</p>
-              )}
-            </div>
+
+                {/* Contenu onglets */}
+                <div className="flex-1 overflow-y-auto px-6 py-4">
+                  
+                  {/* RAPPORTS */}
+                  {statsTab === 'rapports' && (
+                    <div className="space-y-3">
+                      {selectedRegionStats.reports.length === 0 ? (
+                        <p className="text-center text-on-surface-variant italic py-10">Aucun rapport soumis pour cette région.</p>
+                      ) : selectedRegionStats.reports.map(r => (
+                        <div key={r.id} className="flex items-start gap-4 p-4 bg-surface-container-low rounded-2xl border border-outline-variant/20">
+                          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                            <span className="material-symbols-outlined text-base">description</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-on-surface">{r.title}</p>
+                            <p className="text-xs text-on-surface-variant mt-0.5 line-clamp-2">{r.description}</p>
+                            <div className="flex items-center gap-3 mt-2">
+                              {r.agent_name && (
+                                <span className="flex items-center gap-1 text-[10px] text-on-surface-variant">
+                                  <span className="material-symbols-outlined text-xs">person</span>{r.agent_name}
+                                </span>
+                              )}
+                              {r.created_at && (
+                                <span className="text-[10px] text-on-surface-variant">
+                                  {new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${
+                              r.status === 'Validé' ? 'bg-green-100 text-green-700' : 
+                              r.status === 'Refusé' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                            }`}>{r.status || 'En attente'}</span>
+                            {r.file_url && (
+                              <a href={r.file_url} target="_blank" rel="noreferrer"
+                                className="p-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors" title="Voir le fichier">
+                                <span className="material-symbols-outlined text-sm">open_in_new</span>
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* HIMALAYEN */}
+                  {statsTab === 'himalayen' && (
+                    <div className="space-y-3">
+                      {selectedRegionStats.himalayen.length === 0 ? (
+                        <p className="text-center text-on-surface-variant italic py-10">Aucune inscription Himalayen pour cette région.</p>
+                      ) : selectedRegionStats.himalayen.map(h => (
+                        <div key={h.id} className="flex items-center gap-4 p-4 bg-surface-container-low rounded-2xl border border-outline-variant/20">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold flex-shrink-0">
+                            {h.nom?.[0]?.toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-on-surface">{h.nom} {h.prenoms}</p>
+                            <p className="text-xs text-on-surface-variant">{h.adresse_village} — {h.prefecture}</p>
+                            <div className="flex items-center gap-3 mt-1">
+                              <span className="text-[10px] text-on-surface-variant">{h.telephone}</span>
+                              {h.agent_name && (
+                                <span className="flex items-center gap-1 text-[10px] text-on-surface-variant">
+                                  <span className="material-symbols-outlined text-xs">person</span>{h.agent_name}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${
+                              h.statut === 'Vérifié' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                            }`}>{h.statut}</span>
+                            {h.date_inscription && (
+                              <span className="text-[10px] text-on-surface-variant">
+                                {new Date(h.date_inscription).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* ASUTO */}
+                  {statsTab === 'asuto' && (
+                    <div className="space-y-3">
+                      {selectedRegionStats.asuto.length === 0 ? (
+                        <p className="text-center text-on-surface-variant italic py-10">Aucune vente Asuto pour cette région.</p>
+                      ) : selectedRegionStats.asuto.map(a => (
+                        <div key={a.id} className="flex items-center gap-4 p-4 bg-surface-container-low rounded-2xl border border-outline-variant/20">
+                          <div className="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center font-bold flex-shrink-0">
+                            {a.nom?.[0]?.toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-on-surface">{a.nom} {a.prenoms}</p>
+                            <p className="text-xs text-on-surface-variant">{a.telephone}</p>
+                            {a.agent_name && (
+                              <span className="flex items-center gap-1 text-[10px] text-on-surface-variant mt-0.5">
+                                <span className="material-symbols-outlined text-xs">person</span>{a.agent_name}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <p className="font-bold text-secondary text-sm">{(a.quantite * 2500).toLocaleString()} FCFA</p>
+                            <p className="text-[10px] text-on-surface-variant">{a.quantite} unité{a.quantite > 1 ? 's' : ''}</p>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                              a.statut === 'Vérifié' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                            }`}>{a.statut}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center py-20 text-on-surface-variant">
+                <p>Erreur de chargement des données.</p>
+              </div>
+            )}
           </div>
         </div>
       )}

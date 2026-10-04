@@ -46,7 +46,7 @@ export default function AdminDashboard() {
     fetchStats(role, region);
   }, [router]);
 
-  const fetchStats = async (roleOverride, regionOverride) => {
+  async function fetchStats(roleOverride, regionOverride) {
     const role = roleOverride || userRole;
     const region = regionOverride || agentRegion;
     try {

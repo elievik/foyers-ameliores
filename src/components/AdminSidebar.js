@@ -45,6 +45,7 @@ export default function AdminSidebar() {
     { name: 'Bannières', icon: 'wallpaper', href: '/admin/banners', adminOnly: true },
     { name: 'Contact', icon: 'contact_support', href: '/admin/contact', adminOnly: true },
     { name: 'Rapports', icon: 'description', href: '/admin/reports' },
+    { name: 'Témoignages', icon: 'rate_review', href: '/admin/testimonials-agent', agentOnly: true },
     { name: 'Images Produits', icon: 'photo_library', href: '/admin/product-images', adminOnly: true },
     { name: 'Suivi Régional', icon: 'map', href: '/admin/data', adminOnly: true },
     { name: 'Commandes', icon: 'shopping_cart', href: '/admin/orders' },
@@ -53,7 +54,10 @@ export default function AdminSidebar() {
     { name: 'Paramètres', icon: 'settings', href: '/admin/settings' },
   ];
 
-  const menuItems = allMenuItems.filter(item => userRole === 'admin' || !item.adminOnly);
+  const menuItems = allMenuItems.filter(item => {
+    if (userRole === 'admin') return !item.agentOnly; // admins don't see agent-only pages
+    return !item.adminOnly; // agents don't see admin-only pages
+  });
 
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 bg-surface-container dark:bg-surface-container-high shadow-sm flex flex-col py-6 z-50">

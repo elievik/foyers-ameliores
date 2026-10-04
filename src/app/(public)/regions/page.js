@@ -13,23 +13,28 @@ export default function Regions() {
 
   const fetchHeroImage = async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/hero-images/regions`);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch(`${BACKEND_URL}/api/hero-images/regions`, { signal: controller.signal });
+      clearTimeout(timeout);
       if (res.ok) {
         setHeroImage(await res.json());
       }
     } catch (e) {
-      console.error('Error fetching hero image:', e);
+      // Serveur indisponible (spin-down Render) — on continue sans image hero
     }
   };
 
   const fetchRegions = async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/regions/`);
-      if (!res.ok) throw new Error('Failed to fetch regions');
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      const res = await fetch(`${BACKEND_URL}/api/regions/`, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setRegions(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Error fetching regions:', error);
       setRegions([]);
     } finally {
       setLoading(false);
