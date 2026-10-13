@@ -2,12 +2,24 @@
 
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+const InteractiveTogoMap = dynamic(() => import('@/components/InteractiveTogoMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full max-w-lg aspect-[4/5] bg-surface-container-low rounded-3xl p-8 flex flex-col items-center justify-center border border-outline-variant/30 animate-pulse text-on-surface-variant text-sm gap-2">
+      <span className="material-symbols-outlined text-4xl text-primary animate-spin">refresh</span>
+      <span>Chargement de la carte interactive du Togo...</span>
+    </div>
+  ),
+});
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://foyers-ameliores.onrender.com';
 
 export default function Regions() {
   const [searchQuery, setSearchQuery] = useState('');
   const [regions, setRegions] = useState([]);
+  const [offices, setOffices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [heroImage, setHeroImage] = useState(null);
 
@@ -22,6 +34,18 @@ export default function Regions() {
       }
     } catch (e) {
       // Serveur indisponible (spin-down Render) — on continue sans image hero
+    }
+  };
+
+  const fetchOffices = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/contact/regional-offices`);
+      if (res.ok) {
+        const data = await res.json();
+        setOffices(Array.isArray(data) ? data : []);
+      }
+    } catch (e) {
+      // Pas bloquant
     }
   };
 
@@ -43,6 +67,7 @@ export default function Regions() {
 
   useEffect(() => {
     fetchRegions();
+    fetchOffices();
     fetchHeroImage();
   }, []);
 
@@ -98,23 +123,14 @@ export default function Regions() {
           </div>
         </div>
         <div className="lg:col-span-5 flex justify-center">
-          <div className="relative w-full max-w-md aspect-[1/2] bg-surface-container-low rounded-3xl p-8 flex items-center justify-center">
-            <div className="w-full h-full relative">
-              <Image 
-                className="w-full h-full object-contain" 
-                alt="Carte du Togo" 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZGPvVUTiwjhWcNUjxFP4-OsWdfVyNPqc09AkNb8fbYqlZJXfnq3No3WgTm2ZDqAkFCzBoZyZ1oBVUNQvv2VUmNo6nd4kGxtxG_VWmxrRWVchm92gsxjqFJqP7-hxWmI3hVQkIhnFyrihSLfT2NUpjZbFeGEcIGfSafqJvJswYlWjSI6FjUSlOBxvjkDJGJ-HJ9_NhHXWFmHbrlP5AVSMR2dAFN6hu996W0YR4M7hz-TPwGQzGo6FQqxXdlfU1olK_NuMtgVW_XQ" 
-                fill
-                sizes="100vw"
-              />
-              <div className="absolute top-[10%] left-[50%] w-4 h-4 bg-secondary rounded-full animate-pulse"></div>
-              <div className="absolute top-[30%] left-[45%] w-4 h-4 bg-secondary rounded-full animate-pulse"></div>
-              <div className="absolute top-[50%] left-[55%] w-4 h-4 bg-secondary rounded-full animate-pulse"></div>
-              <div className="absolute top-[70%] left-[48%] w-4 h-4 bg-secondary rounded-full animate-pulse"></div>
-              <div className="absolute top-[90%] left-[52%] w-4 h-4 bg-secondary rounded-full animate-pulse"></div>
-            </div>
-          </div>
-            </div>
+          <InteractiveTogoMap
+            regions={safeRegions}
+            offices={offices}
+            onSelectRegion={(regName) => {
+              // Optionnel: peut synchroniser la sélection
+            }}
+          />
+        </div>
           </div>
         </div>
       </section>
@@ -124,7 +140,11 @@ export default function Regions() {
       {/* Region Cards Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredRegions.map((region) => (
-          <div key={region.id} className="group relative overflow-hidden rounded-3xl bg-surface-container-low border border-outline-variant/30 flex flex-col h-full shadow-sm hover:shadow-organic transition-all duration-300">
+          <div 
+            key={region.id} 
+            id={`region-card-${region.name.toLowerCase()}`}
+            className="group relative overflow-hidden rounded-3xl bg-surface-container-low border border-outline-variant/30 flex flex-col h-full shadow-sm hover:shadow-organic transition-all duration-300"
+          >
             <div className="h-48 overflow-hidden relative bg-surface-container flex items-center justify-center">
               {region.img_url ? (
                 <Image 

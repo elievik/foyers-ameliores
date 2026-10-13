@@ -8,5 +8,6 @@
         "~/.claude/skills": true,
         "~/.vscode/extensions/synapsevscode.synapse-1.24.0/copilot/skills": true,
         "~/.vscode/extensions/synapsevscode.synapse-1.25.0/copilot/skills": true
-    }
+    },
+    "python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/bin/python"
 }
