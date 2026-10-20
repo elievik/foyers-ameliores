@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import FormattedText from './FormattedText';
 import { compressImage } from '@/utils/imageCompression';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://foyers-ameliores.onrender.com';
+
 /**
  * Convertit un contenu markdown existant en HTML pour l'affichage WYSIWYG
  */
@@ -44,10 +46,18 @@ function markdownToHtml(content) {
 }
 
 export default function RichTextEditor({ value = '', onChange, placeholder = "Rédigez le contenu de votre article ici..." }) {
-  const [activeTab, setActiveTab] = useState('edit'); // 'edit' | 'preview' | 'code'
+  const [activeTab, setActiveTab] = useState('edit'); // 'edit' | 'preview'
   const editorRef = useRef(null);
   const isInternalChangeRef = useRef(false);
   const savedSelectionRef = useRef(null);
+
+  // --- Système d'historique Undo / Redo (Ctrl+Z / Ctrl+Y) ---
+  const undoStackRef = useRef([]);
+  const redoStackRef = useRef([]);
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+  const lastRecordedHtmlRef = useRef('');
+  const debounceTimerRef = useRef(null);
 
   // États pour les boutons actifs (gras, italique, etc.)
   const [activeFormats, setActiveFormats] = useState({
@@ -61,23 +71,105 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
     quote: false,
   });
 
-  // Link Modal State
+  // États des modales
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkText, setLinkText] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
 
-  // Single Image Modal State
   const [showImageModal, setShowImageModal] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [imageAlt, setImageAlt] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imageError, setImageError] = useState('');
 
-  // Carousel Modal State
   const [showCarouselModal, setShowCarouselModal] = useState(false);
   const [carouselItems, setCarouselItems] = useState([]);
   const [isUploadingCarousel, setIsUploadingCarousel] = useState(false);
+  const [carouselError, setCarouselError] = useState('');
 
-  // Mettre à jour l'état actif des commandes de mise en forme
+  // Initialisation de la référence initiale
+  useEffect(() => {
+    if (editorRef.current && !lastRecordedHtmlRef.current) {
+      lastRecordedHtmlRef.current = editorRef.current.innerHTML || '';
+    }
+  }, []);
+
+  // Enregistrer immédiatement un snapshot dans l'historique avant une modification
+  const recordSnapshotBeforeChange = () => {
+    if (editorRef.current) {
+      const current = editorRef.current.innerHTML;
+      if (current !== lastRecordedHtmlRef.current) {
+        undoStackRef.current = [...undoStackRef.current.slice(-40), lastRecordedHtmlRef.current];
+        redoStackRef.current = [];
+        lastRecordedHtmlRef.current = current;
+        setCanUndo(true);
+        setCanRedo(false);
+      }
+    }
+  };
+
+  // Annuler (Ctrl+Z)
+  const handleUndo = useCallback(() => {
+    if (undoStackRef.current.length === 0 || !editorRef.current) return;
+    const currentHtml = editorRef.current.innerHTML;
+    const previousHtml = undoStackRef.current.pop();
+
+    redoStackRef.current.push(currentHtml);
+    lastRecordedHtmlRef.current = previousHtml;
+
+    editorRef.current.innerHTML = previousHtml;
+    editorRef.current.focus();
+
+    isInternalChangeRef.current = true;
+    if (onChange) onChange(previousHtml);
+
+    setCanUndo(undoStackRef.current.length > 0);
+    setCanRedo(true);
+    updateActiveFormats();
+  }, [onChange]);
+
+  // Rétablir (Ctrl+Y / Ctrl+Shift+Z)
+  const handleRedo = useCallback(() => {
+    if (redoStackRef.current.length === 0 || !editorRef.current) return;
+    const currentHtml = editorRef.current.innerHTML;
+    const nextHtml = redoStackRef.current.pop();
+
+    undoStackRef.current.push(currentHtml);
+    lastRecordedHtmlRef.current = nextHtml;
+
+    editorRef.current.innerHTML = nextHtml;
+    editorRef.current.focus();
+
+    isInternalChangeRef.current = true;
+    if (onChange) onChange(nextHtml);
+
+    setCanUndo(true);
+    setCanRedo(redoStackRef.current.length > 0);
+    updateActiveFormats();
+  }, [onChange]);
+
+  // Interception clavier de Ctrl+Z, Cmd+Z, Ctrl+Y, Cmd+Shift+Z
+  const handleEditorKeyDown = (e) => {
+    const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+
+    if (isCtrlOrCmd) {
+      if (e.key === 'z' || e.key === 'Z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+        return;
+      } else if (e.key === 'y' || e.key === 'Y') {
+        e.preventDefault();
+        handleRedo();
+        return;
+      }
+    }
+  };
+
+  // Mettre à jour l'état actif des boutons
   const updateActiveFormats = useCallback(() => {
     if (typeof document === 'undefined') return;
     try {
@@ -99,24 +191,25 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
         quote: block.toLowerCase() === 'blockquote',
       });
     } catch (e) {
-      // Ignorer si la sélection n'est pas dans le document
+      // Ignorer
     }
   }, []);
 
-  // Synchronisation avec la valeur externe (sans écraser la frappe en cours)
+  // Synchronisation avec la valeur externe
   useEffect(() => {
     if (editorRef.current && activeTab === 'edit') {
       if (!isInternalChangeRef.current) {
         const targetHtml = markdownToHtml(value || '');
         if (editorRef.current.innerHTML !== targetHtml) {
           editorRef.current.innerHTML = targetHtml;
+          lastRecordedHtmlRef.current = targetHtml;
         }
       }
       isInternalChangeRef.current = false;
     }
   }, [value, activeTab]);
 
-  // Sauvegarder la sélection actuelle pour les modals (ex: lien)
+  // Sauvegarder la sélection actuelle
   const saveSelection = () => {
     if (typeof window === 'undefined') return;
     const sel = window.getSelection();
@@ -139,16 +232,30 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
     if (!editorRef.current) return;
     isInternalChangeRef.current = true;
     const currentHtml = editorRef.current.innerHTML;
+
     if (onChange) {
       onChange(currentHtml);
     }
     updateActiveFormats();
+
+    // Enregistrement périodique dans l'historique Undo (avec debounce de 450ms)
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      if (currentHtml !== lastRecordedHtmlRef.current) {
+        undoStackRef.current = [...undoStackRef.current.slice(-40), lastRecordedHtmlRef.current];
+        redoStackRef.current = [];
+        lastRecordedHtmlRef.current = currentHtml;
+        setCanUndo(true);
+        setCanRedo(false);
+      }
+    }, 450);
   };
 
-  // Exécution d'une commande WYSIWYG directe (gras, italique, etc.)
+  // Exécution d'une commande de mise en forme WYSIWYG
   const executeCommand = (command, val = null) => {
     if (!editorRef.current) return;
     editorRef.current.focus();
+    recordSnapshotBeforeChange();
 
     try {
       document.execCommand(command, false, val);
@@ -158,6 +265,26 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
 
     handleEditorInput();
     updateActiveFormats();
+  };
+
+  // --- Téléversement direct sur le serveur pour éviter les base64 énormes ---
+  const uploadImageToServer = async (file) => {
+    const compressed = await compressImage(file);
+    const formData = new FormData();
+    formData.append('file', compressed);
+
+    const res = await fetch(`${BACKEND_URL}/api/media/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || 'Erreur lors du téléversement vers le serveur');
+    }
+
+    const data = await res.json();
+    return data.url; // Retourne l'URL courte et permanente (ex: https://.../photo.jpg)
   };
 
   // --- Modal Lien ---
@@ -177,6 +304,7 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
     if (editorRef.current) {
       editorRef.current.focus();
       restoreSelection();
+      recordSnapshotBeforeChange();
 
       const text = linkText.trim() || linkUrl.trim();
       const linkHtml = `<a href="${linkUrl.trim()}" target="_blank" rel="noopener noreferrer" class="text-primary font-semibold underline">${text}</a>`;
@@ -184,7 +312,6 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
       try {
         document.execCommand('insertHTML', false, linkHtml);
       } catch (err) {
-        // Fallback
         document.execCommand('createLink', false, linkUrl.trim());
       }
 
@@ -196,53 +323,20 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
     setLinkUrl('');
   };
 
-  // --- Modal Image Simple ---
+  // --- Insertion d'image ---
   const handleOpenImageModal = () => {
     saveSelection();
     setImageUrl('');
     setImageAlt('');
+    setImageError('');
     setShowImageModal(true);
-  };
-
-  const handleSingleImageFileUpload = async (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
-    setIsUploadingImage(true);
-    try {
-      if (files.length === 1) {
-        const compressed = await compressImage(files[0]);
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          setImageUrl(event.target.result);
-          setIsUploadingImage(false);
-        };
-        reader.readAsDataURL(compressed);
-      } else {
-        const selectedFiles = files.slice(0, 5);
-        for (const file of selectedFiles) {
-          const compressed = await compressImage(file);
-          const dataUrl = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (ev) => resolve(ev.target.result);
-            reader.readAsDataURL(compressed);
-          });
-          const altName = file.name.replace(/\.[^/.]+$/, "");
-          insertImageHtml(dataUrl, altName);
-        }
-        setIsUploadingImage(false);
-        setShowImageModal(false);
-      }
-    } catch (err) {
-      console.error("Erreur compression d'image:", err);
-      setIsUploadingImage(false);
-    }
   };
 
   const insertImageHtml = (url, alt) => {
     if (!editorRef.current) return;
     editorRef.current.focus();
     restoreSelection();
+    recordSnapshotBeforeChange();
 
     const imgHtml = `
       <div class="my-4 rounded-2xl overflow-hidden border border-outline-variant/20 shadow-md bg-surface-container-low max-w-2xl">
@@ -259,6 +353,28 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
     handleEditorInput();
   };
 
+  const handleSingleImageFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setIsUploadingImage(true);
+    setImageError('');
+    try {
+      for (const file of files.slice(0, 5)) {
+        // Envoi au serveur pour obtenir une URL courte permanente
+        const serverUrl = await uploadImageToServer(file);
+        const altName = file.name.replace(/\.[^/.]+$/, "");
+        insertImageHtml(serverUrl, altName);
+      }
+      setIsUploadingImage(false);
+      setShowImageModal(false);
+    } catch (err) {
+      console.error("Erreur téléversement image:", err);
+      setImageError(err.message || 'Erreur lors de l\'envoi de l\'image au serveur');
+      setIsUploadingImage(false);
+    }
+  };
+
   const handleAddSingleImage = (e) => {
     e.preventDefault();
     if (!imageUrl) return;
@@ -272,6 +388,7 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
   const handleOpenCarouselModal = () => {
     saveSelection();
     setCarouselItems([]);
+    setCarouselError('');
     setShowCarouselModal(true);
   };
 
@@ -280,24 +397,22 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
     if (files.length === 0) return;
 
     setIsUploadingCarousel(true);
+    setCarouselError('');
     try {
       const newItems = [];
       for (const file of files) {
-        const compressed = await compressImage(file);
-        const dataUrl = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (ev) => resolve(ev.target.result);
-          reader.readAsDataURL(compressed);
-        });
+        // Envoi de chaque photo au serveur pour obtenir une URL courte
+        const serverUrl = await uploadImageToServer(file);
         newItems.push({
           id: Date.now() + Math.random().toString(36).substr(2, 9),
-          url: dataUrl,
+          url: serverUrl,
           alt: file.name.replace(/\.[^/.]+$/, "")
         });
       }
       setCarouselItems((prev) => [...prev, ...newItems]);
     } catch (err) {
       console.error("Erreur carrousel:", err);
+      setCarouselError(err.message || 'Erreur lors de l\'envoi des photos');
     } finally {
       setIsUploadingCarousel(false);
     }
@@ -317,14 +432,14 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
     if (editorRef.current) {
       editorRef.current.focus();
       restoreSelection();
+      recordSnapshotBeforeChange();
 
-      // Représentation visuelle du carrousel dans l'éditeur
       const previewHtml = `
         <div class="my-4 p-4 rounded-2xl border-2 border-primary/20 bg-primary/5 flex items-center gap-3">
           <span class="material-symbols-outlined text-2xl text-primary">view_carousel</span>
           <div>
             <p class="font-bold text-sm text-primary">Carrousel d'images (${validItems.length} photos)</p>
-            <p class="text-xs text-on-surface-variant">Visible sous forme de diaporama interactif sur la page publique</p>
+            <p class="text-xs text-on-surface-variant">Affiché sous forme de diaporama interactif sur le site</p>
           </div>
         </div>
         <!--carouselsource:${encodeURIComponent(carouselBlock)}-->
@@ -349,12 +464,50 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/20 bg-surface-container-high/40 p-2">
         {activeTab === 'edit' ? (
           <div className="flex flex-wrap items-center gap-1">
-            {/* BOUTON GRAS DIRECT (WYSIWYG - SANS ÉTOILES) */}
+            {/* BOUTON ANNULER (Ctrl+Z) */}
+            <button
+              type="button"
+              title="Annuler (Ctrl+Z / Cmd+Z)"
+              disabled={!canUndo}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleUndo();
+              }}
+              className={`p-2 rounded-lg transition-all flex items-center justify-center text-sm ${
+                canUndo
+                  ? 'text-on-surface hover:bg-surface-container-highest hover:text-primary cursor-pointer'
+                  : 'text-on-surface-variant/30 cursor-not-allowed'
+              }`}
+            >
+              <span className="material-symbols-outlined text-lg">undo</span>
+            </button>
+
+            {/* BOUTON RÉTABLIR (Ctrl+Y / Cmd+Shift+Z) */}
+            <button
+              type="button"
+              title="Rétablir (Ctrl+Y / Cmd+Shift+Z)"
+              disabled={!canRedo}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleRedo();
+              }}
+              className={`p-2 rounded-lg transition-all flex items-center justify-center text-sm ${
+                canRedo
+                  ? 'text-on-surface hover:bg-surface-container-highest hover:text-primary cursor-pointer'
+                  : 'text-on-surface-variant/30 cursor-not-allowed'
+              }`}
+            >
+              <span className="material-symbols-outlined text-lg">redo</span>
+            </button>
+
+            <div className="w-[1px] h-6 bg-outline-variant/30 mx-1" />
+
+            {/* BOUTON GRAS DIRECT */}
             <button
               type="button"
               title="Gras direct (Ctrl+B / Cmd+B)"
               onMouseDown={(e) => {
-                e.preventDefault(); // Empêche la perte de focus/sélection
+                e.preventDefault();
                 executeCommand('bold');
               }}
               className={`p-2 rounded-lg transition-all flex items-center justify-center font-bold text-sm ${
@@ -532,7 +685,7 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
           </div>
         )}
 
-        {/* Sélecteur de mode : Éditeur direct WYSIWYG / Aperçu */}
+        {/* Sélecteur de mode */}
         <div className="flex bg-surface-container rounded-lg p-0.5 text-xs font-medium ml-auto">
           <button
             type="button"
@@ -566,6 +719,7 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
           contentEditable
           suppressContentEditableWarning
           onInput={handleEditorInput}
+          onKeyDown={handleEditorKeyDown}
           onKeyUp={updateActiveFormats}
           onMouseUp={updateActiveFormats}
           className="wysiwyg-editor w-full bg-surface-container-lowest/50 p-4 text-on-surface focus:outline-none min-h-[240px] max-h-[600px] overflow-y-auto text-sm leading-relaxed"
@@ -666,7 +820,7 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
             <form onSubmit={handleAddSingleImage} className="space-y-4">
               <div>
                 <label className="block text-xs uppercase font-label-caps text-on-surface-variant mb-1">
-                  Téléverser depuis votre appareil
+                  Téléverser depuis votre appareil (stocké sur le serveur)
                 </label>
                 <input
                   type="file"
@@ -674,16 +828,22 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
                   multiple
                   onChange={handleSingleImageFileUpload}
                   disabled={isUploadingImage}
-                  className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2.5 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-container"
+                  className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2.5 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-container cursor-pointer"
                 />
                 {isUploadingImage && (
-                  <p className="text-xs text-secondary mt-1 animate-pulse">Compression et optimisation de l'image...</p>
+                  <div className="flex items-center gap-2 mt-2 text-xs text-primary font-medium animate-pulse">
+                    <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                    <span>Optimisation et téléversement sur le serveur...</span>
+                  </div>
+                )}
+                {imageError && (
+                  <p className="text-xs text-error mt-1.5">{imageError}</p>
                 )}
               </div>
 
               <div className="flex items-center gap-2 my-2">
                 <div className="h-[1px] bg-outline-variant/30 flex-grow"></div>
-                <span className="text-xs text-on-surface-variant uppercase font-label-caps">Ou via une URL</span>
+                <span className="text-xs text-on-surface-variant uppercase font-label-caps">Ou via une URL directe</span>
                 <div className="h-[1px] bg-outline-variant/30 flex-grow"></div>
               </div>
 
@@ -755,7 +915,7 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
             <div className="flex-grow overflow-y-auto space-y-4 pr-1">
               <div>
                 <label className="block text-xs uppercase font-label-caps text-on-surface-variant mb-1">
-                  Téléverser plusieurs photos (3 à 5 ou plus)
+                  Téléverser plusieurs photos (3 à 5 ou plus, stockées sur le serveur)
                 </label>
                 <input
                   type="file"
@@ -763,20 +923,26 @@ export default function RichTextEditor({ value = '', onChange, placeholder = "R�
                   multiple
                   onChange={handleCarouselFilesUpload}
                   disabled={isUploadingCarousel}
-                  className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2.5 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-container"
+                  className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2.5 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-container cursor-pointer"
                 />
                 {isUploadingCarousel && (
-                  <p className="text-xs text-secondary mt-1 animate-pulse">Compression des photos...</p>
+                  <div className="flex items-center gap-2 mt-2 text-xs text-primary font-medium animate-pulse">
+                    <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                    <span>Téléversement et optimisation des photos sur le serveur...</span>
+                  </div>
+                )}
+                {carouselError && (
+                  <p className="text-xs text-error mt-1.5">{carouselError}</p>
                 )}
               </div>
 
               {carouselItems.length > 0 && (
                 <div className="space-y-2 mt-4">
                   <p className="text-xs uppercase font-label-caps text-on-surface-variant">
-                    Photos sélectionnées ({carouselItems.length})
+                    Photos enregistrées ({carouselItems.length})
                   </p>
                   <div className="grid grid-cols-3 gap-2">
-                    {carouselItems.map((item, idx) => (
+                    {carouselItems.map((item) => (
                       <div key={item.id} className="relative rounded-lg overflow-hidden border border-outline-variant/30 aspect-square group">
                         <img src={item.url} alt={item.alt} className="w-full h-full object-cover" />
                         <button
