@@ -7,7 +7,7 @@ class NewsArticleBase(BaseModel):
     title: str
     slug: str
     content: str
-    region: str
+    region: Optional[str] = None
     author: str
     status: str = "Brouillon"
     image_url: Optional[str] = None

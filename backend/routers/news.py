@@ -42,7 +42,7 @@ def get_article_by_slug(slug: str, db: Session = Depends(get_db)):
 async def create_article(
     title: str = Form(...),
     content: str = Form(...),
-    region: str = Form(...),
+    region: Optional[str] = Form(None),
     author: str = Form(...),
     status: str = Form("Brouillon"),
     featured: int = Form(0),
@@ -59,11 +59,13 @@ async def create_article(
     if file:
         final_image_url = await upload_file_to_supabase(file)
     
+    cleaned_region = region.strip() if (region and region.strip()) else None
+
     db_article = models.NewsArticle(
         title=title,
         slug=slug,
         content=content,
-        region=region,
+        region=cleaned_region,
         author=author,
         status=status,
         featured=featured,
@@ -99,8 +101,8 @@ async def update_article(
         db_article.slug = generate_slug(title)
     if content:
         db_article.content = content
-    if region:
-        db_article.region = region
+    if region is not None:
+        db_article.region = region.strip() if region.strip() else None
     if author:
         db_article.author = author
     if status:

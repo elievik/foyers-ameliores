@@ -96,7 +96,7 @@ export default function News() {
             </div>
             <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
               <div className="flex items-center gap-4 mb-4">
-                <span className="font-label-caps text-label-caps text-secondary uppercase tracking-widest font-bold">{featuredArticle.region}</span>
+                <span className="font-label-caps text-label-caps text-secondary uppercase tracking-widest font-bold">{featuredArticle.region || 'National'}</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
                 <span className="font-label-caps text-label-caps text-on-surface-variant">
                   {new Date(featuredArticle.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -144,7 +144,7 @@ export default function News() {
               </div>
               <div className="p-6 flex flex-col flex-grow">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="font-label-caps text-label-caps text-secondary uppercase">{item.region}</span>
+                  <span className="font-label-caps text-label-caps text-secondary uppercase">{item.region || 'National'}</span>
                   <span className="font-label-caps text-label-caps text-outline">
                     {new Date(item.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
                   </span>

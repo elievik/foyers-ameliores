@@ -44,13 +44,15 @@ export default function AdminNews() {
   }, [router]);
   
   const [newsList, setNewsList] = useState([]);
+  const [regionsList, setRegionsList] = useState(['Maritime', 'Plateaux', 'Centrale', 'Kara', 'Savanes']);
   
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [newsRes, reportsRes] = await Promise.all([
+        const [newsRes, reportsRes, regionsRes] = await Promise.all([
           fetch(`${BACKEND_URL}/api/news/`),
-          fetch(`${BACKEND_URL}/api/reports/`)
+          fetch(`${BACKEND_URL}/api/reports/`),
+          fetch(`${BACKEND_URL}/api/regions/`).catch(() => null)
         ]);
         if (newsRes.ok) {
           const data = await newsRes.json();
@@ -59,6 +61,15 @@ export default function AdminNews() {
         if (reportsRes.ok) {
           const reportsData = await reportsRes.json();
           setReportsList(reportsData);
+        }
+        if (regionsRes && regionsRes.ok) {
+          const regionsData = await regionsRes.json();
+          if (Array.isArray(regionsData) && regionsData.length > 0) {
+            const names = regionsData.map(r => r.name || r).filter(Boolean);
+            if (names.length > 0) {
+              setRegionsList(Array.from(new Set([...names, 'Maritime', 'Plateaux', 'Centrale', 'Kara', 'Savanes'])));
+            }
+          }
         }
       } catch (error) {
         console.error('Erreur chargement:', error);
@@ -87,7 +98,7 @@ export default function AdminNews() {
     setNewsForm({
       title: item.title,
       content: item.content,
-      region: item.region,
+      region: item.region || '',
       author: item.author,
       status: item.status,
       featured: item.featured,
@@ -106,6 +117,10 @@ export default function AdminNews() {
         formData.append(key, value);
       }
     });
+    // Toujours garantir le champ region (même vide pour neutre)
+    if (!formData.has('region')) {
+      formData.append('region', newsForm.region || '');
+    }
     if (newsForm.file) {
       const compressedFile = await compressImage(newsForm.file);
       formData.append('file', compressedFile);
@@ -371,7 +386,13 @@ export default function AdminNews() {
                     <p className="text-xs text-on-surface-variant">Par {item.author}</p>
                   </td>
                   <td className="px-6 py-5">
-                    <span className="text-sm font-medium px-3 py-1 bg-surface-container rounded-full text-on-surface-variant">{item.region}</span>
+                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                      item.region && item.region.trim() !== ''
+                        ? 'bg-primary/10 text-primary'
+                        : 'bg-surface-container-high text-on-surface-variant/80'
+                    }`}>
+                      {item.region && item.region.trim() !== '' ? item.region : 'Neutre / National'}
+                    </span>
                   </td>
                   <td className="px-6 py-5 text-sm text-on-surface-variant">
                     {new Date(item.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -463,19 +484,19 @@ export default function AdminNews() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Région</label>
+                  <div className="flex justify-between items-center">
+                    <label className="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Région</label>
+                    <span className="text-[10px] text-on-surface-variant font-medium">(Optionnel • Neutre)</span>
+                  </div>
                   <select 
-                    required 
-                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all"
-                    value={newsForm.region}
+                    className="w-full bg-surface-container-low border-none rounded-lg p-3 focus:ring-2 focus:ring-primary transition-all text-sm"
+                    value={newsForm.region || ''}
                     onChange={(e) => setNewsForm({...newsForm, region: e.target.value})}
                   >
-                    <option value="">Sélectionner</option>
-                    <option value="Savanes">Savanes</option>
-                    <option value="Kara">Kara</option>
-                    <option value="Centrale">Centrale</option>
-                    <option value="Plateaux">Plateaux</option>
-                    <option value="Maritime">Maritime</option>
+                    <option value="">Neutre (Non spécifique / National)</option>
+                    {regionsList.map((reg) => (
+                      <option key={reg} value={reg}>{reg}</option>
+                    ))}
                   </select>
                 </div>
               </div>

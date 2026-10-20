@@ -8,7 +8,7 @@ class NewsArticle(Base):
     title = Column(String, index=True)
     slug = Column(String, index=True, unique=True)  # URL-friendly version of title
     content = Column(Text)
-    region = Column(String)
+    region = Column(String, nullable=True)
     date = Column(Date)
     author = Column(String)
     status = Column(String, default="Brouillon")  # Brouillon, Publié

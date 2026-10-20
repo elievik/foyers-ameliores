@@ -128,7 +128,7 @@ export default async function ArticleDetail({ params }) {
       {/* Article Header */}
       <header className="mb-12">
         <span className="inline-block bg-primary-container text-on-primary-container px-4 py-1 rounded-full font-label-caps text-label-caps mb-4 uppercase tracking-wider shadow-sm">
-          {article.region}
+          {article.region || 'National'}
         </span>
         <h1 className="font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-6 max-w-4xl leading-tight">
           {article.title}
@@ -209,7 +209,7 @@ export default async function ArticleDetail({ params }) {
                     })()}
                   </div>
                   <div className="p-6">
-                    <span className="font-label-caps text-label-caps text-secondary uppercase block mb-3">{item.region}</span>
+                    <span className="font-label-caps text-label-caps text-secondary uppercase block mb-3">{item.region || 'National'}</span>
                     <h4 className="font-headline-sm text-headline-sm text-primary mb-4 group-hover:text-primary/80 transition-colors">{item.title}</h4>
                     <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2">
                       {item.content?.replace(/<[^>]+>/g, ' ').replace(/[*_#`~]/g, '').trim()}
