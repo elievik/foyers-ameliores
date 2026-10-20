@@ -1,12 +1,66 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import FormattedText from './FormattedText';
 import { compressImage } from '@/utils/imageCompression';
 
-export default function RichTextEditor({ value, onChange, placeholder = "Contenu de l'article..." }) {
-  const [activeTab, setActiveTab] = useState('edit'); // 'edit' | 'preview'
-  
+/**
+ * Convertit un contenu markdown existant en HTML pour l'affichage WYSIWYG
+ */
+function markdownToHtml(content) {
+  if (!content) return '';
+  let html = content;
+
+  // Convertir le gras markdown: **texte** ou __texte__ -> <strong>texte</strong>
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+
+  // Convertir l'italique markdown: *texte* ou _texte_ -> <em>texte</em>
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+
+  // Convertir les liens markdown: [texte](url) -> <a href="url">texte</a>
+  html = html.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary font-semibold underline">$1</a>'
+  );
+
+  // Si c'est du markdown pur sans balises de paragraphe / div
+  if (!html.includes('<p>') && !html.includes('<div>') && !html.includes('<h2') && !html.includes('<h3')) {
+    const lines = html.split('\n');
+    const processedLines = lines.map(line => {
+      const trimmed = line.trim();
+      if (!trimmed) return '<br>';
+      if (trimmed.startsWith('## ')) return `<h2>${trimmed.slice(3)}</h2>`;
+      if (trimmed.startsWith('### ')) return `<h3>${trimmed.slice(4)}</h3>`;
+      if (trimmed.startsWith('> ')) return `<blockquote>${trimmed.slice(2)}</blockquote>`;
+      if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) return `<li>${trimmed.slice(2)}</li>`;
+      return `<p>${line}</p>`;
+    });
+    html = processedLines.join('');
+  }
+
+  return html;
+}
+
+export default function RichTextEditor({ value = '', onChange, placeholder = "Rédigez le contenu de votre article ici..." }) {
+  const [activeTab, setActiveTab] = useState('edit'); // 'edit' | 'preview' | 'code'
+  const editorRef = useRef(null);
+  const isInternalChangeRef = useRef(false);
+  const savedSelectionRef = useRef(null);
+
+  // États pour les boutons actifs (gras, italique, etc.)
+  const [activeFormats, setActiveFormats] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    h2: false,
+    h3: false,
+    ul: false,
+    ol: false,
+    quote: false,
+  });
+
   // Link Modal State
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkText, setLinkText] = useState('');
@@ -20,68 +74,98 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
 
   // Carousel Modal State
   const [showCarouselModal, setShowCarouselModal] = useState(false);
-  const [carouselItems, setCarouselItems] = useState([]); // [{ url, alt, id }]
+  const [carouselItems, setCarouselItems] = useState([]);
   const [isUploadingCarousel, setIsUploadingCarousel] = useState(false);
 
-  const textareaRef = useRef(null);
+  // Mettre à jour l'état actif des commandes de mise en forme
+  const updateActiveFormats = useCallback(() => {
+    if (typeof document === 'undefined') return;
+    try {
+      const isBold = document.queryCommandState('bold');
+      const isItalic = document.queryCommandState('italic');
+      const isUnderline = document.queryCommandState('underline');
+      const isUl = document.queryCommandState('insertUnorderedList');
+      const isOl = document.queryCommandState('insertOrderedList');
+      const block = document.queryCommandValue('formatBlock') || '';
 
-  const applyFormatting = (before, after = '', defaultText = '') => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+      setActiveFormats({
+        bold: isBold,
+        italic: isItalic,
+        underline: isUnderline,
+        h2: block.toLowerCase() === 'h2',
+        h3: block.toLowerCase() === 'h3',
+        ul: isUl,
+        ol: isOl,
+        quote: block.toLowerCase() === 'blockquote',
+      });
+    } catch (e) {
+      // Ignorer si la sélection n'est pas dans le document
+    }
+  }, []);
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = value.substring(start, end) || defaultText;
+  // Synchronisation avec la valeur externe (sans écraser la frappe en cours)
+  useEffect(() => {
+    if (editorRef.current && activeTab === 'edit') {
+      if (!isInternalChangeRef.current) {
+        const targetHtml = markdownToHtml(value || '');
+        if (editorRef.current.innerHTML !== targetHtml) {
+          editorRef.current.innerHTML = targetHtml;
+        }
+      }
+      isInternalChangeRef.current = false;
+    }
+  }, [value, activeTab]);
 
-    const newContent = 
-      value.substring(0, start) + 
-      before + selectedText + after + 
-      value.substring(end);
-
-    onChange(newContent);
-
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(
-        start + before.length,
-        start + before.length + selectedText.length
-      );
-    }, 50);
-  };
-
-  const insertTextAtCursor = (textToInsert) => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-
-      const newContent = 
-        value.substring(0, start) + 
-        textToInsert + 
-        value.substring(end);
-
-      onChange(newContent);
-
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + textToInsert.length, start + textToInsert.length);
-      }, 50);
-    } else {
-      onChange(value + '\n\n' + textToInsert);
+  // Sauvegarder la sélection actuelle pour les modals (ex: lien)
+  const saveSelection = () => {
+    if (typeof window === 'undefined') return;
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      savedSelectionRef.current = sel.getRangeAt(0).cloneRange();
     }
   };
 
-  // --- Link Handlers ---
+  const restoreSelection = () => {
+    if (typeof window === 'undefined' || !savedSelectionRef.current) return;
+    const sel = window.getSelection();
+    if (sel) {
+      sel.removeAllRanges();
+      sel.addRange(savedSelectionRef.current);
+    }
+  };
+
+  // Gestionnaire de frappe dans l'éditeur
+  const handleEditorInput = () => {
+    if (!editorRef.current) return;
+    isInternalChangeRef.current = true;
+    const currentHtml = editorRef.current.innerHTML;
+    if (onChange) {
+      onChange(currentHtml);
+    }
+    updateActiveFormats();
+  };
+
+  // Exécution d'une commande WYSIWYG directe (gras, italique, etc.)
+  const executeCommand = (command, val = null) => {
+    if (!editorRef.current) return;
+    editorRef.current.focus();
+
+    try {
+      document.execCommand(command, false, val);
+    } catch (err) {
+      console.warn('execCommand failed:', err);
+    }
+
+    handleEditorInput();
+    updateActiveFormats();
+  };
+
+  // --- Modal Lien ---
   const handleOpenLinkModal = () => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const selected = value.substring(start, end);
-      setLinkText(selected);
-    } else {
-      setLinkText('');
-    }
+    saveSelection();
+    const sel = window.getSelection();
+    const selectedText = sel ? sel.toString() : '';
+    setLinkText(selectedText);
     setLinkUrl('');
     setShowLinkModal(true);
   };
@@ -90,17 +174,31 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
     e.preventDefault();
     if (!linkUrl) return;
 
-    const textToInsert = linkText.trim() || linkUrl;
-    const markdownLink = `[${textToInsert}](${linkUrl})`;
-    insertTextAtCursor(markdownLink);
+    if (editorRef.current) {
+      editorRef.current.focus();
+      restoreSelection();
+
+      const text = linkText.trim() || linkUrl.trim();
+      const linkHtml = `<a href="${linkUrl.trim()}" target="_blank" rel="noopener noreferrer" class="text-primary font-semibold underline">${text}</a>`;
+      
+      try {
+        document.execCommand('insertHTML', false, linkHtml);
+      } catch (err) {
+        // Fallback
+        document.execCommand('createLink', false, linkUrl.trim());
+      }
+
+      handleEditorInput();
+    }
 
     setShowLinkModal(false);
     setLinkText('');
     setLinkUrl('');
   };
 
-  // --- Single Image Handlers ---
+  // --- Modal Image Simple ---
   const handleOpenImageModal = () => {
+    saveSelection();
     setImageUrl('');
     setImageAlt('');
     setShowImageModal(true);
@@ -121,10 +219,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
         };
         reader.readAsDataURL(compressed);
       } else {
-        // Envoi multiple (3 à 5 images ou plus)
-        const selectedFiles = files.slice(0, 5); // Limite à 5 images max
-        const markdownImages = [];
-
+        const selectedFiles = files.slice(0, 5);
         for (const file of selectedFiles) {
           const compressed = await compressImage(file);
           const dataUrl = await new Promise((resolve) => {
@@ -133,15 +228,10 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
             reader.readAsDataURL(compressed);
           });
           const altName = file.name.replace(/\.[^/.]+$/, "");
-          markdownImages.push(`![${altName}](${dataUrl})`);
+          insertImageHtml(dataUrl, altName);
         }
-
-        const formattedMarkdown = `\n\n${markdownImages.join('\n\n')}\n\n`;
-        insertTextAtCursor(formattedMarkdown);
         setIsUploadingImage(false);
         setShowImageModal(false);
-        setImageUrl('');
-        setImageAlt('');
       }
     } catch (err) {
       console.error("Erreur compression d'image:", err);
@@ -149,22 +239,39 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
     }
   };
 
+  const insertImageHtml = (url, alt) => {
+    if (!editorRef.current) return;
+    editorRef.current.focus();
+    restoreSelection();
+
+    const imgHtml = `
+      <div class="my-4 rounded-2xl overflow-hidden border border-outline-variant/20 shadow-md bg-surface-container-low max-w-2xl">
+        <img src="${url}" alt="${alt || 'Image d\'article'}" class="w-full h-auto max-h-[480px] object-cover" />
+        ${alt ? `<p class="p-2.5 text-center text-xs text-on-surface-variant italic bg-surface-container-high/40 border-t border-outline-variant/15">${alt}</p>` : ''}
+      </div><p><br></p>
+    `;
+
+    try {
+      document.execCommand('insertHTML', false, imgHtml);
+    } catch (e) {
+      editorRef.current.innerHTML += imgHtml;
+    }
+    handleEditorInput();
+  };
+
   const handleAddSingleImage = (e) => {
     e.preventDefault();
     if (!imageUrl) return;
-
-    const markdownImg = `\n\n![${imageAlt.trim()}](${imageUrl.trim()})\n\n`;
-    insertTextAtCursor(markdownImg);
-
+    insertImageHtml(imageUrl.trim(), imageAlt.trim());
     setShowImageModal(false);
     setImageUrl('');
     setImageAlt('');
   };
 
-  // --- Carousel Handlers ---
+  // --- Modal Carrousel ---
   const handleOpenCarouselModal = () => {
+    saveSelection();
     setCarouselItems([]);
-    setShowCarouselModal(false);
     setShowCarouselModal(true);
   };
 
@@ -185,46 +292,15 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
         newItems.push({
           id: Date.now() + Math.random().toString(36).substr(2, 9),
           url: dataUrl,
-          alt: file.name.replace(/\.[^/.]+$/, "") // default caption to file name without extension
+          alt: file.name.replace(/\.[^/.]+$/, "")
         });
       }
       setCarouselItems((prev) => [...prev, ...newItems]);
     } catch (err) {
-      console.error("Erreur ajout d'images carrousel:", err);
+      console.error("Erreur carrousel:", err);
     } finally {
       setIsUploadingCarousel(false);
     }
-  };
-
-  const handleAddCarouselUrl = () => {
-    setCarouselItems((prev) => [
-      ...prev,
-      {
-        id: Date.now() + Math.random().toString(36).substr(2, 9),
-        url: '',
-        alt: ''
-      }
-    ]);
-  };
-
-  const handleUpdateCarouselItem = (id, field, value) => {
-    setCarouselItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
-    );
-  };
-
-  const handleRemoveCarouselItem = (id) => {
-    setCarouselItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const handleMoveCarouselItem = (index, direction) => {
-    const newItems = [...carouselItems];
-    const targetIndex = index + direction;
-    if (targetIndex < 0 || targetIndex >= newItems.length) return;
-    const temp = newItems[index];
-    newItems[index] = newItems[targetIndex];
-    newItems[targetIndex] = temp;
-    setCarouselItems(newItems);
   };
 
   const handleInsertCarousel = (e) => {
@@ -232,58 +308,131 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
     const validItems = carouselItems.filter((item) => item.url.trim() !== '');
     if (validItems.length === 0) return;
 
-    let markdownCarousel = `\n\n:::carousel\n`;
+    let carouselBlock = `\n\n:::carousel\n`;
     validItems.forEach((item) => {
-      markdownCarousel += `![${item.alt.trim()}](${item.url.trim()})\n`;
+      carouselBlock += `![${item.alt.trim()}](${item.url.trim()})\n`;
     });
-    markdownCarousel += `:::\n\n`;
+    carouselBlock += `:::\n\n`;
 
-    insertTextAtCursor(markdownCarousel);
+    if (editorRef.current) {
+      editorRef.current.focus();
+      restoreSelection();
+
+      // Représentation visuelle du carrousel dans l'éditeur
+      const previewHtml = `
+        <div class="my-4 p-4 rounded-2xl border-2 border-primary/20 bg-primary/5 flex items-center gap-3">
+          <span class="material-symbols-outlined text-2xl text-primary">view_carousel</span>
+          <div>
+            <p class="font-bold text-sm text-primary">Carrousel d'images (${validItems.length} photos)</p>
+            <p class="text-xs text-on-surface-variant">Visible sous forme de diaporama interactif sur la page publique</p>
+          </div>
+        </div>
+        <!--carouselsource:${encodeURIComponent(carouselBlock)}-->
+        <p><br></p>
+      `;
+
+      try {
+        document.execCommand('insertHTML', false, previewHtml);
+      } catch (err) {
+        editorRef.current.innerHTML += previewHtml;
+      }
+      handleEditorInput();
+    }
+
     setShowCarouselModal(false);
     setCarouselItems([]);
   };
 
   return (
-    <div className="border border-outline-variant/30 rounded-2xl overflow-hidden bg-surface-container-low transition-all">
-      {/* Header Tabs & Toolbar */}
+    <div className="border border-outline-variant/30 rounded-2xl overflow-hidden bg-surface-container-low transition-all shadow-sm">
+      {/* Barre d'outils WYSIWYG */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/20 bg-surface-container-high/40 p-2">
-        {/* Toolbar items */}
         {activeTab === 'edit' ? (
           <div className="flex flex-wrap items-center gap-1">
+            {/* BOUTON GRAS DIRECT (WYSIWYG - SANS ÉTOILES) */}
             <button
               type="button"
-              title="Gras (**texte**)"
-              onClick={() => applyFormatting('**', '**', 'texte en gras')}
-              className="p-2 hover:bg-surface-container-highest rounded-lg text-on-surface hover:text-primary transition-colors flex items-center justify-center font-bold text-sm"
+              title="Gras direct (Ctrl+B / Cmd+B)"
+              onMouseDown={(e) => {
+                e.preventDefault(); // Empêche la perte de focus/sélection
+                executeCommand('bold');
+              }}
+              className={`p-2 rounded-lg transition-all flex items-center justify-center font-bold text-sm ${
+                activeFormats.bold
+                  ? 'bg-primary text-white shadow-sm ring-2 ring-primary/30'
+                  : 'text-on-surface hover:bg-surface-container-highest hover:text-primary'
+              }`}
             >
               <span className="material-symbols-outlined text-lg">format_bold</span>
             </button>
+
+            {/* BOUTON ITALIQUE DIRECT */}
             <button
               type="button"
-              title="Italique (*texte*)"
-              onClick={() => applyFormatting('*', '*', 'texte en italique')}
-              className="p-2 hover:bg-surface-container-highest rounded-lg text-on-surface hover:text-primary transition-colors flex items-center justify-center italic text-sm"
+              title="Italique direct (Ctrl+I / Cmd+I)"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                executeCommand('italic');
+              }}
+              className={`p-2 rounded-lg transition-all flex items-center justify-center italic text-sm ${
+                activeFormats.italic
+                  ? 'bg-primary text-white shadow-sm ring-2 ring-primary/30'
+                  : 'text-on-surface hover:bg-surface-container-highest hover:text-primary'
+              }`}
             >
               <span className="material-symbols-outlined text-lg">format_italic</span>
             </button>
-            
-            <div className="w-[1px] h-6 bg-outline-variant/30 mx-1" />
 
+            {/* BOUTON SOULIGNÉ */}
             <button
               type="button"
-              title="Titre de section (H2)"
-              onClick={() => applyFormatting('\n## ', '', 'Titre de section')}
-              className="p-2 hover:bg-surface-container-highest rounded-lg text-on-surface hover:text-primary transition-colors font-semibold text-xs flex items-center gap-0.5"
+              title="Souligné (Ctrl+U)"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                executeCommand('underline');
+              }}
+              className={`p-2 rounded-lg transition-all flex items-center justify-center text-sm ${
+                activeFormats.underline
+                  ? 'bg-primary text-white shadow-sm ring-2 ring-primary/30'
+                  : 'text-on-surface hover:bg-surface-container-highest hover:text-primary'
+              }`}
+            >
+              <span className="material-symbols-outlined text-lg">format_underlined</span>
+            </button>
+
+            <div className="w-[1px] h-6 bg-outline-variant/30 mx-1" />
+
+            {/* Titre H2 */}
+            <button
+              type="button"
+              title="Grand Titre de section"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                executeCommand('formatBlock', activeFormats.h2 ? '<p>' : '<h2>');
+              }}
+              className={`p-2 rounded-lg transition-all text-xs font-semibold flex items-center gap-0.5 ${
+                activeFormats.h2
+                  ? 'bg-primary text-white shadow-sm ring-2 ring-primary/30'
+                  : 'text-on-surface hover:bg-surface-container-highest hover:text-primary'
+              }`}
             >
               <span className="material-symbols-outlined text-lg">title</span>
               <span>2</span>
             </button>
 
+            {/* Sous-titre H3 */}
             <button
               type="button"
-              title="Sous-titre (H3)"
-              onClick={() => applyFormatting('\n### ', '', 'Sous-titre')}
-              className="p-2 hover:bg-surface-container-highest rounded-lg text-on-surface hover:text-primary transition-colors font-medium text-xs flex items-center gap-0.5"
+              title="Sous-titre"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                executeCommand('formatBlock', activeFormats.h3 ? '<p>' : '<h3>');
+              }}
+              className={`p-2 rounded-lg transition-all text-xs font-semibold flex items-center gap-0.5 ${
+                activeFormats.h3
+                  ? 'bg-primary text-white shadow-sm ring-2 ring-primary/30'
+                  : 'text-on-surface hover:bg-surface-container-highest hover:text-primary'
+              }`}
             >
               <span className="material-symbols-outlined text-lg">title</span>
               <span>3</span>
@@ -291,15 +440,17 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
 
             <div className="w-[1px] h-6 bg-outline-variant/30 mx-1" />
 
+            {/* Insérer un lien */}
             <button
               type="button"
-              title="Ajouter un lien"
+              title="Insérer un lien"
               onClick={handleOpenLinkModal}
               className="p-2 hover:bg-surface-container-highest rounded-lg text-on-surface hover:text-primary transition-colors flex items-center justify-center"
             >
               <span className="material-symbols-outlined text-lg">link</span>
             </button>
 
+            {/* Insérer une image */}
             <button
               type="button"
               title="Insérer une image dans le texte"
@@ -310,9 +461,10 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
               <span className="hidden sm:inline">Image</span>
             </button>
 
+            {/* Insérer un carrousel */}
             <button
               type="button"
-              title="Insérer un carrousel d'images dans le texte"
+              title="Insérer un carrousel d'images"
               onClick={handleOpenCarouselModal}
               className="p-2 hover:bg-surface-container-highest rounded-lg text-on-surface hover:text-primary transition-colors flex items-center justify-center gap-1 text-xs font-medium bg-primary/10 text-primary"
             >
@@ -322,42 +474,65 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
 
             <div className="w-[1px] h-6 bg-outline-variant/30 mx-1" />
 
+            {/* Liste à puces */}
             <button
               type="button"
               title="Liste à puces"
-              onClick={() => applyFormatting('\n- ', '', 'Élément de liste')}
-              className="p-2 hover:bg-surface-container-highest rounded-lg text-on-surface hover:text-primary transition-colors flex items-center justify-center"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                executeCommand('insertUnorderedList');
+              }}
+              className={`p-2 rounded-lg transition-all flex items-center justify-center ${
+                activeFormats.ul
+                  ? 'bg-primary text-white shadow-sm ring-2 ring-primary/30'
+                  : 'text-on-surface hover:bg-surface-container-highest hover:text-primary'
+              }`}
             >
               <span className="material-symbols-outlined text-lg">format_list_bulleted</span>
             </button>
 
+            {/* Liste numérotée */}
             <button
               type="button"
               title="Liste numérotée"
-              onClick={() => applyFormatting('\n1. ', '', 'Premier élément')}
-              className="p-2 hover:bg-surface-container-highest rounded-lg text-on-surface hover:text-primary transition-colors flex items-center justify-center"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                executeCommand('insertOrderedList');
+              }}
+              className={`p-2 rounded-lg transition-all flex items-center justify-center ${
+                activeFormats.ol
+                  ? 'bg-primary text-white shadow-sm ring-2 ring-primary/30'
+                  : 'text-on-surface hover:bg-surface-container-highest hover:text-primary'
+              }`}
             >
               <span className="material-symbols-outlined text-lg">format_list_numbered</span>
             </button>
 
-            <div className="w-[1px] h-6 bg-outline-variant/30 mx-1" />
-
+            {/* Citation */}
             <button
               type="button"
               title="Citation"
-              onClick={() => applyFormatting('\n> ', '', 'Texte en citation')}
-              className="p-2 hover:bg-surface-container-highest rounded-lg text-on-surface hover:text-primary transition-colors flex items-center justify-center"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                executeCommand('formatBlock', activeFormats.quote ? '<p>' : '<blockquote>');
+              }}
+              className={`p-2 rounded-lg transition-all flex items-center justify-center ${
+                activeFormats.quote
+                  ? 'bg-primary text-white shadow-sm ring-2 ring-primary/30'
+                  : 'text-on-surface hover:bg-surface-container-highest hover:text-primary'
+              }`}
             >
               <span className="material-symbols-outlined text-lg">format_quote</span>
             </button>
           </div>
         ) : (
-          <div className="text-xs font-label-caps text-on-surface-variant px-2">
-            Aperçu en temps réel
+          <div className="text-xs font-label-caps text-on-surface-variant px-2 flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-sm text-primary">visibility</span>
+            <span>Aperçu en direct (rendu public)</span>
           </div>
         )}
 
-        {/* View mode switcher */}
+        {/* Sélecteur de mode : Éditeur direct WYSIWYG / Aperçu */}
         <div className="flex bg-surface-container rounded-lg p-0.5 text-xs font-medium ml-auto">
           <button
             type="button"
@@ -384,19 +559,21 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
         </div>
       </div>
 
-      {/* Editor or Preview view */}
+      {/* Zone de saisie principale */}
       {activeTab === 'edit' ? (
-        <textarea
-          ref={textareaRef}
-          required
-          rows={10}
-          className="w-full bg-transparent border-none p-4 text-on-surface focus:outline-none focus:ring-0 resize-y min-h-[220px] font-mono text-sm leading-relaxed"
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+        <div
+          ref={editorRef}
+          contentEditable
+          suppressContentEditableWarning
+          onInput={handleEditorInput}
+          onKeyUp={updateActiveFormats}
+          onMouseUp={updateActiveFormats}
+          className="wysiwyg-editor w-full bg-surface-container-lowest/50 p-4 text-on-surface focus:outline-none min-h-[240px] max-h-[600px] overflow-y-auto text-sm leading-relaxed"
+          data-placeholder={placeholder}
+          style={{ minHeight: '220px' }}
         />
       ) : (
-        <div className="p-5 min-h-[220px] max-h-[550px] overflow-y-auto bg-white/60">
+        <div className="p-5 min-h-[220px] max-h-[600px] overflow-y-auto bg-white/70">
           {value ? (
             <FormattedText content={value} />
           ) : (
@@ -422,23 +599,17 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            <div className="space-y-4">
+            <form onSubmit={handleAddLink} className="space-y-4">
               <div>
                 <label className="block text-xs uppercase font-label-caps text-on-surface-variant mb-1">
                   Texte du lien (libellé)
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Cliquez ici ou Consulter la fiche"
+                  placeholder="Ex: En savoir plus"
                   className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
                   value={linkText}
                   onChange={(e) => setLinkText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddLink(e);
-                    }
-                  }}
                 />
               </div>
               <div>
@@ -448,47 +619,40 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
                 <input
                   type="url"
                   required
-                  placeholder="https://exemple.com"
+                  placeholder="https://example.com"
                   className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddLink(e);
-                    }
-                  }}
                 />
               </div>
-              <div className="flex gap-3 pt-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowLinkModal(false)}
-                  className="flex-1 py-2 rounded-xl text-sm font-button bg-surface-container text-on-surface"
+                  className="px-4 py-2 border border-outline-variant/30 text-on-surface text-sm rounded-lg hover:bg-surface-container transition-colors"
                 >
                   Annuler
                 </button>
                 <button
-                  type="button"
-                  onClick={handleAddLink}
-                  className="flex-1 py-2 rounded-xl text-sm font-button bg-primary text-white hover:brightness-110"
+                  type="submit"
+                  className="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-container transition-colors"
                 >
                   Insérer le lien
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Modal d'insertion d'une image unique */}
+      {/* Modal d'insertion d'image simple */}
       {showImageModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-outline-variant/20 animate-in fade-in zoom-in duration-150">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl border border-outline-variant/20 animate-in fade-in zoom-in duration-150">
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-headline-sm text-headline-sm text-primary flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">image</span>
-                Insérer une Image dans le texte
+                Insérer une image dans l'article
               </h4>
               <button
                 type="button"
@@ -498,93 +662,87 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            <div className="space-y-4">
+
+            <form onSubmit={handleAddSingleImage} className="space-y-4">
               <div>
                 <label className="block text-xs uppercase font-label-caps text-on-surface-variant mb-1">
-                  Téléverser des images (1 à 5 images)
+                  Téléverser depuis votre appareil
                 </label>
                 <input
                   type="file"
-                  multiple
                   accept="image/*"
+                  multiple
                   onChange={handleSingleImageFileUpload}
-                  className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2 text-xs focus:ring-2 focus:ring-primary focus:outline-none"
+                  disabled={isUploadingImage}
+                  className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2.5 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-container"
                 />
                 {isUploadingImage && (
-                  <p className="text-xs text-primary mt-1 animate-pulse">Compression et traitement des images en cours...</p>
+                  <p className="text-xs text-secondary mt-1 animate-pulse">Compression et optimisation de l'image...</p>
                 )}
               </div>
 
-              <div className="text-center text-xs font-bold text-on-surface-variant/60 uppercase">OU</div>
+              <div className="flex items-center gap-2 my-2">
+                <div className="h-[1px] bg-outline-variant/30 flex-grow"></div>
+                <span className="text-xs text-on-surface-variant uppercase font-label-caps">Ou via une URL</span>
+                <div className="h-[1px] bg-outline-variant/30 flex-grow"></div>
+              </div>
 
               <div>
                 <label className="block text-xs uppercase font-label-caps text-on-surface-variant mb-1">
-                  URL de l'image *
+                  Adresse URL de l'image
                 </label>
                 <input
                   type="url"
-                  placeholder="https://exemple.com/image.jpg"
+                  placeholder="https://example.com/photo.jpg"
                   className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                 />
               </div>
 
-              {imageUrl && (
-                <div className="h-32 rounded-lg overflow-hidden border border-outline-variant/20 bg-black/5 flex items-center justify-center relative">
-                  <img src={imageUrl} alt="Aperçu" className="w-full h-full object-cover" />
-                </div>
-              )}
-
               <div>
                 <label className="block text-xs uppercase font-label-caps text-on-surface-variant mb-1">
-                  Légende / Description de l'image (optionnel)
+                  Légende / Texte alternatif (optionnel)
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Distribution des foyers à Kara..."
+                  placeholder="Ex: Distribution des foyers à Kara"
                   className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
                   value={imageAlt}
                   onChange={(e) => setImageAlt(e.target.value)}
                 />
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowImageModal(false)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-button bg-surface-container text-on-surface"
+                  className="px-4 py-2 border border-outline-variant/30 text-on-surface text-sm rounded-lg hover:bg-surface-container transition-colors"
                 >
                   Annuler
                 </button>
                 <button
-                  type="button"
+                  type="submit"
                   disabled={!imageUrl || isUploadingImage}
-                  onClick={handleAddSingleImage}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-button bg-primary text-white hover:brightness-110 disabled:opacity-50"
+                  className="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-container disabled:opacity-50 transition-colors"
                 >
                   Insérer l'image
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Modal d'insertion d'un Carrousel Multi-Images */}
+      {/* Modal d'insertion de carrousel */}
       {showCarouselModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-2xl shadow-2xl border border-outline-variant/20 max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-150">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-outline-variant/20">
-              <div>
-                <h4 className="font-headline-sm text-headline-sm text-primary flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">view_carousel</span>
-                  Créer un Carrousel d'Images
-                </h4>
-                <p className="text-xs text-on-surface-variant mt-0.5">
-                  Ajoutez plusieurs images qui défileront sous forme de galerie interactive dans le texte.
-                </p>
-              </div>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-xl shadow-2xl border border-outline-variant/20 animate-in fade-in zoom-in duration-150 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-headline-sm text-headline-sm text-primary flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">view_carousel</span>
+                Créer un carrousel de photos
+              </h4>
               <button
                 type="button"
                 onClick={() => setShowCarouselModal(false)}
@@ -594,141 +752,62 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
               </button>
             </div>
 
-            {/* Content area: Upload options & image list */}
-            <div className="space-y-4 overflow-y-auto flex-1 pr-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-primary/30 rounded-2xl hover:bg-primary/5 cursor-pointer transition-colors text-center group">
-                  <span className="material-symbols-outlined text-3xl text-primary mb-1 group-hover:scale-110 transition-transform">add_photo_alternate</span>
-                  <span className="text-xs font-semibold text-primary">Téléverser plusieurs fichiers</span>
-                  <span className="text-[10px] text-on-surface-variant">Sélectionnez une ou plusieurs images</span>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleCarouselFilesUpload}
-                    className="hidden"
-                  />
+            <div className="flex-grow overflow-y-auto space-y-4 pr-1">
+              <div>
+                <label className="block text-xs uppercase font-label-caps text-on-surface-variant mb-1">
+                  Téléverser plusieurs photos (3 à 5 ou plus)
                 </label>
-
-                <button
-                  type="button"
-                  onClick={handleAddCarouselUrl}
-                  className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-outline-variant/40 rounded-2xl hover:bg-surface-container-high cursor-pointer transition-colors text-center group"
-                >
-                  <span className="material-symbols-outlined text-3xl text-on-surface-variant mb-1 group-hover:scale-110 transition-transform">link</span>
-                  <span className="text-xs font-semibold text-on-surface">Ajouter une URL d'image</span>
-                  <span className="text-[10px] text-on-surface-variant">Saisir le lien vers l'image</span>
-                </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleCarouselFilesUpload}
+                  disabled={isUploadingCarousel}
+                  className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2.5 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-container"
+                />
+                {isUploadingCarousel && (
+                  <p className="text-xs text-secondary mt-1 animate-pulse">Compression des photos...</p>
+                )}
               </div>
 
-              {isUploadingCarousel && (
-                <div className="p-3 bg-primary/10 rounded-xl text-xs text-primary font-medium text-center animate-pulse flex items-center justify-center gap-2">
-                  <span className="material-symbols-outlined text-base animate-spin">progress_activity</span>
-                  Compression et préparation des images...
-                </div>
-              )}
-
-              {/* Items List */}
-              {carouselItems.length > 0 ? (
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-center justify-between text-xs font-label-caps text-on-surface-variant uppercase px-1">
-                    <span>Images ajoutées ({carouselItems.length})</span>
-                    <span>Reordonner / Légendes</span>
+              {carouselItems.length > 0 && (
+                <div className="space-y-2 mt-4">
+                  <p className="text-xs uppercase font-label-caps text-on-surface-variant">
+                    Photos sélectionnées ({carouselItems.length})
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {carouselItems.map((item, idx) => (
+                      <div key={item.id} className="relative rounded-lg overflow-hidden border border-outline-variant/30 aspect-square group">
+                        <img src={item.url} alt={item.alt} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setCarouselItems(prev => prev.filter(i => i.id !== item.id))}
+                          className="absolute top-1 right-1 bg-black/60 hover:bg-error text-white p-1 rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <span className="material-symbols-outlined text-sm">close</span>
+                        </button>
+                      </div>
+                    ))}
                   </div>
-
-                  {carouselItems.map((item, idx) => (
-                    <div
-                      key={item.id}
-                      className="p-3 rounded-2xl border border-outline-variant/30 bg-surface-container-low flex flex-col sm:flex-row items-center gap-3 shadow-xs transition-all hover:border-primary/40"
-                    >
-                      {/* Image Thumbnail / Input */}
-                      <div className="w-full sm:w-24 h-20 rounded-xl overflow-hidden bg-black/5 shrink-0 border border-outline-variant/20 flex items-center justify-center relative group">
-                        {item.url ? (
-                          <img src={item.url} alt={`Visual ${idx + 1}`} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="material-symbols-outlined text-on-surface-variant/40">image</span>
-                        )}
-                        <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                          #{idx + 1}
-                        </span>
-                      </div>
-
-                      {/* Inputs */}
-                      <div className="flex-1 w-full space-y-2">
-                        <input
-                          type="url"
-                          placeholder="URL de l'image (https://...)"
-                          value={item.url}
-                          onChange={(e) => handleUpdateCarouselItem(item.id, 'url', e.target.value)}
-                          className="w-full bg-white border border-outline-variant/30 rounded-lg p-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Légende / Description (ex: Vue du projet 1)..."
-                          value={item.alt}
-                          onChange={(e) => handleUpdateCarouselItem(item.id, 'alt', e.target.value)}
-                          className="w-full bg-white border border-outline-variant/30 rounded-lg p-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
-                        />
-                      </div>
-
-                      {/* Controls */}
-                      <div className="flex sm:flex-col items-center gap-1 shrink-0 ml-auto">
-                        <button
-                          type="button"
-                          disabled={idx === 0}
-                          onClick={() => handleMoveCarouselItem(idx, -1)}
-                          className="p-1 hover:bg-surface-container-high rounded text-on-surface-variant disabled:opacity-30"
-                          title="Déplacer vers le haut"
-                        >
-                          <span className="material-symbols-outlined text-base">arrow_upward</span>
-                        </button>
-                        <button
-                          type="button"
-                          disabled={idx === carouselItems.length - 1}
-                          onClick={() => handleMoveCarouselItem(idx, 1)}
-                          className="p-1 hover:bg-surface-container-high rounded text-on-surface-variant disabled:opacity-30"
-                          title="Déplacer vers le bas"
-                        >
-                          <span className="material-symbols-outlined text-base">arrow_downward</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveCarouselItem(item.id)}
-                          className="p-1 hover:bg-error/10 text-error rounded transition-colors"
-                          title="Supprimer cette image"
-                        >
-                          <span className="material-symbols-outlined text-base">delete</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-8 text-center bg-surface-container-low/50 rounded-2xl border border-dashed border-outline-variant/30 text-on-surface-variant">
-                  <span className="material-symbols-outlined text-4xl mb-2 text-on-surface-variant/40">collections</span>
-                  <p className="text-xs font-medium">Aucune image dans le carrousel pour l'instant.</p>
-                  <p className="text-[11px] opacity-70 mt-0.5">Téléversez des images ou saisissez des URLs d'images ci-dessus.</p>
                 </div>
               )}
             </div>
 
-            {/* Footer Buttons */}
-            <div className="flex gap-3 pt-4 border-t border-outline-variant/20 mt-2">
+            <div className="flex justify-end gap-2 pt-4 border-t border-outline-variant/20 mt-4">
               <button
                 type="button"
                 onClick={() => setShowCarouselModal(false)}
-                className="flex-1 py-2.5 rounded-xl text-sm font-button bg-surface-container text-on-surface"
+                className="px-4 py-2 border border-outline-variant/30 text-on-surface text-sm rounded-lg hover:bg-surface-container transition-colors"
               >
                 Annuler
               </button>
               <button
                 type="button"
-                disabled={carouselItems.filter((i) => i.url.trim() !== '').length === 0 || isUploadingCarousel}
                 onClick={handleInsertCarousel}
-                className="flex-1 py-2.5 rounded-xl text-sm font-button bg-primary text-white hover:brightness-110 disabled:opacity-50 flex items-center justify-center gap-2"
+                disabled={carouselItems.length === 0 || isUploadingCarousel}
+                className="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-container disabled:opacity-50 transition-colors"
               >
-                <span className="material-symbols-outlined text-lg">view_carousel</span>
-                Insérer le Carrousel ({carouselItems.filter((i) => i.url.trim() !== '').length})
+                Insérer le carrousel ({carouselItems.length})
               </button>
             </div>
           </div>
@@ -737,4 +816,3 @@ export default function RichTextEditor({ value, onChange, placeholder = "Contenu
     </div>
   );
 }
-

@@ -151,7 +151,7 @@ export default function News() {
                 </div>
                 <h4 className="font-headline-sm text-headline-sm text-primary mb-4">{item.title}</h4>
                 <p className="font-body-md text-body-md text-on-surface-variant mb-6 line-clamp-3">
-                  {item.content}
+                  {item.content?.replace(/<[^>]+>/g, ' ').replace(/[*_#`~]/g, '').trim()}
                 </p>
                 <div className="mt-auto">
                   <Link href={`/news/${item.id}`} className="text-primary font-button flex items-center gap-1 hover:gap-2 transition-all">

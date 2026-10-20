@@ -278,38 +278,45 @@ export default function FormattedText({ content = '', className = '' }) {
         return;
       }
 
-      // Check for headings
-      if (trimmed.startsWith('### ')) {
+      // Check for headings (Markdown or HTML)
+      const h3HtmlMatch = trimmed.match(/^<h3[^>]*>(.*?)<\/h3>$/i);
+      if (trimmed.startsWith('### ') || h3HtmlMatch) {
         flushList();
+        const text = h3HtmlMatch ? h3HtmlMatch[1] : trimmed.slice(4);
         elements.push(
-          <h3 key={index} className="font-headline-sm text-xl font-bold text-primary mt-6 mb-3" dangerouslySetInnerHTML={{ __html: formatInline(trimmed.slice(4)) }} />
+          <h3 key={index} className="font-headline-sm text-xl font-bold text-primary mt-6 mb-3" dangerouslySetInnerHTML={{ __html: formatInline(text) }} />
         );
         return;
       }
 
-      if (trimmed.startsWith('## ')) {
+      const h2HtmlMatch = trimmed.match(/^<h2[^>]*>(.*?)<\/h2>$/i);
+      if (trimmed.startsWith('## ') || h2HtmlMatch) {
         flushList();
+        const text = h2HtmlMatch ? h2HtmlMatch[1] : trimmed.slice(3);
         elements.push(
-          <h2 key={index} className="font-headline-md text-2xl font-bold text-primary mt-8 mb-4 border-b border-primary/10 pb-2" dangerouslySetInnerHTML={{ __html: formatInline(trimmed.slice(3)) }} />
+          <h2 key={index} className="font-headline-md text-2xl font-bold text-primary mt-8 mb-4 border-b border-primary/10 pb-2" dangerouslySetInnerHTML={{ __html: formatInline(text) }} />
         );
         return;
       }
 
-      // Check for blockquotes
-      if (trimmed.startsWith('> ')) {
+      // Check for blockquotes (Markdown or HTML)
+      const bqHtmlMatch = trimmed.match(/^<blockquote[^>]*>(.*?)<\/blockquote>$/i);
+      if (trimmed.startsWith('> ') || bqHtmlMatch) {
         flushList();
+        const text = bqHtmlMatch ? bqHtmlMatch[1] : trimmed.slice(2);
         elements.push(
-          <blockquote key={index} className="border-l-4 border-primary pl-4 py-2 italic bg-primary/5 rounded-r-lg my-4 text-on-surface" dangerouslySetInnerHTML={{ __html: formatInline(trimmed.slice(2)) }} />
+          <blockquote key={index} className="border-l-4 border-primary pl-4 py-2 italic bg-primary/5 rounded-r-lg my-4 text-on-surface" dangerouslySetInnerHTML={{ __html: formatInline(text) }} />
         );
         return;
       }
 
-      // Check for unordered lists
-      if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      // Check for unordered lists (Markdown or HTML <li>)
+      const liHtmlMatch = trimmed.match(/^<li[^>]*>(.*?)<\/li>$/i);
+      if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || liHtmlMatch) {
         if (listType !== 'ul') flushList();
         listType = 'ul';
         if (!currentList) currentList = [];
-        currentList.push(trimmed.slice(2));
+        currentList.push(liHtmlMatch ? liHtmlMatch[1] : trimmed.slice(2));
         return;
       }
 
@@ -323,13 +330,14 @@ export default function FormattedText({ content = '', className = '' }) {
         return;
       }
 
-      // If normal line
+      // If normal line (clean possible enclosing <p>...</p>)
       flushList();
-      if (trimmed === '') {
+      if (trimmed === '' || trimmed === '<p></p>' || trimmed === '<p><br></p>') {
         elements.push(<div key={index} className="h-3" />);
       } else {
+        const cleanLine = line.replace(/^<p[^>]*>/i, '').replace(/<\/p>$/i, '');
         elements.push(
-          <p key={index} className="my-2 leading-relaxed" dangerouslySetInnerHTML={{ __html: formatInline(line) }} />
+          <p key={index} className="my-2 leading-relaxed" dangerouslySetInnerHTML={{ __html: formatInline(cleanLine) }} />
         );
       }
     });

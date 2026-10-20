@@ -211,7 +211,9 @@ export default async function ArticleDetail({ params }) {
                   <div className="p-6">
                     <span className="font-label-caps text-label-caps text-secondary uppercase block mb-3">{item.region}</span>
                     <h4 className="font-headline-sm text-headline-sm text-primary mb-4 group-hover:text-primary/80 transition-colors">{item.title}</h4>
-                    <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2">{item.content}</p>
+                    <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2">
+                      {item.content?.replace(/<[^>]+>/g, ' ').replace(/[*_#`~]/g, '').trim()}
+                    </p>
                   </div>
                 </div>
               </Link>
