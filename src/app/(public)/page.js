@@ -10,23 +10,6 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   'https://foyers-ameliores.onrender.com';
 
-const DEFAULT_TESTIMONIALS = [
-  {
-    id: 'def-1',
-    name: 'Akossiwa D.',
-    location: 'Région des Plateaux (Kpalimé)',
-    text: "Depuis que nous utilisons le foyer amélioré, la consommation de bois a diminué de moitié et il n'y a plus de fumée toxique dans notre cour. Toute la famille cuisine désormais en toute sérénité.",
-    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
-  },
-  {
-    id: 'def-2',
-    name: 'Kodjo T.',
-    location: 'Région de la Kara',
-    text: "La rapidité de cuisson avec le foyer Asuto est remarquable. C'est un équipement robuste qui fait faire des économies quotidiennes impressionnantes à notre activité de restauration.",
-    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'
-  }
-];
-
 async function getRegions() {
   try {
     const res = await fetch(`${BACKEND_URL}/api/regions/`, {
@@ -58,9 +41,7 @@ export default async function Home() {
     getTestimonials(),
   ]);
 
-  const testimonials = (Array.isArray(apiTestimonials) && apiTestimonials.length > 0)
-    ? apiTestimonials
-    : DEFAULT_TESTIMONIALS;
+  const testimonials = Array.isArray(apiTestimonials) ? apiTestimonials : [];
 
   return (
     <>
@@ -93,47 +74,49 @@ export default async function Home() {
       {/* Product Models */}
       <ProductModels />
 
-      {/* Regions Section — Présence Nationale dynamique */}
+      {/* Regions Section — Présence Nationale dynamique (uniquement les régions ajoutées en back-office) */}
       <NationalPresence initialRegions={regions} />
 
-      {/* Testimonials */}
-      <section className="py-24 bg-surface-bright">
-        <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
-          <h2 className="font-headline-md text-headline-md text-primary text-center mb-16 italic">
-            {testimonials.length > 0 && testimonials[0].text
-              ? `"${testimonials[0].text.substring(0, 70)}..."`
-              : "L'impact direct dans le quotidien des familles togolaises"}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {testimonials.map((testimonial) => (
-              <div key={testimonial.id} className="glass-card p-10 rounded-3xl border border-outline-variant shadow-sm">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 rounded-full bg-primary-fixed overflow-hidden relative border border-primary/20 shadow-sm flex-shrink-0">
-                    {testimonial.avatar_url ? (
-                      <img
-                        src={testimonial.avatar_url}
-                        alt={testimonial.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-primary/40">
-                        <span className="material-symbols-outlined text-4xl">person</span>
-                      </div>
-                    )}
+      {/* Testimonials — affiché uniquement si des témoignages sont enregistrés en back-office */}
+      {testimonials.length > 0 && (
+        <section className="py-24 bg-surface-bright">
+          <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+            <h2 className="font-headline-md text-headline-md text-primary text-center mb-16 italic">
+              {testimonials[0].text
+                ? `"${testimonials[0].text.substring(0, 70)}..."`
+                : "Témoignages de nos bénéficiaires"}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {testimonials.map((testimonial) => (
+                <div key={testimonial.id} className="glass-card p-10 rounded-3xl border border-outline-variant shadow-sm">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-16 h-16 rounded-full bg-primary-fixed overflow-hidden relative border border-primary/20 shadow-sm flex-shrink-0">
+                      {testimonial.avatar_url ? (
+                        <img
+                          src={testimonial.avatar_url}
+                          alt={testimonial.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-primary/40">
+                          <span className="material-symbols-outlined text-4xl">person</span>
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-bold text-primary">{testimonial.name}</p>
+                      <p className="text-[10px] text-on-surface-variant font-label-caps uppercase tracking-wider">{testimonial.location || 'Togo'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold text-primary">{testimonial.name}</p>
-                    <p className="text-[10px] text-on-surface-variant font-label-caps uppercase tracking-wider">{testimonial.location || 'Togo'}</p>
-                  </div>
+                  <p className="font-body-md text-on-surface-variant leading-relaxed">
+                    &ldquo;{testimonial.text}&rdquo;
+                  </p>
                 </div>
-                <p className="font-body-md text-on-surface-variant leading-relaxed">
-                  &ldquo;{testimonial.text}&rdquo;
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Final CTA Section */}
       <section className="py-24">

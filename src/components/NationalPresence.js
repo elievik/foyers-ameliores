@@ -5,93 +5,33 @@ import Link from 'next/link';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://foyers-ameliores.onrender.com';
 
-const DEFAULT_TOGO_REGIONS = [
-  {
-    id: 'def-maritime',
-    name: 'Maritime',
-    distributed: '18500',
-    icon: 'waves',
-    img_url: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=800&q=80',
-    activity: 'Déploiement à Lomé et dans les préfectures côtières'
-  },
-  {
-    id: 'def-plateaux',
-    name: 'Plateaux',
-    distributed: '14200',
-    icon: 'cloud',
-    img_url: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80',
-    activity: 'Sensibilisation des ménages et coopératives agricoles'
-  },
-  {
-    id: 'def-centrale',
-    name: 'Centrale',
-    distributed: '9800',
-    icon: 'agriculture',
-    img_url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80',
-    activity: 'Distribution active à Sokodé et zones rurales'
-  },
-  {
-    id: 'def-kara',
-    name: 'Kara',
-    distributed: '11300',
-    icon: 'forest',
-    img_url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80',
-    activity: 'Préservation des zones montagneuses et boisées'
-  },
-  {
-    id: 'def-savanes',
-    name: 'Savanes',
-    distributed: '12600',
-    icon: 'eco',
-    img_url: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=800&q=80',
-    activity: 'Protection contre la désertification et économie de bois'
-  }
-];
-
 export default function NationalPresence({ initialRegions = [] }) {
   const [regions, setRegions] = useState(() => {
-    if (Array.isArray(initialRegions) && initialRegions.length > 0) {
-      return initialRegions;
-    }
-    return DEFAULT_TOGO_REGIONS;
+    return Array.isArray(initialRegions) ? initialRegions.filter((r) => !r.is_hidden) : [];
   });
+  const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
-    // Client-side fetch to guarantee fresh data without 1h server cache
+    // Récupère uniquement les régions créées dans le back-office
     fetch(`${BACKEND_URL}/api/regions/`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const visible = data.filter((r) => !r.is_hidden);
-          if (visible.length > 0) {
-            // Enhanced with default images/icons if missing
-            const enhanced = visible.map((reg) => {
-              const defaultMatch = DEFAULT_TOGO_REGIONS.find(
-                (d) => d.name.toLowerCase() === (reg.name || '').toLowerCase()
-              );
-              return {
-                ...reg,
-                img_url: reg.img_url || defaultMatch?.img_url || '',
-                icon: reg.icon || defaultMatch?.icon || 'public'
-              };
-            });
-
-            // Ensure all 5 Togo regions remain present if not all were added yet
-            const existingNames = new Set(enhanced.map((r) => (r.name || '').toLowerCase()));
-            const remainingDefaults = DEFAULT_TOGO_REGIONS.filter(
-              (d) => !existingNames.has(d.name.toLowerCase())
-            );
-
-            setRegions([...enhanced, ...remainingDefaults]);
-          }
+        if (Array.isArray(data)) {
+          setRegions(data.filter((r) => !r.is_hidden));
         }
       })
       .catch((err) => {
-        console.warn('Could not refresh regions live, keeping current state:', err);
+        console.error('Erreur chargement régions:', err);
+      })
+      .finally(() => {
+        setHasFetched(true);
       });
   }, []);
 
-  const displayRegions = regions.length > 0 ? regions : DEFAULT_TOGO_REGIONS;
+  // Si aucune région n'a été ajoutée dans le back-office, ne rien afficher (pas de données inventées)
+  if (regions.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-24 bg-tertiary text-on-tertiary relative overflow-hidden">
@@ -115,18 +55,18 @@ export default function NationalPresence({ initialRegions = [] }) {
           </Link>
         </div>
 
-        <div className={`grid gap-5 ${
-          displayRegions.length === 1 ? 'grid-cols-1 max-w-sm mx-auto' :
-          displayRegions.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto' :
-          displayRegions.length === 3 ? 'grid-cols-1 md:grid-cols-3' :
-          displayRegions.length === 4 ? 'grid-cols-2 md:grid-cols-4' :
+        <div className={`grid gap-6 ${
+          regions.length === 1 ? 'grid-cols-1 max-w-sm mx-auto' :
+          regions.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto' :
+          regions.length === 3 ? 'grid-cols-1 md:grid-cols-3' :
+          regions.length === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' :
           'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5'
         }`}>
-          {displayRegions.map((region) => {
+          {regions.map((region) => {
             const distributedNum = Number(region.distributed);
             const countLabel = !isNaN(distributedNum) && distributedNum > 0
               ? `${distributedNum.toLocaleString('fr-FR')} Foyers`
-              : 'Déploiement actif';
+              : '0 Foyer';
 
             return (
               <Link
@@ -142,11 +82,11 @@ export default function NationalPresence({ initialRegions = [] }) {
                     loading="lazy"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-primary/80 to-tertiary flex items-center justify-center">
-                    <span className="material-symbols-outlined text-white/30 text-7xl">{region.icon || 'public'}</span>
+                  <div className="w-full h-full bg-gradient-to-br from-surface-container-high/40 via-tertiary/60 to-tertiary-container/40 flex flex-col items-center justify-center p-6 border border-white/10">
+                    <span className="material-symbols-outlined text-white/40 text-7xl mb-3">{region.icon || 'public'}</span>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent transition-opacity group-hover:opacity-90"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:opacity-90"></div>
 
                 <div className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/20 text-white">
                   <span className="material-symbols-outlined text-lg">{region.icon || 'location_on'}</span>
