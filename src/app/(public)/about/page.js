@@ -238,10 +238,12 @@ export default function About() {
                 </div>
               ))
             ) : (
-              <div className="text-center py-12 text-on-surface-variant">
-                <span className="material-symbols-outlined text-6xl mb-4 block">business</span>
-                <p className="font-body-lg">Aucun partenaire enregistré pour le moment.</p>
-                <p className="text-sm mt-2">Ajoutez des partenaires depuis le back-office pour les afficher ici.</p>
+              <div className="text-center py-12 text-on-surface-variant max-w-xl mx-auto">
+                <span className="material-symbols-outlined text-6xl mb-4 block text-primary/40">handshake</span>
+                <p className="font-headline-sm text-primary mb-2">Partenariats Nationaux &amp; Internationaux</p>
+                <p className="text-sm text-on-surface-variant">
+                  En étroite collaboration avec les ministères togolais, les ONG locales et les bailleurs internationaux engagés pour la transition écologique au Togo.
+                </p>
               </div>
             )}
           </div>
